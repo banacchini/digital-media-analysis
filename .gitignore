@@ -8,3 +8,18 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Tooling caches
+.ruff_cache/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Secrets
+.env
+.env.*
+
+# Data: never committed (see data/README.md)
+data/**
+!data/README.md
+!data/*/
+!data/*/.gitkeep
