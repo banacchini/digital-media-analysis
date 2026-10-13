@@ -47,7 +47,7 @@ Dane będą pochodzić z dumpu z bazy danych PostgreSQL, zakładamy pliki csv po
 5. Jaki jest zakres czasowy danych i liczba użytkowników, swipe'ów, matchy i rozpoczętych rozmów?
 6. Czy ID są spójne między tabelami? Czy boty i konta testowe zostały usunięte?
 7. Czy swipe'y na ogłoszenia można powiązać z cechami ogłoszeń (cena, lokalizacja)?
-8. Czy istnieje mechanizm "Superlajka" (bezpośredniego wysłania wiadomości, bez wymogu istnienia matcha - udostępnionego za opłatą).
+8. Czy istnieje mechanizm "Superlajka" (bezpośredniego wysłania wiadomości, bez wymogu istnienia matcha).
 
 ---
 
