@@ -1,0 +1,1649 @@
+
+❯ <browser_instruction># Claude in Chrome browser automation
+
+  You have access to browser automation tools (mcp__claude-in-chrome__*) for
+  interacting with web pages in Chrome. Follow these guidelines for effective
+  browser automation.
+
+  ## Loading deferred tools
+
+  If the mcp__claude-in-chrome__* tools are deferred (must be loaded via
+  ToolSearch before use), load every tool you expect to need in ONE ToolSearch
+  call — the select query accepts a comma-separated list — never one call per
+  tool. Start with the core set:
+
+  ToolSearch with query
+  "select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__naviga
+  te,mcp__claude-in-chrome__computer,mcp__claude-in-chrome__read_page,mcp__clau
+  de-in-chrome__tabs_create_mcp,mcp__claude-in-chrome__tabs_close_mcp"
+
+  Add task-specific tools to the same call when the task obviously needs them:
+  read_console_messages / read_network_requests for debugging, form_input for
+  forms, gif_creator for recordings, javascript_tool for page scripting.
+
+  ## GIF recording
+
+  When performing multi-step browser interactions that the user may want to
+  review or share, use mcp__claude-in-chrome__gif_creator to record them.
+
+  You must ALWAYS:
+  * Capture extra frames before and after taking actions to ensure smooth
+  playback
+  * Name the file meaningfully to help the user identify it later (e.g.,
+  "login_process.gif")
+
+  ## Console log debugging
+
+  You can use mcp__claude-in-chrome__read_console_messages to read console
+  output. Console output may be verbose. If you are looking for specific log
+  entries, use the 'pattern' parameter with a regex-compatible pattern. This
+  filters results efficiently and avoids overwhelming output. For example, use
+  pattern: "[MyApp]" to filter for application-specific logs rather than
+  reading all console output.
+
+  ## Alerts and dialogs
+
+  IMPORTANT: Do not trigger JavaScript alerts, confirms, prompts, or browser
+  modal dialogs through your actions. These browser dialogs block all further
+  browser events and will prevent the extension from receiving any subsequent
+  commands. Instead, when possible, use console.log for debugging and then use
+  the mcp__claude-in-chrome__read_console_messages tool to read those log
+  messages. If a page has dialog-triggering elements:
+  1. Avoid clicking buttons or links that may trigger alerts (e.g., "Delete"
+  buttons with confirmation dialogs)
+  2. If you must interact with such elements, warn the user first that this may
+  interrupt the session
+  3. Use mcp__claude-in-chrome__javascript_tool to check for and dismiss any
+  existing dialogs before proceeding
+
+  If you accidentally trigger a dialog and lose responsiveness, inform the user
+  they need to manually dismiss it in the browser.
+
+  ## Avoid rabbit holes and loops
+
+  When using browser automation tools, stay focused on the specific task. If
+  you encounter any of the following, stop and ask the user for guidance:
+  - Unexpected complexity or tangential browser exploration
+  - Browser tool calls failing or returning errors after 2-3 attempts
+  - No response from the browser extension
+  - Page elements not responding to clicks or input
+  - Pages not loading or timing out
+  - Unable to complete the browser task despite multiple approaches
+
+  Explain what you attempted, what went wrong, and ask how the user would like
+  to proceed. Do not keep retrying the same failing browser action or explore
+  unrelated pages without checking in first.
+
+  ## Tab context and session startup
+
+  IMPORTANT: At the start of each browser automation session, call
+  mcp__claude-in-chrome__tabs_context_mcp first to get information about the
+  user's current browser tabs. Use this context to understand what the user
+  might want to work with before creating new tabs.
+
+  Never reuse tab IDs from a previous/other session. Follow these guidelines:
+  1. Only reuse an existing tab if the user explicitly asks to work with it
+  2. Otherwise, create a new tab with mcp__claude-in-chrome__tabs_create_mcp
+  3. If a tool returns an error indicating the tab doesn't exist or is invalid,
+  call tabs_context_mcp to get fresh tab IDs
+  4. When a tab is closed by the user or a navigation error occurs, call
+  tabs_context_mcp to see what tabs are available</browser_instruction>
+
+❯ przygotuj prosty notebook w którym opisujesz wszystkie informacje które mamy
+  o userach (np. zbiór wartości tagów itp.), a potem wyświetl w nim 2 losowych
+  userów.
+
+● Zacznę od dokumentacji projektu i struktury danych.
+
+  Read 1 file, ran 1 shell command (ctrl+o to expand)
+
+● Dane są w plikach parquet, a opis tabel jest w tables_metadata.json. Sprawdzę
+  go i istniejący notebook EDA.
+
+  Read 1 file, ran 1 shell command (ctrl+o to expand)
+
+● Notebook EDA już ładuje parquet z data/processed/. Zbadam tabelę users i
+  tabele powiązane: wartości kategorii, strukturę interests oraz klucze.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Kody (np. FT, VT, NO, SN) wymagają słownika. Sprawdzam, czy projekt ma
+  kodebook, oraz zbiór tagów w interests.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Mam pełny obraz danych. Kody typu FT, VT, NO nie mają kodebooka w repo, więc w
+  notebooku ich nie będę tłumaczyć. Bio wyświetlę tylko jako flagę, bo bio może
+  zawierać dane osobowe (zasada z CLAUDE.md). Teraz generuję notebook i
+  wykonuję go.
+
+  Made 1 scratchpad edit +253, ran 1 shell command (ctrl+o to expand)
+
+● Skrypt ma błąd w porządku komórek (dwie osobne listy i pusta końcówka).
+  Poprawię go, żeby komórki trafiały do jednej listy w kolejności, i uproszczę
+  sekcję z 2 userami.
+
+  Made 3 scratchpad edits +51 -32 (ctrl+o to expand)
+
+● Teraz generuję notebook i wykonuję go, żeby wyniki były widoczne.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Notebook wykonał się bez błędów. Sprawdzam wyjścia komórek, zwłaszcza sekcję z
+  dwoma losowymi userami i tagami.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Wyniki wyglądają poprawnie, ale opis budżetu w sekcji 5 nie zgadza się z
+  danymi (wartości odstające to 2, 10, 8000, 10000, 15000, 30000, a nie „30000 i
+  2”). Poprawiam tekst w skrypcie i regeneruję notebook.
+
+  Made 1 scratchpad edit +3 -2, ran 1 shell command (ctrl+o to expand)
+
+● Próbka wygląda dobrze. Tagi w tabeli są ucięte przez domyślny limit pandas,
+  więc ustawiam pełne wyświetlanie, regeneruję i wykonuję notebook jeszcze raz.
+
+  Made 1 scratchpad edit +2 -1, ran 1 shell command (ctrl+o to expand)
+
+● Notebook jest gotowy: notebooks/users_overview.ipynb. Wykonałem go bez błędów,
+  więc wyniki są w nim widoczne.
+
+  Co zawiera
+  1. Tabele z danymi o userach: users (2065 profili), profile_history, swipes,
+     matches, chats, z kluczami, którymi się łączą.
+  2. Pola users i braki danych: lifestyle'owe pola (daily_routine, lifestyle,
+     work_from_home, smoking, alcohol) mają 74–81% braków.
+  3. Zbiory wartości dla każdego pola kategorycznego (liczności i procenty, z
+     NaN).
+  4. Anomalie:
+     - move_in_month_offset ma wartości ujemne (-222, -338).
+     - budget jest podany tylko dla 290 userów, a kilka wartości jest
+       odstających (2, 10, 8000–30000).
+     - city zawiera 45 userów z Hyderabad.
+  5. Tagi interests: 124 unikalne ciągi. 70 to klucze snake_case (np. student),
+     a 54 to etykiety z emoji w PL lub EN (np. 🎓 Student). Prawdopodobnie te
+     same pojęcia zapisane dwoma sposobami, ale nie zweryfikowałem tego. Mediana
+     to 9 tagów na usera, 1177 userów ma limit 9, a 53 nie ma żadnego.
+  6. Aktywność na userze: liczba swipe'ów, prawych swipe'ów, matchów, czatów i
+     wersji profilu. Sprawdziłem też, że wszystkie klucze w swipes i
+     profile_history istnieją w users.
+  7. Dwóch losowych userów: random_state=42, czyli wynik jest powtarzalny.
+
+  Decyzje, które podjąłem
+  - Bio nie jest wyświetlane. Zgodnie z CLAUDE.md bio może zawierać dane
+    osobowe, a audyt nie jest jeszcze zrobiony. W tabeli jest tylko bio_length i
+    flaga has_bio.
+  - Kody bez słownika: FT, VT, NO, SN, LR, HA itd. pokazuję tak, jak są w
+    danych. W repo nie ma kodebooka, więc nie zgaduję ich znaczeń.
+  - Notebook jest po angielsku, bo tak wymaga CLAUDE.md dla dokumentów i
+    komentarzy w kodzie.
+
+  Czego nie zrobiłem
+  - Nie commitowałem (zgodnie z zasadami dla agentów).
+  - Notebook ma zapisane outputy. CLAUDE.md wymaga ich usunięcia przed commitem,
+    więc przed commitem trzeba je wyczyścić.
+  - Nie eksportowałem logu sesji do logs/ai/, co CLAUDE.md przypisuje osobie,
+    która uruchomiła sesję.
+
+❯ <ide_opened_file>The user opened the file
+  /home/dominik/projects/wust/sem2/umc/notebooks/users_overview.ipynb in the
+  IDE. This may or may not be related to the current task.</ide_opened_file>
+
+❯ okej, czyli biorąc pod uwagę H1, jako styl życia możemy wziąć daily_routine,
+  lifestyle, work_from_home, cleanliness, noise_level, smoking, alcohol a jako
+  zainteresowania interersts (z uwagą na to, że wśród interests są też rzeczy
+  mówiące o lifestyle (np. quiet_after_22) tak?
+
+● Sprawdzę, jak H1 jest zdefiniowane w karcie eksploracji, zanim odpowiem.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Tak, z jednym zastrzeżeniem. Karta eksploracji (sekcja H1, punkt „Styl życia”
+  i ograniczenie G14) już tak to zakłada: styl życia to pola strukturalne plus
+  tagi stylu życia, a zainteresowania to osobny blok z Jaccardem.
+
+  Warto jednak ustalić podział tagów, zanim zrobimy model, bo teraz H1 porównuje
+  sam ze sobą ten sam sygnał:
+
+  - Tagi stylu życia (quiet_after_22, night_owl, early_bird, non_smoker, smoker,
+    vapes, introvert, extrovert, values_privacy, loves_cleanliness, likes_pets
+    / no_pets) powinny trafić do bloku stylu życia, a nie do zainteresowań.
+    Jeśli zostaną w interests, to ten sam sygnał wejdzie do obu bloków i
+    porównanie H1 (styl życia vs wiek + zainteresowania) przestanie być czyste.
+  - Część tagów dubluje pola strukturalne: non_smoker/smoker/vapes ↔ smoking,
+    quiet_after_22/quiet_evenings ↔ noise_level, loves_cleanliness ↔
+    cleanliness. Trzeba zdecydować, czy łączymy je w jedną zmienną, czy
+    zostawiamy osobno i sprawdzamy spójność.
+  - Zainteresowania to to, co zostaje: gym, running, yoga, gaming,
+    movies_cinema, cooking, photography itd. Niejednoznaczne są np. student,
+    travel, coffee, cooking (częściowo styl życia).
+
+  Dwie rzeczy do rozważenia przy samych polach strukturalnych:
+  - daily_routine, lifestyle, work_from_home, smoking, alcohol mają 74–81%
+    braków, więc w praktyce styl życia w H1 będzie opierał się głównie na
+    tagach. Pola z mniejszymi brakami (cleanliness, noise_level) mogą mieć
+    wartość domyślną, co karta też zaznacza.
+  - Karta nie rozstrzyga, czy pola stylu życia to cechy własne użytkownika, czy
+    preferencje względem współlokatora. Od tego zależy, czy zgodność liczymy
+    jako „oboje tacy sami” czy „A pasuje do preferencji B”.
+
+  Nie zmieniałem jeszcze żadnego pliku. Mogę dopisać do karty w sekcji H1 listę
+  tagów przypisanych do stylu życia i zainteresowań (wersja robocza, do
+  zatwierdzenia przez zespół), albo najpierw wypisać pełny podział 124 tagów w
+  notebooku.
+
+❯ <ide_opened_file>The user opened the file
+  /home/dominik/projects/wust/sem2/umc/notebooks/users_overview.ipynb in the
+  IDE. This may or may not be related to the current task.</ide_opened_file>
+
+❯ Okej, teraz stwórz dodatkowy notebook w którym opisujesz w podobny sposób
+  profile history. Na końcu przedstaw tego samego usera w 3 róznych wersjach
+  profilu.
+
+● Najpierw sprawdzę strukturę profile_history: kolumny, typy zmian, pola w
+  changed_fields i rozkład wersji na usera.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Każdy wiersz to pełny snapshot profilu w danej wersji, a changed_fields
+  opisuje, co się zmieniło względem poprzedniej. Sprawdzę, czy to się zgadza i
+  czy ostatnia wersja pokrywa się z users.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Zgodność ostatniej wersji z users wygląda na niską dla pól z brakami. To może
+  być artefakt porównania (NaN vs None jako tekst), więc sprawdzę to dokładniej.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Ostatnia wersja w profile_history zgadza się z users w 100% pól (wcześniejsza
+  różnica to artefakt porównania). Pole move_in w changed_fields to
+  prawdopodobnie skrócone move_in_month_offset, co sprawdzę w notebooku. Buduję
+  notebook.
+
+  Made 1 scratchpad edit +340, ran 1 shell command (ctrl+o to expand)
+● Notebook wykonał się bez błędów, ale wylosowany user nie zmienił tagów między
+  wersjami. Najpierw przeglądam pozostałe wyniki, a potem decyduję, czy
+  losowanie zawęzić.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Większość pól w changed_fields zgadza się z porównaniem snapshotów w 100%. Są
+  trzy wyjątki, które trzeba opisać:
+  - sex: zmienia się w snapshotach 101 razy, ale nigdy nie jest wymienione w
+    changed_fields.
+  - city: wymienione 541 razy, a zmieniło się w snapshotach 303 razy.
+  - move_in: zgodność 99,4%, więc mapowanie na move_in_month_offset działa.
+
+  Dodaję do notebooka opis tych wyjątków. Losowanie usera zawężam do takich, u
+  których przez wersje zmieniło się co najmniej 3 pola, żeby trzy pokazane
+  wersje były czytelnie różne.
+
+  Made 3 scratchpad edits +23 -6, ran 1 shell command (ctrl+o to expand)
+
+● Notebook jest gotowy: notebooks/profile_history_overview.ipynb. Wykonałem go
+  bez błędów. Opisuje tabelę profile_history podobnie jak users_overview, a na
+  końcu pokazuje jednego usera w trzech wersjach profilu: v1 (utworzenie), v5 i
+  v9.
+
+  Najważniejsze ustalenia
+  - 2056 userów ma historię, czyli 9 userów z users nie ma żadnego wpisu w
+    historii. Mediana to 1 wersja na usera, a 1078 userów ma tylko wersję
+    początkową.
+  - Ostatnia wersja w historii zgadza się z users w 100% pól.
+  - changed_fields jest wiarygodne nie dla wszystkich pól:
+    - sex nigdy nie jest tam wymieniane, choć w snapshotach zmienia się 101
+      razy. Wykrywam to w wylosowanym userze: w v9 jego płeć zmienia się z F na
+      O, a changed_fields podaje tylko interests.
+    - city jest wymieniane 541 razy, a w snapshotach zmienia się 303 razy.
+    - Pozostałe pola zgadzają się w 100%, poza move_in (99,4%), co potwierdza,
+      że to skrót od move_in_month_offset.
+  - Dla analiz, w których ma znaczenie sex lub city, trzeba porównywać snapshoty
+    zamiast polegać na changed_fields. Ta uwaga jest w notebooku.
+
+  Wybór usera
+  Losowanie (random_state=42) obejmuje tylko userów z co najmniej 3 wersjami, w
+  których przynajmniej 3 pola przyjmują różne wartości. Dzięki temu trzy
+  pokazane wersje są wyraźnie różne. Bio nie jest wyświetlane, widać tylko
+  długość (tu 0).
+
+  Zastrzeżenia
+  - Pochodzenie day nie jest udokumentowane w repo, więc znamy tylko względne
+    odstępy między wersjami.
+  - Notebook ma zapisane outputy. Przed commitem trzeba je usunąć zgodnie z
+    CLAUDE.md.
+  - Nie commitowałem.
+
+❯ Tam gdzie to możliwe w obu plikach, dodaj wykresy, żeby łatwiej analizowało
+  się wyniki.
+
+● Przed dodawaniem wykresów wczytam skill dataviz, bo tego wymagają zasady dla
+  tworzenia wykresów.
+
+● Skill(dataviz)
+  ⎿  Successfully loaded skill
+
+● Skill wymaga rozpoznania formy wykresu i ograniczenia kolorów. Dla tych
+  notebooków wystarczą mi trzy zasady: jeden kolor dla wielkości, dwa kolory
+  tylko przy dwóch seriach z legendą, oraz jedna oś Y bez podwójnych skal. Nie
+  generuję palety, bo nie ma tu kilku serii o tożsamości.
+
+  Dodaję wykresy do users_overview i do profile_history_overview w skryptach
+  budujących, a potem regeneruję i wykonuję oba notebooki.
+
+  Made 6 scratchpad edits +125 -15 (ctrl+o to expand)
+
+● Wykresy do users_overview są dodane. Teraz to samo dla
+  profile_history_overview, w tym mapę zmienionych pól dla wylosowanego usera.
+
+  Made 7 scratchpad edits +136 -17 (ctrl+o to expand)
+
+● Fraza view występuje dwa razy, więc zakotwiczę wstawkę unikalnym fragmentem z
+  tabeli usera.
+
+  Made 1 scratchpad edit +31 -4 (ctrl+o to expand)
+
+● Oba skrypty są zaktualizowane. Regeneruję i wykonuję oba notebooki, potem
+  sprawdzam błędy i liczbę wyjść graficznych.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Oba notebooki wykonały się bez błędów. Każdy ma 6 wykresów, zgodnie z planem.
+  Dataviz wymaga też sprawdzenia wizualnego, więc wyciągam obrazy i oglądam te z
+  największym ryzykiem kolizji etykiet.
+
+  Read 5 files, ran 1 shell command (ctrl+o to expand)
+
+● Wykresy z etykietami, legendą i dwiema seriami wyglądają czytelnie, a różnica
+  w sex/city jest widoczna na pierwszy rzut oka. Sprawdzam jeszcze siatkę małych
+  wykresów kategorii, bo tam jest najwięcej paneli.
+
+  Read 1 file (ctrl+o to expand)
+
+● Oba notebooki mają teraz wykresy. Wykonałem je bez błędów, a wykresy
+  sprawdziłem wizualnie.
+
+  users_overview.ipynb (6 wykresów):
+  - brakujące wartości na pole (poziome słupki z procentami),
+  - małe wielokrotności dla 12 pól kategorycznych (brakujące wartości szare),
+  - move_in_month_offset z ujemnymi wartościami oraz histogram budget do 5000,
+  - 30 najczęstszych tagów z rozróżnieniem stylu klucza i etykiety (legenda),
+  - liczba tagów na usera (limit 9 wyraźnie widoczny),
+  - aktywność userów w skali logarytmicznej.
+
+  profile_history_overview.ipynb (6 wykresów):
+  - rozkład liczby wersji na usera (skala logarytmiczna, bo 1078 userów ma jedną
+    wersję),
+  - brakujące wartości na pole,
+  - wielkość aktualizacji i najczęściej zmieniane pola,
+  - zgodność snapshotów z changed_fields: dwie serie z legendą. Na tym wykresie
+    od razu widać, że sex i city rozjeżdżają się z listą zmian,
+  - odstępy dni między wersjami,
+  - mapa zmian wylosowanego usera: pola zmienione w każdej wersji. Widać na niej
+    zmiany sex i interests.
+
+  Wybory wizualne: jeden kolor dla wielkości, drugi jasny tylko przy dwóch
+  seriach z legendą, bez podwójnych osi Y, brakujące wartości w osobnym szarym
+  kolorze, a siatka jest dyskretna. Nie walidowałem palety, bo nie ma w niej
+  więcej niż dwóch serii o tożsamości. Notebooki z wykresami mają zapisane
+  outputy, więc przed commitem trzeba je wyczyścić zgodnie z CLAUDE.md. Nie
+  commitowałem.
+
+❯ okej, w profile_history_overview dodaj jeszcze jakiegoś usera który zmieniał
+  bio i pokaż statystyki tego bio (bez wyświetlania tekstu)
+
+● Dodaję do profile_history_overview nową sekcję. Wybiorę usera z co najmniej
+  dwiema zmianami bio (losowanie z random_state=42) i pokażę jego statystyki.
+  Tekst bio nie zostanie wyświetlony: flagi, np. obecność cyfr czy adresu, liczę
+  w pamięci i pokazuję tylko liczby.
+
+  Made 1 scratchpad edit +96 -2, ran 1 shell command (ctrl+o to expand)
+
+● Wszystkie 33 komórek wykonały się bez błędów. Wynik „0% @/linków” i „0%
+  długich ciągów cyfr” wygląda podejrzanie, więc sprawdzam, czy regexy w
+  notebooku są poprawnie zapisane i czy wynik nie jest artefaktem.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Regexy działają poprawnie. Jedna wersja bio zawiera @, a wynik „0,0%” to
+  zaokrąglenie (1 z 4508 wersji). Zwiększam precyzję tej tabeli do dwóch miejsc
+  po przecinku, żeby nie wprowadzała w błąd, i regeneruję notebook.
+
+  Made 1 scratchpad edit +1 -1, ran 1 shell command (ctrl+o to expand)
+
+● Liczby się zgadzają. Sprawdzam jeszcze wykres bio pod kątem układu.
+
+  Read 1 file, ran 1 shell command (ctrl+o to expand)
+
+● W profile_history_overview dodałem sekcję 10 o zmianach bio. Notebook wykonał
+  się bez błędów. Tekst bio nie jest wyświetlany, widać tylko liczby i długości.
+
+  Wylosowany user (random_state=42, spośród userów, którzy zmienili bio co
+  najmniej dwa razy) ma 12 wersji, a bio zmieniało się w 8 z nich. Długość bio
+  przechodzi od 129 znaków, przez wyzerowanie w v6, do 223 w v12. Tabela
+  pokazuje, dla każdej wersji, długość bio i flagi (puste, cyfry, @/link, długi
+  ciąg cyfr). Wykres pokazuje długość bio po wersjach z zaznaczeniem zmian.
+
+  Statystyki bio dla całego zbioru:
+  - 552 wersje ze zmianą bio, a 362 userów zmieniło bio co najmniej raz.
+  - 42,1% wersji ma puste bio. Mediana długości niepustych bio to 96 znaków, a
+    maksimum 250.
+  - Cyfry występują w 9,27% wersji. @ lub link pojawia się w jednej wersji
+    (0,02%). Długi ciąg cyfr, np. numer telefonu, nie występuje. Dla pewności
+    sprawdziłem regexy na surowych danych.
+
+  Dwie rzeczy, na które warto zwrócić uwagę:
+  - Skupienie przy 250 znakach. Histogram długości ma wyraźne piętro na
+    wartości 250. To wygląda na limit długości w aplikacji albo obcięcie przy
+    eksporcie.
+  - bio_length nie zawsze równa się długości tekstu. Zgadza się to w 97,4%
+    wersji. Różnica może wynikać ze znaków wielobajtowych, białych znaków albo z
+    tego, jak liczono długość. Wymaga to sprawdzenia przed użyciem bio_length w
+    analizie.
+
+  Flagi są przybliżonym przesiewem danych osobowych, a nie pełnym audytem. Pełny
+  audyt bio nadal jest do zrobienia. Notebook ma zapisane outputy, więc przed
+  commitem trzeba je wyczyścić. Nie commitowałem.
+
+❯ <ide_opened_file>The user opened the file /home/dominik/projects/wust/sem2/um
+  c/logs/ai/claude/banacchini/2026-10-20-010043-user-and-history-overview.txt
+  in the IDE. This may or may not be related to the current
+  task.</ide_opened_file>
+
+❯ okej, dodaj stosowną notkę w ai disclosure - logi znajdują się w
+  @logs/ai/claude/banacchini/2026-10-20-010043-user-and-history-overview.txt
+  ⎿  Read
+     logs/ai/claude/banacchini/2026-10-20-010043-user-and-history-overview.txt
+     (446 lines)
+
+● Najpierw czytam obecny plik docs/ai-disclosure.md, szablon i instrukcję logów,
+  żeby notka pasowała do formatu projektu.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Nowy log to ta sesja (wykresy, statystyki bio, profile history), więc dodaję
+  do tabeli w docs/ai-disclosure.md jeden wiersz w tym samym formacie co
+  poprzednie. Najpierw odczytuję plik narzędziem Read, żeby móc go edytować.
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(docs/ai-disclosure.md)  ⎿  Added 1 line
+       6  | ---------- | ---------------- | ----------------------- | ---
+          -------------------------------- | ----------------------------
+          ---------------------------------------------------------------
+          ---------------------------------------------------------------
+          ---------------------------------------------------------------
+          ---------------------------------------------------------------
+          ---------------------------------------------------- | --------
+          ---------------------------------------------------------------
+          ----- |
+       7  | 2026-10-18 | Jakub Smolarczyk | Gemini 3.8 Flash medium | Cod
+          e generation ; hypothesis advice | Adopted in src/rentfriends/E
+          DA.py, running ruff and checking that generated figures match a
+          ctual metadata of the dataset, also adapted and executed in not
+          ebooks/EDA.ipynb, verified against dataset outputs. ; used to f
+          ormulate notes in notebooks/EDA.ipynb after double-checking rul
+          es in docs/rentfriends_hipotezy_karta_eksploracji.md | `logs/ai
+          /gemini/maxster256/2026-10-18-hypotheses-feasibility-eda-code.j
+          sonl` |
+       8  | 2026-10-19 | Dominik (banacchini) | Claude Code (Claude Sonne
+          t 5.5) | Documentation and code generation: filling in missing 
+          data in the exploration card; new EDA cells in notebooks/EDA.ip
+          ynb | Numbers, distributions and feasibility notes from noteboo
+          ks/EDA-rendered.ipynb transcribed into docs/rentfriends_hipotez
+          y_karta_eksploracji.md (sections 2, 3.4, 4, 5). Used after revi
+          ew of the diff against the notebook outputs; the model only rea
+          d the notebook text outputs, not the figures or the ERD image, 
+          and could not read data/processed. Derived values (e.g. same-se
+          x acceptance, 9.4% of mutual-decision pairs ending in a match, 
+          10x-rule limit of ~73 variables) and the proposed n_min = 10 th
+          reshold are the model's own calculations or proposals and need 
+          confirmation by the author. Follow-up: the model wrote new cell
+          s at the end of notebooks/EDA.ipynb (time range, chats outside 
+          matches, lifestyle completeness, filtered sample sizes, bio sta
+          tistics, Wilson CIs for H2, listing swipes, matches with a sing
+          le recorded swipe), ran the whole notebook with nbconvert on th
+          e local data (output not committed), and checked it with ruff. 
+          It also corrected its own earlier error (match share of mutual-
+          decision pairs: 6.3%, not 9.4%). Numbers in the card come from 
+          this run; the interpretations still need author review. | `logs
+          /ai/claude/banacchini/2026-10-20-uzupenij-brakujce-informacje-w
+          -docsrentfriend.txt`|
+       9 +| 2026-10-20 | Dominik (banacchini) | Claude Code (Claude Haiku
+         + 5.5) | EDA notebooks on user data: `notebooks/users_overview.i
+         +pynb` (structure, value sets, interest tags, two random users) 
+         +and `notebooks/profile_history_overview.ipynb` (profile version
+         +s, `changed_fields` checks, bio statistics without text, charts
+         +); discussion of the H1 split between lifestyle fields and inte
+         +rest tags | Notebook code was written by the model and executed
+         + with nbconvert on the local `data/processed` tables (outputs n
+         +ot committed). Checked by the model: latest profile version vs 
+         +`users` (100% agreement); `changed_fields` vs snapshot differen
+         +ces (found that `sex` is never listed and `city` is listed more
+         + often than it changes); bio regex flags run on raw text, with 
+         +only counts shown; charts rendered and inspected. Not verified:
+         + meaning of the lifestyle codes (no codebook in the repo), caus
+         +e of the apparent 250-character bio ceiling, cause of the 2.6% 
+         +mismatch between `bio_length` and text length, and the H1 tag s
+         +plit, which is a proposal only and was not written to `docs/ren
+         +tfriends_hipotezy_karta_eksploracji.md`. Needs author review be
+         +fore use. | `logs/ai/claude/banacchini/2026-10-20-010043-user-a
+         +nd-history-overview.txt` |                                     
+      10  |            |
+      11  
+      12  ## Statement for the report (draft)
+
+● Dodałem wiersz dla tej sesji do docs/ai-disclosure.md, w tym samym formacie co
+  poprzednie wpisy. Wskazuje on na log
+  logs/ai/claude/banacchini/2026-10-20-010043-user-and-history-overview.txt.
+
+  W wierszu opisałem:
+  - Narzędzie: Claude Code (Claude Haiku 5.5). To model podany w moim
+    środowisku, więc jeśli sesja była prowadzona na innym modelu, trzeba to
+    poprawić.
+  - Zakres: oba notebooki (users_overview, profile_history_overview) oraz
+    dyskusję o podziale tagów w H1.
+  - Co zostało sprawdzone: zgodność ostatniej wersji profilu z users, zgodność
+    changed_fields z różnicami w snapshotach, flagi regex na surowym bio (tylko
+    liczby), wykresy obejrzane po renderze.
+  - Czego nie sprawdzono: znaczenie kodów (brak kodebooka), przyczyna pułapu 250
+    znaków, przyczyna różnicy 2,6% w bio_length, oraz propozycja podziału tagów
+    w H1, która nie trafiła do karty.
+
+  Wiersz zawiera też zastrzeżenie, że wymaga przeglądu autora przed użyciem w
+  raporcie. Nie zmieniałem sekcji „Statement for the report” ani „Instruments”,
+  bo nie są potrzebne do tej notki.
+
+  Nie commitowałem. Log i notebooki są nadal nieśledzone przez git.
+
+❯ Zaudytuj @docs/rentfriends_hipotezy_karta_eksploracji.md  wobec nowych
+  informacji z analizy profile_history i users_overview i zaktualizuj
+  informacje. Wypisz wszystkie problemy które pojawiły się w hipotezach.
+  ⎿  Read docs/rentfriends_hipotezy_karta_eksploracji.md (288 lines)
+
+● Zanim zmienię kartę, sprawdzam kilka rzeczy, których karta nie ma policzonych
+  albo których założenia mogą być błędne:
+  - czy płeć i wiek w swipes są przypisane z bieżącego stanu usera, czy z
+    momentu swipe'a (co wynika z profile_history),
+  - czy użytkownicy mają tagi w obu formatach naraz,
+  - czy da się sprawdzić, czy swipe'y nie są wcześniejsze niż utworzenie
+    profilu.
+
+  Liczę tylko agregaty, bez tekstu bio.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Płeć i wiek w swipes są w większości zgodne ze stanem na dzień swipe'a, ale
+  nie wszędzie. Najważniejsze liczby to 87 userów ze zmienioną płcią oraz 55 296
+  swipe'ów bez wcześniejszego stanu profilu. Sprawdzam jeszcze tagi w obu
+  formatach, zgodność bio_length w users i to, czy cleanliness zachowuje się jak
+  wartość domyślna.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Część liczb już mam. Zanim zapiszę w karcie, że „55 296 swipe'ów nie ma
+  wcześniejszego stanu”, sprawdzam, ile z nich to swipe'y w dniu utworzenia
+  profilu, a ile to możliwa niezgodność dni.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● To rozwiązuje wątpliwość: 54 597 swipe'ów to swipe'y z dnia utworzenia
+  profilu, a nie błąd danych. Ostatnia rzecz do sprawdzenia to to, na czym
+  opiera się H5 i sekcja o bio: czy changed_fields zawiera bio zawsze wtedy, gdy
+  tekst bio się zmienia. Sprawdzam tylko zgodność w liczbach, bez wyświetlania
+  tekstu.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Wiadomo już, że bio w changed_fields jest wiarygodne (100% zgodności), więc H5
+  może na tym polegać. Teraz aktualizuję kartę. Zmiany dotyczą danych (sekcja
+  2), definicji (3.2), ograniczeń (G2, G6, G12, G14, G16–G18), hipotez (nazwy
+  tabel, sekcja H2/H5), sekcji 5 i 6 oraz nowej sekcji 7 z listą problemów.
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      1  # RentFriends — materiał do Karty Eksploracji Danych (M1)
+      2  
+      3 -**Status:** dane otrzymane; wstępna EDA wykonana (`notebooks/EDA
+        -.ipynb`, wersja z wynikami: `notebooks/EDA-rendered.ipynb`). Sek
+        -cje 2, 4 i 5 uzupełniono liczbami z EDA. Pytania do dostawcy (fe
+        -ed, Superlajk, wartości domyślne, brakujące swipe'y matchy) pozo
+        -stają otwarte. Liczby są opisowe (bez wnioskowania statystyczneg
+        -o).                                                             
+      3 +**Status:** dane otrzymane; wstępna EDA wykonana (`notebooks/EDA
+        +.ipynb`, wersja z wynikami: `notebooks/EDA-rendered.ipynb`). Sek
+        +cje 2, 4 i 5 uzupełniono liczbami z EDA. Pytania do dostawcy (fe
+        +ed, Superlajk, wartości domyślne, brakujące swipe'y matchy) pozo
+        +stają otwarte. Liczby są opisowe (bez wnioskowania statystyczneg
+        +o). Audyt 2026-10-20 wobec `profile_history` i notebooków `users
+        +_overview` / `profile_history_overview`: zmiany opisano w sekcji
+        + 7.                                                             
+      4  
+      5  ---
+      6  
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      37  | `matches` | `user_a_key`, `user_b_key`, `day` | **733** match
+          e, bez braków (0% NaN); match = wzajemne prawe swipe'y |
+      38  | `chats` | para użytkowników, `from_match`, `source_listing_ke
+          y`, dni utworzenia i pierwszej wiadomości | bez treści wiadomoś
+          ci; łącznie **2742** rozmowy, z matcha **269**, z ogłoszenia (b
+          ez matcha) 163, pozostałe 2310 |
+      39  | `listings` | **294** ogłoszenia: miasto, dzielnica, `listing_
+          kind` (room/entire), liczba mieszkańców, pokoje, `min_price`/`m
+          ax_price`, `created_day` | swipe'y na ogłoszenia: **21 270**, w
+          szystkie łączą się z `listings` |
+      40 -| `profile_history` | historia zmian profilu, kolumna `changed_
+         -fields` | **552** odnotowane zmiany bio |                      
+      40 +| `profile_history` | pełne snapshoty profilu w każdej wersji (
+         +w tym bio) oraz `changed_fields` (pola zmienione względem poprz
+         +edniej wersji) | **4508 wersji**, 2056 userów (9 userów z `user
+         +s` bez historii); wersja 1 = utworzenie; **552 zmiany bio u 362
+         + userów**; ostatnia wersja zgodna z `users` w 100% pól; `day` o
+         +d 2 do 113. `changed_fields` niepełne dla `sex` i `city` (G17) 
+         +(audyt 2026-10-20) |                                           
+      41  
+      42  ### 2.2 Pytania decydujące o wykonalności (stan po EDA)
+      43  
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      32  
+      33  | Tabela | Zawartość | Uwagi |
+      34  |---|---|---|
+      35 -| `users` | **2065** profili: `user_key`, `sex` (F/M/O), `age_b
+         -and`, `city`, pola stylu życia (`daily_routine`, `lifestyle`, `
+         -work_from_home`, `cleanliness`, `noise_level`, `smoking`, `alco
+         -hol`), `room_type`, `budget`, `move_in_month_offset`, `search_g
+         -oal`, `interests` (lista tagów), `bio`, `bio_length` | wiek tyl
+         -ko jako przedział, nie w latach; pełna lista kolumn na diagrami
+         -e ERD w notebooku |                                            
+      35 +| `users` | **2065** profili: `user_key`, `sex` (F/M/O), `age_b
+         +and`, `city`, pola stylu życia (`daily_routine`, `lifestyle`, `
+         +work_from_home`, `cleanliness`, `noise_level`, `smoking`, `alco
+         +hol`), `room_type`, `budget`, `move_in_month_offset`, `search_g
+         +oal`, `interests` (lista tagów), `bio`, `bio_length` | wiek tyl
+         +ko jako przedział, nie w latach; pełna lista kolumn na diagrami
+         +e ERD w notebooku; `interests`: 124 surowe ciągi, patrz G14 (au
+         +dyt 2026-10-20) |                                              
+      36  | `swipes` | `user_key`, `target_type` (`profile` / listing), `
+          target_user_key`, `direction` (left/right), `day` | **jedyna in
+          formacja czasowa to `day` (int32)**, bez godzin; swipe'y na pro
+          file: **95 144** |
+      37  | `matches` | `user_a_key`, `user_b_key`, `day` | **733** match
+          e, bez braków (0% NaN); match = wzajemne prawe swipe'y |
+      38  | `chats` | para użytkowników, `from_match`, `source_listing_ke
+          y`, dni utworzenia i pierwszej wiadomości | bez treści wiadomoś
+          ci; łącznie **2742** rozmowy, z matcha **269**, z ogłoszenia (b
+          ez matcha) 163, pozostałe 2310 |
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      43  
+      44  1. Czy swipe'y mają znaczniki czasu? Jeśli tak, w jakiej rozdzi
+          elczości? **Odpowiedź (EDA): tylko dzień (`day`), bez godzin.**
+           Wśród 7790 par z decyzją obu stron 15,66% (1220) zdecydowało t
+          ego samego dnia, więc kolejności nie da się ustalić; pozostałe 
+          84,34% da się uporządkować.
+      45  2. Jak działa feed: ranking, filtry użytkownika (płeć, wiek, pa
+          lenie, lokalizacja), losowość? Czy B widzi, że A go polubił, pr
+          zed swoją decyzją? (krytyczne dla H1–H3) - **bez odpowiedzi, da
+          ne tego nie rozstrzygają; czekamy na kontakt z przedstawicielem
+          .**
+      46 -3. Czy profile (**w tym bio**) mają historię edycji, czy tylko 
+         -stan z momentu eksportu? (krytyczne dla H5). **Częściowo: istni
+         -eje tabela `profile_history` z 552 zmianami bio.** Nie sprawdzo
+         -no jeszcze, czy zawiera treść poprzednich wersji i jaki okres o
+         -bejmuje.                                                       
+      46 +3. Czy profile (**w tym bio**) mają historię edycji, czy tylko 
+         +stan z momentu eksportu? (krytyczne dla H5). **Częściowo (audyt
+         + 2026-10-20): `profile_history` zawiera pełne snapshoty profilu
+         + dla 4508 wersji (2056 userów), w tym bio; 552 zmiany bio u 362
+         + userów. Treść bio w wersjach istnieje, ale nie była analizowan
+         +a w całości (w EDA nie wyświetlano tekstu). Zakres: dni 2-113; 
+         +dzień zerowy nieznany.**                                       
+      47  4. Jakie pola stylu życia są w profilu, jakie mają kategorie i 
+          czy mają wartości domyślne? Czy są to cechy własne, czy prefere
+          ncje względem współlokatora? **Częściowo. Są osobne pola strukt
+          uralne (sekcja 2.1) oraz tagi stylu życia w `interests` (np. `n
+          on_smoker`, `night_owl`, `likes_calm`; 124 unikalne tagi, maks.
+           9 na użytkownika). Pola `daily_routine`, `lifestyle`, `work_fr
+          om_home`, `smoking`, `alcohol` mają 74-81% braków; `cleanliness
+          ` i `noise_level` tylko 1,0% i 1,2%, a najczęstsza kategoria to
+           odpowiednio 53% i 50%, co może wskazywać na wartość domyślną (
+          do potwierdzenia z dostawcą). Czy to cechy własne czy preferenc
+          je, nie wiadomo.**
+      48  5. Jaki jest zakres czasowy danych i liczba użytkowników, swipe
+          'ów, matchy i rozpoczętych rozmów? **2065 użytkowników (1583 z 
+          co najmniej jednym swipe'em na profil), 95 144 swipe'y na profi
+          le i 21 270 na ogłoszenia, 733 matche, 2742 rozmowy (269 z matc
+          ha). Zakres czasowy: dni 1-113 (swipe'y), matche i rozmowy od d
+          nia 4.**
+      49  6. Czy ID są spójne między tabelami? Czy boty i konta testowe z
+          ostały usunięte? **ID łączą się między `users`, `swipes` i `mat
+          ches` (płeć i wiek przypisano do wszystkich swipe'ów na profile
+          ; po `age_band` odpadło 578 z 95 144). Boty nie zostały usunięt
+          e: 18 kont (1,14% swipujących) ma 100% prawych swipe'ów przy ≥ 
+          10 swipe'ach.**
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      44  1. Czy swipe'y mają znaczniki czasu? Jeśli tak, w jakiej rozdzi
+          elczości? **Odpowiedź (EDA): tylko dzień (`day`), bez godzin.**
+           Wśród 7790 par z decyzją obu stron 15,66% (1220) zdecydowało t
+          ego samego dnia, więc kolejności nie da się ustalić; pozostałe 
+          84,34% da się uporządkować.
+      45  2. Jak działa feed: ranking, filtry użytkownika (płeć, wiek, pa
+          lenie, lokalizacja), losowość? Czy B widzi, że A go polubił, pr
+          zed swoją decyzją? (krytyczne dla H1–H3) - **bez odpowiedzi, da
+          ne tego nie rozstrzygają; czekamy na kontakt z przedstawicielem
+          .**
+      46  3. Czy profile (**w tym bio**) mają historię edycji, czy tylko 
+          stan z momentu eksportu? (krytyczne dla H5). **Częściowo (audyt
+           2026-10-20): `profile_history` zawiera pełne snapshoty profilu
+           dla 4508 wersji (2056 userów), w tym bio; 552 zmiany bio u 362
+           userów. Treść bio w wersjach istnieje, ale nie była analizowan
+          a w całości (w EDA nie wyświetlano tekstu). Zakres: dni 2-113; 
+          dzień zerowy nieznany.**
+      47 -4. Jakie pola stylu życia są w profilu, jakie mają kategorie i 
+         -czy mają wartości domyślne? Czy są to cechy własne, czy prefere
+         -ncje względem współlokatora? **Częściowo. Są osobne pola strukt
+         -uralne (sekcja 2.1) oraz tagi stylu życia w `interests` (np. `n
+         -on_smoker`, `night_owl`, `likes_calm`; 124 unikalne tagi, maks.
+         - 9 na użytkownika). Pola `daily_routine`, `lifestyle`, `work_fr
+         -om_home`, `smoking`, `alcohol` mają 74-81% braków; `cleanliness
+         -` i `noise_level` tylko 1,0% i 1,2%, a najczęstsza kategoria to
+         - odpowiednio 53% i 50%, co może wskazywać na wartość domyślną (
+         -do potwierdzenia z dostawcą). Czy to cechy własne czy preferenc
+         -je, nie wiadomo.**                                             
+      47 +4. Jakie pola stylu życia są w profilu, jakie mają kategorie i 
+         +czy mają wartości domyślne? Czy są to cechy własne, czy prefere
+         +ncje względem współlokatora? **Częściowo. Są osobne pola strukt
+         +uralne (sekcja 2.1) oraz tagi stylu życia w `interests` (np. `n
+         +on_smoker`, `night_owl`, `likes_calm`; 124 unikalne tagi, maks.
+         + 9 na użytkownika). Pola `daily_routine`, `lifestyle`, `work_fr
+         +om_home`, `smoking`, `alcohol` mają 74-81% braków; `cleanliness
+         +` i `noise_level` tylko 1,0% i 1,2%, a najczęstsza kategoria to
+         + odpowiednio 53% i 50%, co może wskazywać na wartość domyślną (
+         +do potwierdzenia z dostawcą). Czy to cechy własne czy preferenc
+         +je, nie wiadomo.** Audyt 2026-10-20: słownika tagów nie ma w re
+         +po; surowe ciągi zawierają dwa formaty tego samego typu (snake_
+         +case i emoji/etykieta), 256 userów ma oba, a 57% ma 9 tagów (su
+         +fit). Historia nie rozstrzyga, czy `cleanliness` i `noise_level
+         +` to wartość domyślna: rozkład przy utworzeniu profilu (FT 52,4
+         +%) jest taki sam jak w całej populacji, a zmian jest mało (49 i
+         + 54 aktualizacje). Pytanie do dostawcy.                        
+      48  5. Jaki jest zakres czasowy danych i liczba użytkowników, swipe
+          'ów, matchy i rozpoczętych rozmów? **2065 użytkowników (1583 z 
+          co najmniej jednym swipe'em na profil), 95 144 swipe'y na profi
+          le i 21 270 na ogłoszenia, 733 matche, 2742 rozmowy (269 z matc
+          ha). Zakres czasowy: dni 1-113 (swipe'y), matche i rozmowy od d
+          nia 4.**
+      49  6. Czy ID są spójne między tabelami? Czy boty i konta testowe z
+          ostały usunięte? **ID łączą się między `users`, `swipes` i `mat
+          ches` (płeć i wiek przypisano do wszystkich swipe'ów na profile
+          ; po `age_band` odpadło 578 z 95 144). Boty nie zostały usunięt
+          e: 18 kont (1,14% swipujących) ma 100% prawych swipe'ów przy ≥ 
+          10 swipe'ach.**
+      50  7. Czy swipe'y na ogłoszenia można powiązać z cechami ogłoszeń 
+          (cena, lokalizacja)? **Tak: 100% swipe'ów na ogłoszenia łączy s
+          ię z `listings` (257 z 294 ogłoszeń ma swipe'y; 16,2% prawych; 
+          to samo miasto 16,3% vs inne 14,8%). `min_price` ma wartości sk
+          rajne (mediana 1750, maks. 500 000), więc wymaga czyszczenia.**
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      46  3. Czy profile (**w tym bio**) mają historię edycji, czy tylko 
+          stan z momentu eksportu? (krytyczne dla H5). **Częściowo (audyt
+           2026-10-20): `profile_history` zawiera pełne snapshoty profilu
+           dla 4508 wersji (2056 userów), w tym bio; 552 zmiany bio u 362
+           userów. Treść bio w wersjach istnieje, ale nie była analizowan
+          a w całości (w EDA nie wyświetlano tekstu). Zakres: dni 2-113; 
+          dzień zerowy nieznany.**
+      47  4. Jakie pola stylu życia są w profilu, jakie mają kategorie i 
+          czy mają wartości domyślne? Czy są to cechy własne, czy prefere
+          ncje względem współlokatora? **Częściowo. Są osobne pola strukt
+          uralne (sekcja 2.1) oraz tagi stylu życia w `interests` (np. `n
+          on_smoker`, `night_owl`, `likes_calm`; 124 unikalne tagi, maks.
+           9 na użytkownika). Pola `daily_routine`, `lifestyle`, `work_fr
+          om_home`, `smoking`, `alcohol` mają 74-81% braków; `cleanliness
+          ` i `noise_level` tylko 1,0% i 1,2%, a najczęstsza kategoria to
+           odpowiednio 53% i 50%, co może wskazywać na wartość domyślną (
+          do potwierdzenia z dostawcą). Czy to cechy własne czy preferenc
+          je, nie wiadomo.** Audyt 2026-10-20: słownika tagów nie ma w re
+          po; surowe ciągi zawierają dwa formaty tego samego typu (snake_
+          case i emoji/etykieta), 256 userów ma oba, a 57% ma 9 tagów (su
+          fit). Historia nie rozstrzyga, czy `cleanliness` i `noise_level
+          ` to wartość domyślna: rozkład przy utworzeniu profilu (FT 52,4
+          %) jest taki sam jak w całej populacji, a zmian jest mało (49 i
+           54 aktualizacje). Pytanie do dostawcy.
+      48  5. Jaki jest zakres czasowy danych i liczba użytkowników, swipe
+          'ów, matchy i rozpoczętych rozmów? **2065 użytkowników (1583 z 
+          co najmniej jednym swipe'em na profil), 95 144 swipe'y na profi
+          le i 21 270 na ogłoszenia, 733 matche, 2742 rozmowy (269 z matc
+          ha). Zakres czasowy: dni 1-113 (swipe'y), matche i rozmowy od d
+          nia 4.**
+      49 -6. Czy ID są spójne między tabelami? Czy boty i konta testowe z
+         -ostały usunięte? **ID łączą się między `users`, `swipes` i `mat
+         -ches` (płeć i wiek przypisano do wszystkich swipe'ów na profile
+         -; po `age_band` odpadło 578 z 95 144). Boty nie zostały usunięt
+         -e: 18 kont (1,14% swipujących) ma 100% prawych swipe'ów przy ≥ 
+         -10 swipe'ach.**                                                
+      49 +6. Czy ID są spójne między tabelami? Czy boty i konta testowe z
+         +ostały usunięte? **ID łączą się między `users`, `swipes` i `mat
+         +ches` (płeć i wiek przypisano do swipe'ów na profile z bieżąceg
+         +o `users`, a nie z dnia swipe'a (patrz pyt. 9); po `age_band` o
+         +dpadło 578 z 95 144). Boty nie zostały usunięte: 18 kont (1,14%
+         + swipujących) ma 100% prawych swipe'ów przy ≥ 10 swipe'ach.**  
+      50  7. Czy swipe'y na ogłoszenia można powiązać z cechami ogłoszeń 
+          (cena, lokalizacja)? **Tak: 100% swipe'ów na ogłoszenia łączy s
+          ię z `listings` (257 z 294 ogłoszeń ma swipe'y; 16,2% prawych; 
+          to samo miasto 16,3% vs inne 14,8%). `min_price` ma wartości sk
+          rajne (mediana 1750, maks. 500 000), więc wymaga czyszczenia.**
+      51  8. Czy istnieje mechanizm "Superlajka" (bezpośredniego wysłania
+           wiadomości, bez wymogu istnienia matcha). **Dane to sugerują: 
+          tylko 9,8% rozmów (269 z 2742) pochodzi z matcha, 163 z ogłosze
+          nia, a 2310 rozmów nie ma ani matcha, ani ogłoszenia. Mechanizm
+           trzeba potwierdzić z dostawcą. Konsekwencja: rozmowa nie jest 
+          zdarzeniem wyłącznie po matchu, więc `y_chat | match` obejmuje 
+          tylko 269 rozmów.**
+      52  
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line
+      49  6. Czy ID są spójne między tabelami? Czy boty i konta testowe z
+          ostały usunięte? **ID łączą się między `users`, `swipes` i `mat
+          ches` (płeć i wiek przypisano do swipe'ów na profile z bieżąceg
+          o `users`, a nie z dnia swipe'a (patrz pyt. 9); po `age_band` o
+          dpadło 578 z 95 144). Boty nie zostały usunięte: 18 kont (1,14%
+           swipujących) ma 100% prawych swipe'ów przy ≥ 10 swipe'ach.**
+      50  7. Czy swipe'y na ogłoszenia można powiązać z cechami ogłoszeń 
+          (cena, lokalizacja)? **Tak: 100% swipe'ów na ogłoszenia łączy s
+          ię z `listings` (257 z 294 ogłoszeń ma swipe'y; 16,2% prawych; 
+          to samo miasto 16,3% vs inne 14,8%). `min_price` ma wartości sk
+          rajne (mediana 1750, maks. 500 000), więc wymaga czyszczenia.**
+      51  8. Czy istnieje mechanizm "Superlajka" (bezpośredniego wysłania
+           wiadomości, bez wymogu istnienia matcha). **Dane to sugerują: 
+          tylko 9,8% rozmów (269 z 2742) pochodzi z matcha, 163 z ogłosze
+          nia, a 2310 rozmów nie ma ani matcha, ani ogłoszenia. Mechanizm
+           trzeba potwierdzić z dostawcą. Konsekwencja: rozmowa nie jest 
+          zdarzeniem wyłącznie po matchu, więc `y_chat | match` obejmuje 
+          tylko 269 rozmów.**
+      52 +9. Czy cechy użytkownika (płeć, wiek, miasto) zmieniają się w c
+         +zasie i czy swipe'y są przypisane do właściwej wersji profilu? 
+         +**(Audyt 2026-10-20.)** Tak: płeć zmieniło 87 userów (4,2%), wi
+         +ek 12, miasto 118. Z 101 zmian płci 65 prowadzi do `O`. Przy pr
+         +zypisaniu według wersji obowiązującej w dniu swipe'a wartości r
+         +óżnią się od bieżących dla: płci aktora (1,8% swipe'ów z wcześn
+         +iejszą wersją), płci odbiorcy (0,78%), wieku aktora (1,33%) i m
+         +iasta aktora (3,88%). Dla 54 597 swipe'ów (46,9%) dzień swipe'a
+         + jest dniem pierwszej wersji profilu, więc nie da się rozstrzyg
+         +nąć, czy swipe był przed zmianą. 551 swipe'ów jest przed pierws
+         +zą wersją i do wyjaśnienia z dostawcą. Konsekwencja: cechy pary
+         + wziąć z wersji obowiązującej w dniu decyzji, a bieżącą wersję 
+         +traktować jako analizę wrażliwości.                            
+      53  
+      54  ---
+      55  
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line
+      70  - **Zainteresowania**: miara Jaccarda, sprawdzimy też wersję w 
+          której *rzadkie* wspólne zainteresowanie, liczy się bardziej ni
+          ż popularne. Dodatkowo uwzględnimy liczbę zainteresowań obu osó
+          b.
+      71  - **Styl życia**: porównujemy każde pole osobno. Zwracamy uwagę
+           na kierunek (np. niepalący A i palący B, to coś innego niż pal
+          ący A i niepalący B).
+      72  - **Braki danych**: Jeśli ktoś nie wypełnił pola - traktujemy t
+          o jako osobną kategorię `brak danych`.
+      73 +- **Wersja cech (audyt 2026-10-20):** płeć, wiek, miasto i pola
+         + stylu życia pary bierzemy z wersji profilu obowiązującej w dni
+         +u decyzji (`profile_history`, z dokładnością do dnia, G2). Dla 
+         +swipe'ów bez wcześniejszej wersji używamy pierwszej wersji i oz
+         +naczamy je. Wersja z `users` jest analizą wrażliwości.         
+      74  
+      75  ### 3.3 Model i walidacja
+      76  
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      76  
+      77  Aby potwierdzić że wniosek hipotezy jest oparty na danych, zbud
+          ujemy prosty model regresji logistycznej.
+      78  
+      79 -- **Model główny:** regresja logistyczna z **efektami losowymi 
+         -nadawcy i odbiorcy**- model szacuje prawdopodobieństwo swipe'a 
+         -lub matcha na podstawie cech pary. Efekty losowe pozwolą nam wp
+         -rowadzić poprawki na popularność i hojnosć użytkowników.       
+      79 +- **Model główny:** regresja logistyczna z **efektami losowymi 
+         +nadawcy i odbiorcy**- model szacuje prawdopodobieństwo swipe'a 
+         +lub matcha na podstawie cech pary. Efekty losowe pozwolą nam wp
+         +rowadzić poprawki na popularność i hojność użytkowników.       
+      80  - **Metryki:** logloss, AUC, AUC-PR (zdarzenia rzadkie). Porówn
+          ywanie bloków zmiennych przez ΔlogLoss/ΔAUC po dodaniu bloku (t
+          esty AB).
+      81  - **Podział danych:** walidacja krzyżowa grupowana po użytkowni
+          kach. Jeśli są timestampy, dodatkowo podział czasowy - uczymy s
+          ię na starszych danych, sprawdzamy na nowszych.
+      82  - **Raportowanie:** Wielkości efektów i przedziały ufności. Def
+          inicje zmiennych i metryk ustalone przed analizą, żeby nie dobi
+          erać danych pod wynik.
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      86  | ID | Ograniczenie / źródło błędu | Sposób postępowania |
+      87  |---|---|---|
+      88  | G1 | **Ekspozycja:** widzimy tylko pary pokazane przez feed. 
+          Filtry i ranking zawężają wariancję zmiennych, co zaniża efekty
+           | ustalić z dostawcą działanie feedu; raportować rozkład zmien
+          nych w obserwowanych parach |
+      89 -| G2 | **Snapshot profilu:** `users` to stan z momentu eksportu
+         -, swipe'y z przeszłości; edycje po swipe'ach to błąd datowania.
+         - Istnieje `profile_history` (552 zmiany bio), ale jej pokrycie 
+         -nie jest sprawdzone | sprawdzić zawartość historii; opisać jako
+         - ograniczenie |                                                
+      89 +| G2 | **Snapshot profilu:** `users` to stan z momentu eksportu
+         +, swipe'y z przeszłości; edycje po swipe'ach to błąd datowania.
+         + `profile_history` (4508 wersji, 2056 userów) pozwala odtworzyć
+         + profil w dniu decyzji, ale tylko z dokładnością do dnia: 54 59
+         +7 swipe'ów (46,9%) jest z dnia pierwszej wersji, a 551 jest prz
+         +ed nią (audyt 2026-10-20) | cechy z wersji obowiązującej w dniu
+         + swipe'a, pierwsza wersja jako oznaczone przybliżenie; `users` 
+         +jako wrażliwość; opisać jako ograniczenie |                    
+      90  | G3 | **Brak timestampów (potwierdzone):** jest tylko `day`; 1
+          5,66% par z decyzją obu stron to ten sam dzień. Uniemożliwia ok
+          na na poziomie zdarzeń i walidację czasową w dokładnej formie |
+           H3 i H4 przeformułować do agregacji dziennej; swipe'y z tego s
+          amego dnia traktować jako remis (bez użycia do estymacji prefer
+          encji) |
+      91  | G4 | **Rzadkość matchy i mała moc** | policzyć zdarzenia i us
+          erów przed ustaleniem liczby zmiennych; AUC-PR, regularyzacja |
+      92  | G5 | **Brak zdjęć:** mocny sygnał na aplikacjach typu Tinder;
+           mierzymy najwyżej popularność | efekty losowe odbiorcy; w tekś
+          cie "popularność"|
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      90  | G3 | **Brak timestampów (potwierdzone):** jest tylko `day`; 1
+          5,66% par z decyzją obu stron to ten sam dzień. Uniemożliwia ok
+          na na poziomie zdarzeń i walidację czasową w dokładnej formie |
+           H3 i H4 przeformułować do agregacji dziennej; swipe'y z tego s
+          amego dnia traktować jako remis (bez użycia do estymacji prefer
+          encji) |
+      91  | G4 | **Rzadkość matchy i mała moc** | policzyć zdarzenia i us
+          erów przed ustaleniem liczby zmiennych; AUC-PR, regularyzacja |
+      92  | G5 | **Brak zdjęć:** mocny sygnał na aplikacjach typu Tinder;
+           mierzymy najwyżej popularność | efekty losowe odbiorcy; w tekś
+          cie "popularność"|
+      93 -| G6 | **Homogeniczna próba** (prawdopodobnie głównie studenci)
+         -: wąski wiek, podobny styl życia, jedno lub kilka miast | zbada
+         -ć rozkłady; ostrożne uogólnianie; standaryzowane efekty |      
+      93 +| G6 | **Homogeniczna próba** (audyt 2026-10-20): tag `student`
+         + ma 55% userów (sugeruje studentów); wiek 18-20 to 54% userów; 
+         +`search_goal` = LR u 92%; miasta: Wrocław 34%, „inne” 28%, Wars
+         +zawa 15%; 45 userów ma miasto Hyderabad (2,2%), co nie pasuje d
+         +o polskiej aplikacji i wymaga sprawdzenia | zbadać rozkłady; os
+         +trożne uogólnianie; wrażliwość na podpróbę (np. bez Hyderabad i
+         + bez „inne”); standaryzowane efekty |                          
+      94  | G7 | **Braki i wartości domyślne** w polach strukturalnych (p
+          uste `interests`: 2,57%; puste bio: 46,6%) | analiza kompletnoś
+          ci, osobna kategoria braku |
+      95  | G8 | **Wielość porównań** (wiele definicji podobieństwa) | z 
+          góry zapisany plan; jedna główna definicja na zmienną |
+      96  | G9 | **Match ≠ decyzja o wspólnym wynajmie** | sformułować wn
+          ioski jako dotyczące matcha i zaangażowania |
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line
+       95  | G8 | **Wielość porównań** (wiele definicji podobieństwa) | z
+            góry zapisany plan; jedna główna definicja na zmienną |
+       96  | G9 | **Match ≠ decyzja o wspólnym wynajmie** | sformułować w
+           nioski jako dotyczące matcha i zaangażowania |
+       97  | G10 | **Boty, konta nietypowe** (swipe'ują wszystko w prawo/
+           lewo): 18 kont 100% prawo (≥ 10 swipe'ów), 359 kont 0% prawo (
+           22,68% swipujących) | flagowanie, analiza z wykluczeniem i bez
+            |
+       98 +| G12 | **Dane osobowe w bio** (audyt nieukończony; w poprzedn
+          +iej wersji karty odwołanie do G12 nie miało wpisu, audyt 2026-
+          +10-20): w wersjach bio cyfry występują w 9,27%, `@` lub link w
+          + 1 wersji (0,02%), ciąg 9+ cyfr nie występuje. To tylko przesi
+          +ew regułami, bez wyświetlania treści | pełny audyt przed użyci
+          +em tekstu bio; przetwarzanie lokalnie, bez zewnętrznych API; w
+          + raporcie tylko wyniki zagregowane |                          
+       99  | G13 | **Wiek tylko jako `age_band`** (18-20, 21-23, 24-26, 2
+           7-30, 31-35, 36+); 65% wyświetlanych profili to 18-20; komórki
+            27+ są bardzo małe (np. 31-35 → 31-35: 46 swipe'ów) | zamiast
+            ciągłej różnicy wieku używać różnicy numerów przedziałów lub 
+           zgodności przedziału; łączyć rzadkie przedziały |
+      100  | G14 | **Styl życia częściowo w polach strukturalnych (74-81%
+            braków w większości), częściowo w tagach `interests`** (maks.
+            9 tagów, mediana = 9, sufit) | w H1 użyć tagów stylu życia ze
+            słownika (124 tagi) oraz pól `cleanliness` i `noise_level`; J
+           accard wrażliwy na sufit |
+      101  | G15 | **Matche bez kompletu swipe'ów:** dla 246 z 733 matchy
+            (33,6%) w `swipes` jest tylko jeden swipe na profil, drugi ni
+           e jest zapisany (mechanizm nieznany) | modele par z decyzją ob
+           u stron mają dostęp tylko do 487 matchy; sprawdzić z dostawcą;
+            analiza wrażliwości |
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+       97  | G10 | **Boty, konta nietypowe** (swipe'ują wszystko w prawo/
+           lewo): 18 kont 100% prawo (≥ 10 swipe'ów), 359 kont 0% prawo (
+           22,68% swipujących) | flagowanie, analiza z wykluczeniem i bez
+            |
+       98  | G12 | **Dane osobowe w bio** (audyt nieukończony; w poprzedn
+           iej wersji karty odwołanie do G12 nie miało wpisu, audyt 2026-
+           10-20): w wersjach bio cyfry występują w 9,27%, `@` lub link w
+            1 wersji (0,02%), ciąg 9+ cyfr nie występuje. To tylko przesi
+           ew regułami, bez wyświetlania treści | pełny audyt przed użyci
+           em tekstu bio; przetwarzanie lokalnie, bez zewnętrznych API; w
+            raporcie tylko wyniki zagregowane |
+       99  | G13 | **Wiek tylko jako `age_band`** (18-20, 21-23, 24-26, 2
+           7-30, 31-35, 36+); 65% wyświetlanych profili to 18-20; komórki
+            27+ są bardzo małe (np. 31-35 → 31-35: 46 swipe'ów) | zamiast
+            ciągłej różnicy wieku używać różnicy numerów przedziałów lub 
+           zgodności przedziału; łączyć rzadkie przedziały |
+      100 -| G14 | **Styl życia częściowo w polach strukturalnych (74-81%
+          - braków w większości), częściowo w tagach `interests`** (maks.
+          - 9 tagów, mediana = 9, sufit) | w H1 użyć tagów stylu życia ze
+          - słownika (124 tagi) oraz pól `cleanliness` i `noise_level`; J
+          -accard wrażliwy na sufit |                                    
+      100 +| G14 | **Styl życia częściowo w polach strukturalnych (74-81%
+          + braków w większości), częściowo w tagach `interests`** (maks.
+          + 9 tagów, mediana = 9; 57% userów na suficie). **Słownika tagó
+          +w nie ma w repo.** 124 surowe ciągi zawierają m.in. 54 formy e
+          +moji/etykiety obok odpowiedników snake_case (np. `🎓 Student` 
+          +i `student`); 256 userów ma oba formaty, a 159 z nich wykorzys
+          +tuje tym limit 9 (audyt 2026-10-20) | ujednolicić format tagów
+          + (mapowanie do zweryfikowania) przed Jaccardem; w H1 rozdzieli
+          +ć tagi stylu życia i pola strukturalne (sekcja 4, H1); Jaccard
+          + wrażliwy na sufit i duplikaty |                              
+      101  | G15 | **Matche bez kompletu swipe'ów:** dla 246 z 733 matchy
+            (33,6%) w `swipes` jest tylko jeden swipe na profil, drugi ni
+           e jest zapisany (mechanizm nieznany) | modele par z decyzją ob
+           u stron mają dostęp tylko do 487 matchy; sprawdzić z dostawcą;
+            analiza wrażliwości |
+      102  | G11 | **Anonimizacja:** losowe ID ograniczają łączenie z inn
+           ymi źródłami; ryzyko reidentyfikacji z bio | przetwarzanie lok
+           alne, bez próby identyfikacji |
+      103  
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)  ⎿  Added 3 lines
+       99  | G13 | **Wiek tylko jako `age_band`** (18-20, 21-23, 24-26, 2
+           7-30, 31-35, 36+); 65% wyświetlanych profili to 18-20; komórki
+            27+ są bardzo małe (np. 31-35 → 31-35: 46 swipe'ów) | zamiast
+            ciągłej różnicy wieku używać różnicy numerów przedziałów lub 
+           zgodności przedziału; łączyć rzadkie przedziały |
+      100  | G14 | **Styl życia częściowo w polach strukturalnych (74-81%
+            braków w większości), częściowo w tagach `interests`** (maks.
+            9 tagów, mediana = 9; 57% userów na suficie). **Słownika tagó
+           w nie ma w repo.** 124 surowe ciągi zawierają m.in. 54 formy e
+           moji/etykiety obok odpowiedników snake_case (np. `🎓 Student` 
+           i `student`); 256 userów ma oba formaty, a 159 z nich wykorzys
+           tuje tym limit 9 (audyt 2026-10-20) | ujednolicić format tagów
+            (mapowanie do zweryfikowania) przed Jaccardem; w H1 rozdzieli
+           ć tagi stylu życia i pola strukturalne (sekcja 4, H1); Jaccard
+            wrażliwy na sufit i duplikaty |
+      101  | G15 | **Matche bez kompletu swipe'ów:** dla 246 z 733 matchy
+            (33,6%) w `swipes` jest tylko jeden swipe na profil, drugi ni
+           e jest zapisany (mechanizm nieznany) | modele par z decyzją ob
+           u stron mają dostęp tylko do 487 matchy; sprawdzić z dostawcą;
+            analiza wrażliwości |
+      102 +| G16 | **Zmiany cech użytkownika w czasie** (audyt 2026-10-20
+          +): płeć zmieniło 87 userów (101 zmian, z czego 65 na `O`), wie
+          +k 12, miasto 118 | cechy pary z wersji obowiązującej w dniu de
+          +cyzji (sekcja 3.2); wyjaśnić z dostawcą, co oznacza `O` i czy 
+          +zmiany są własne, czy błędne |                                
+      103 +| G17 | **`changed_fields` niepełne:** `sex` nigdy nie jest wy
+          +mienione (101 zmian w snapshotach); `city` wymienione 541 razy
+          + przy 303 zmianach w snapshotach; `move_in` zgodne w 99,4% (= 
+          +`move_in_month_offset`); `bio` zgodne w 100% (audyt 2026-10-20
+          +) | nie używać listy zmian jako źródła dla płci i miasta; poró
+          +wnywać snapshoty; listę zmian bio można używać |              
+      104 +| G18 | **Niespójność `bio_length` z długością tekstu:** zgodn
+          +e w 97,7% profili (`users`) i 97,4% wersji (`profile_history`)
+          + (audyt 2026-10-20) | ustalić definicję długości; w H5a liczyć
+          + długość z tekstu i raportować różnicę |                      
+      105  | G11 | **Anonimizacja:** losowe ID ograniczają łączenie z inn
+           ymi źródłami; ryzyko reidentyfikacji z bio | przetwarzanie lok
+           alne, bez próby identyfikacji |
+      106  
+      107  ---
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      112  
+      113  **One-liner:** wolę mieszkać z kimś o podobnym stylu życia (np
+           . nie imprezuje) niż z kimś, kto byłby idealnym znajomym, ale 
+           irytowałyby mnie jego nawyki.
+      114  
+      115 -**Źródła danych:** `profiles` (styl życia, zainteresowania, wi
+          -ek, płeć), `swipes_profiles`, `matches`.                      
+      115 +**Źródła danych:** `users` (styl życia, zainteresowania, wiek,
+          + płeć), `swipes`, `matches`. (Audyt 2026-10-20: wcześniej `pro
+          +files` i `swipes_profiles`, czyli nazwy tabel, które nie istni
+          +eją.)                                                         
+      116  
+      117  **Zakres próby:**
+      118  - Pary {A,B}, w których obie strony zdecydowały i mają wypełni
+           one pola używane w analizie.
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line
+      122  
+      123  **Plan pomiaru:**
+      124  - Zmienna objaśniana: y_match (główna), y_right kierunkowo (wt
+           órna).
+      125 +- Przed policzeniem Jaccarda (audyt 2026-10-20): ujednolicić f
+          +ormat tagów (G14); rozdzielić tagi stylu życia od zainteresowa
+          +ń; ustalić, czy tagi dublujące pola strukturalne (`non_smoker`
+          +/`smoker`/`vapes` ↔ `smoking`, `quiet_after_22`/`quiet_evening
+          +s` ↔ `noise_level`, `loves_cleanliness` ↔ `cleanliness`) są tą
+          + samą zmienną. Dopiero wtedy zdefiniować bloki.               
+      126  - Bloki zmiennych: demografia (`|Δwiek|`, `same_gender`), zain
+           teresowania (Jaccard, IDF-Jaccard, liczba tagów), styl życia (
+           zgodność per pole, kierunkowa).
+      127  - Model bazowy: demografia + zainteresowania. Model rozszerzon
+           y: + styl życia. Dodatkowo odwrócona kolejność (styl życia → +
+            demografia + zainteresowania).
+      128  - Wszystko z efektami losowymi nadawcy i odbiorcy (G6).
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      129  - **Kryterium:** H1 potwierdzona, jeśli przyrost ΔlogLoss/ΔAUC
+            po dodaniu stylu życia jest większy niż po dodaniu wieku i za
+           interesowań, a przedział ufności różnicy nie obejmuje zera.
+      130  - **Wynik negatywny:** styl życia nie wyjaśnia matcha ponad wi
+           ek i zainteresowania. Interpretacja "dopasowanie oparte na pop
+           ularności" wymaga potwierdzenia przez efekty losowe, a nie sam
+           ym brakiem efektu.
+      131  
+      132 -**Wstępne obserwacje z EDA:** akceptacja jest podobna dla tej 
+          -samej i różnej grupy wiekowej (21,2% vs 20,0%), ale silnie zal
+          -eży od kierunku: 18-20 → 18-20 20,4%, a 18-20 → 27+ ok. 7%. Ja
+          -ccard zainteresowań wśród 733 matchy: średnia 0,146, mediana 0
+          -,125, 16,37% par bez wspólnego tagu; brak jeszcze rozkładu dla
+          - par niezmatchowanych, więc nie wiadomo, czy to więcej niż prz
+          -ypadek.                                                       
+      132 +**Wstępne obserwacje z EDA:** akceptacja jest podobna dla tej 
+          +samej i różnej grupy wiekowej (21,2% vs 20,0%), ale silnie zal
+          +eży od kierunku: 18-20 → 18-20 20,4%, a 18-20 → 27+ ok. 7%. Ja
+          +ccard zainteresowań wśród 733 matchy: średnia 0,146, mediana 0
+          +,125, 16,37% par bez wspólnego tagu; brak jeszcze rozkładu dla
+          + par niezmatchowanych, więc nie wiadomo, czy to więcej niż prz
+          +ypadek. Jaccard liczono na surowych tagach z duplikatami forma
+          +tów (G14), więc wartości trzeba powtórzyć po ujednoliceniu.   
+      133  
+      134  **Ograniczenia danych:** G1, G2, G6, G7, G13, G14; grube pola 
+           stylu życia (mała rozdzielczość pomiaru vs wiele tagów zainter
+           esowań); wąski rozstrzał wieku (mała wariancja zmiennej, więc 
+           słaby efekt mechanicznie); asymetria cech (niepalący nie akcep
+           tuje palącego, odwrotnie niekoniecznie).
+      135  
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      147  
+      148  **One-liner:** dziewczyny czują się bezpieczniej z innymi dzie
+           wczynami, więc od razu odfiltrowują chłopaków.
+      149  
+      150 -**Źródła danych:** `profiles` (płeć, wiek), `swipes_profiles`,
+          - `matches`.                                                   
+      150 +**Źródła danych:** `users` (płeć, wiek), `swipes`, `matches`, 
+          +`profile_history` (płeć i wiek w dniu swipe'a, G2, G16).      
+      151  
+      152  **Zakres próby:**
+      153  - Swipe'y skierowane A→B, z podziałem na płeć nadawcy i odbior
+           cy.
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      150  **Źródła danych:** `users` (płeć, wiek), `swipes`, `matches`, 
+           `profile_history` (płeć i wiek w dniu swipe'a, G2, G16).
+      151  
+      152  **Zakres próby:**
+      153 -- Swipe'y skierowane A→B, z podziałem na płeć nadawcy i odbior
+          -cy.                                                           
+      153 +- Swipe'y skierowane A→B, z podziałem na płeć nadawcy i odbior
+          +cy. Płeć z wersji obowiązującej w dniu swipe'a (G2, G16). Wers
+          +ja bieżąca daje inną płeć dla 1,8% swipe'ów aktora i 0,78% odb
+          +iorców z wcześniejszą wersją (audyt 2026-10-20).              
+      154  - Liczność komórek (swipe'y nadawca × odbiorca): F→F 30 878, F
+           →M 16 677, F→O 1307, M→F 24 003, M→M 17 446, M→O 1130, O→F 217
+           8, O→M 1427, O→O 98. Par różnopłciowych (płeć nadawcy ≠ odbior
+           cy): 46 722 swipe'y (9847 prawych, 21,08%), więc kryterium wyk
+           onalności (≥ 1000) jest spełnione. Komórki z płcią `O` są małe
+            (≤ 2178).
+      155  
+      156  **Plan pomiaru:**
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      156  **Plan pomiaru:**
+      157  - Zmienna objaśniana: y_right (główna, kierunkowa), y_match (w
+           tórna).
+      158  - Stratyfikacja: P(prawy swipe | ta sama płeć) vs P(prawy swip
+           e | różna płeć), osobno według płci nadawcy, z przedziałami uf
+           ności.
+      159 -- Model z interakcją `płeć_A × płeć_B`; `|Δwiek|`, `Δwiek` ze 
+          -znakiem); bloki stylu życia i zainteresowań z H1.             
+      159 +- Model z interakcją `płeć_A × płeć_B`, `|Δwiek|`, `Δwiek` (ze
+          + znakiem); bloki stylu życia i zainteresowań z H1.            
+      160  - "Warunek wstępny" - model dwuetapowy: (1) czy para przechodz
+           i bramkę demograficzną, (2) czy w obrębie warstwy działają poz
+           ostałe cechy. Próg "bliskie zeru" dla P(prawy | różna płeć) je
+           st decyzją zespołu, którą należy zapisać przed analizą. Punkt 
+           odniesienia z EDA: najniższa komórka F→M ma 8,7% (95% CI Wilso
+           na 8,3-9,1%), a żadna komórka nie ma CI przy zerze (przedziały
+            nie uwzględniają klastrowania po użytkowniku, więc są zaniżon
+           e).
+      161  - **Wynik negatywny:** demografia nie dominuje; styl życia wyj
+           aśnia matcha równie dobrze lub lepiej, więc parametry wpływają
+            na dopasowanie, a nie tylko na strukturę zbioru.
+      162  
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      160  - "Warunek wstępny" - model dwuetapowy: (1) czy para przechodz
+           i bramkę demograficzną, (2) czy w obrębie warstwy działają poz
+           ostałe cechy. Próg "bliskie zeru" dla P(prawy | różna płeć) je
+           st decyzją zespołu, którą należy zapisać przed analizą. Punkt 
+           odniesienia z EDA: najniższa komórka F→M ma 8,7% (95% CI Wilso
+           na 8,3-9,1%), a żadna komórka nie ma CI przy zerze (przedziały
+            nie uwzględniają klastrowania po użytkowniku, więc są zaniżon
+           e).
+      161  - **Wynik negatywny:** demografia nie dominuje; styl życia wyj
+           aśnia matcha równie dobrze lub lepiej, więc parametry wpływają
+            na dopasowanie, a nie tylko na strukturę zbioru.
+      162  
+      163 -**Wstępne obserwacje z EDA (P(prawy)):** F→F 20,1%, F→M 8,7%, 
+          -F→O 14,9%; M→F 29,2%, M→M 19,5%, M→O 22,6%; O→F 28,7%, O→M 22,
+          -4%, O→O 26,5%. Kobiety rzadziej akceptują mężczyzn niż kobiety
+          -, ale prawdopodobieństwo nie jest bliskie zeru, więc dane nie 
+          -wyglądają na twardą bramkę (opis bez kontroli innych cech i po
+          -pularności).                                                  
+      163 +**Wstępne obserwacje z EDA (P(prawy)):** F→F 20,1%, F→M 8,7%, 
+          +F→O 14,9%; M→F 29,2%, M→M 19,5%, M→O 22,6%; O→F 28,7%, O→M 22,
+          +4%, O→O 26,5%. Kobiety rzadziej akceptują mężczyzn niż kobiety
+          +, ale prawdopodobieństwo nie jest bliskie zeru, więc dane nie 
+          +wyglądają na twardą bramkę (opis bez kontroli innych cech i po
+          +pularności). Liczono na płci z bieżącego `users`; po przejściu
+          + na wersję z dnia swipe'a trzeba to powtórzyć (różnica dotyczy
+          + 0,8–1,8% swipe'ów, wpływ do sprawdzenia). Kategoria `O` powst
+          +aje głównie przez zmianę płci (G16), więc wynik dla `O` wymaga
+          + ostrożności.                                                 
+      164  
+      165  **Ograniczenia danych:** G1 (filtry płci w appce mogą narzucać
+            `same_gender` bez wariancji), G6; mało liczne grupy mniejszoś
+           ciowe płciowo (np. pary męsko-męskie, osoby niebinarne); możli
+           we konta par lub grup (jeśli występują).
+      166  
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      162  
+      163  **Wstępne obserwacje z EDA (P(prawy)):** F→F 20,1%, F→M 8,7%, 
+           F→O 14,9%; M→F 29,2%, M→M 19,5%, M→O 22,6%; O→F 28,7%, O→M 22,
+           4%, O→O 26,5%. Kobiety rzadziej akceptują mężczyzn niż kobiety
+           , ale prawdopodobieństwo nie jest bliskie zeru, więc dane nie 
+           wyglądają na twardą bramkę (opis bez kontroli innych cech i po
+           pularności). Liczono na płci z bieżącego `users`; po przejściu
+            na wersję z dnia swipe'a trzeba to powtórzyć (różnica dotyczy
+            0,8–1,8% swipe'ów, wpływ do sprawdzenia). Kategoria `O` powst
+           aje głównie przez zmianę płci (G16), więc wynik dla `O` wymaga
+            ostrożności.
+      164  
+      165 -**Ograniczenia danych:** G1 (filtry płci w appce mogą narzucać
+          - `same_gender` bez wariancji), G6; mało liczne grupy mniejszoś
+          -ciowe płciowo (np. pary męsko-męskie, osoby niebinarne); możli
+          -we konta par lub grup (jeśli występują).                      
+      165 +**Ograniczenia danych:** G1 (filtry płci w appce mogą narzucać
+          + `same_gender` bez wariancji), G6, G16; mało liczne grupy mnie
+          +jszościowe płciowo (np. pary męsko-męskie, osoby niebinarne); 
+          +możliwe konta par lub grup (jeśli występują).                 
+      166  
+      167  **Możliwe źródła błędu:**
+      168  - Korelacja płci z innymi cechami (palenie, czystość, zaintere
+           sowania): ryzyko konfundowania.
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      175  
+      176  **One-liner:** to, że widzę idealnego (według mnie) współlokat
+           ora, nie znaczy, że on mnie za takiego uważa.
+      177  
+      178 -**Źródła danych:** `profiles`, `swipes_profiles` (**wymagane t
+          -imestampy**, G3), `matches`.                                  
+      178 +**Źródła danych:** `users`, `swipes` (**wymagane timestampy**,
+          + G3; jest tylko `day`), `matches`, `profile_history` (wersje p
+          +rofilu w dniu decyzji z dokładnością do dnia, G2).            
+      179  
+      180  **Zakres próby:**
+      181  - Swipe'y, dla których nadawca ma historię ≥ n_min wcześniejsz
+           ych swipe'ów (propozycja: ≥ 10, jak w H1, do zatwierdzenia). S
+           wipe'y z taką historią z wcześniejszych dni: 45 315 z 95 144.
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      205  
+      206  **One-liner:** osoba, która dużo odsiewa (np. nie chce nikogo,
+            kto pije, pali, imprezuje), najlepiej dopasuje się do kogoś, 
+           kto też dużo odsiewa.
+      207  
+      208 -**Źródła danych:** `swipes_profiles` (**timestampy lub przynaj
+          -mniej kolejność zdarzeń**), `profiles`, `matches`.            
+      208 +**Źródła danych:** `swipes` (**timestampy lub przynajmniej kol
+          +ejność zdarzeń**; jest tylko `day`), `users`, `matches`, `prof
+          +ile_history` (G2).                                            
+      209  
+      210  **Zakres próby:**
+      211  - Swipe'y A→B z minimalną historią ≥ n_min swipe'ów po obu str
+           onach (propozycja n_min = 10, do zatwierdzenia). Liczności jak
+            w H3: 2308 par i 87 matchy po wymogu historii z wcześniejszyc
+           h dni; po wykluczeniu kont skrajnych 1894 pary. W H4 swipe'y z
+            tego samego dnia też są wyłączone z estymacji `s`.
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      224  - **Mechaniczność:** przy niezależności P(match) = pA·pB, więc
+            dwóch selektywnych użytkowników ma najniższą szansę, a dwóch 
+           nieselektywnych najwyższą. Hipotezę trzeba testować jako nadwy
+           żkę ponad ten baseline, inaczej pomylimy mechanikę z efektem.
+      225  - Endogeniczność: wcześniejsze matche wpływają na późniejszą s
+           elektywność (okno tylko z przeszłości ogranicza wyciek, ale ni
+           e usuwa tego mechanizmu).
+      226  - Szum estymaty `s` przy małych próbach (regresja do średniej)
+           .
+      227 -- Dryf selektywności z wiekiem konta (efekt nowości) i survivo
+          -r bias* (selektywni odpadają szybciej - lub wolniej - jeśli os
+          -oby znajdujące pare odinstalowują apliakcję).                 
+      227 +- Dryf selektywności z wiekiem konta (efekt nowości) i survivo
+          +r bias (selektywni odpadają szybciej albo wolniej, jeśli osoby
+          +, które znalazły parę, odinstalowują aplikację).              
+      228  
+      229  
+      230  ---
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      233  
+      234  **One-liner:** ludzie czytają bio i oceniają, czy ktoś "pasuje
+            do klimatu", a samo staranne bio podnosi szansę na prawy swip
+           e niezależnie od treści.
+      235  
+      236 -**Źródła danych:** `profiles` (bio, pola strukturalne), `swipe
+          -s_profiles`, `matches`.                                       
+      236 +**Źródła danych:** `users` (bio, pola strukturalne), `swipes`,
+          + `matches`, `profile_history` (bio w wersjach, 552 zmiany).   
+      237  
+      238  **Zakres próby:**
+      239  - Profile z niepustym bio (dla H5b pary, w których oba bio są 
+           niepuste).
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      238  **Zakres próby:**
+      239  - Profile z niepustym bio (dla H5b pary, w których oba bio są 
+           niepuste).
+      240  - Niepuste bio: 1102 z 2065 profili (53,4%). Długość niepusteg
+           o bio (znaki): mediana 81, IQR 33-153, maks. 250 (górny limit 
+           pola, rozkład ucięty). Par z decyzją obu stron z oboma bio nie
+           pustymi: 3535 z 7790, w tym 250 matchy (350 z 733 matchy ma ob
+           a bio niepuste). Swipe'y na profile z bio (H5a): 52 371 z 95 1
+           44; prawe swipe'y 21,5% (z bio) vs 19,2% (bez bio), różnica op
+           isowa, bez kontroli popularności i kompletności profilu.
+      241 -- Dostępna `profile_history` z 552 zmianami bio, więc część bi
+          -o mogła się zmienić po swipe'ach (G2).                        
+      241 +- `profile_history` (audyt 2026-10-20): 552 zmiany bio u 362 u
+          +serów. W wersjach 42,1% to puste bio, a mediana długości niepu
+          +stych wynosi 96 znaków (w `users`, liczonym na profilach, 53,4
+          +% niepustych i mediana 81; to inne jednostki). Histogram ma wy
+          +raźne skupienie na 250 znakach, co potwierdza górny limit pola
+          +. Bio obowiązujące w dniu swipe'a da się odtworzyć z dokładnoś
+          +cią do dnia (G2); liczba swipe'ów po zmianie bio mierzy edycje
+          + po swipe'ach (G3).                                           
+      242  
+      243  **Plan pomiaru:**
+      244  - **H5a (sygnał jakości):** długość (log słów), pusty/niepusty
+           , liczba emoji, język, liczba pytań. Efekt główny bio odbiorcy
+            na y_right, z kontrolą liczby tagów zainteresowań i kompletno
+           ści profilu oraz z efektami losowymi popularności.
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 1 line, removed 1 line
+      265  |---|---|---|---|
+      266  | 1 | Liczba userów, swipe'ów, matchy, rozmów | 2065 userów (1
+           583 swipujących), 95 144 swipe'y na profile (19 495 prawych), 
+           733 matche, 269 rozmów po matchu. Lejek: 20,49% prawych → 7,52
+           % prawych kończy się matchem → 36,70% matchy z rozmową | jeśli
+            matchy < ok. 10× liczba zmiennych modelu, ograniczyć liczbę z
+           miennych |
+      267  | 2 | Zakres czasowy, obecność timestampów | Tylko `day` (int3
+           2), brak godzin; 15,66% par decyzji wzajemnych tego samego dni
+           a; zakres dni 1-113 (112 różnych dni ze swipe'ami) | brak time
+           stampów → H3 i H4 przeformułować lub odrzucić |
+      268 -| 3 | Rozkład wieku (zakres, mediana, IQR) | Tylko `age_band`:
+          - 18-20 to 65% wyświetlanych profili (61 689 z 94 566), 21-23 1
+          -9%, pozostałe ≤ 9%; mediana/IQR nie dotyczy | wąski zakres → o
+          -strożna interpretacja H1/H2 dla wieku |                       
+      268 +| 3 | Rozkład wieku (zakres, mediana, IQR) | Tylko `age_band`:
+          + 18-20 to 65% wyświetlanych profili (61 689 z 94 566; w `users
+          +` 54% userów, to inna jednostka), 21-23 19%, pozostałe ≤ 9%; m
+          +ediana/IQR nie dotyczy | wąski zakres → ostrożna interpretacja
+          + H1/H2 dla wieku |                                            
+      269  | 4 | Rozkład płci i macierz nadawca × odbiorca swipe'ów | Mac
+           ierz 3×3 w sekcji H2: 46 722 swipe'y różnopłciowe, 21,08% praw
+           ych (F→M 8,7%, M→F 29,2%); płeć `O` rzadka | brak par różnopłc
+           iowych → H2 niewykonalna w proponowanej formie |
+      270  | 5 | Kompletność i rozkład pól stylu życia, wartości domyślne
+            | `daily_routine`, `lifestyle`, `work_from_home`, `smoking`, 
+           `alcohol`: 74-81% braków; `cleanliness`, `noise_level`: ok. 1%
+            braków, dominująca kategoria 53% i 50% (możliwy default); med
+           iana 4 z 12 pól strukturalnych wypełnionych | duże braki → ana
+           liza podzbioru lub uzupełnienie z bio |
+      271  | 6 | Liczba tagów zainteresowań i rozkład Jaccarda | Puste: 2
+           ,57%; mediana 9 tagów (sufit 9), średnia 7,2; 124 unikalne tag
+           i; Jaccard na 733 matchach: średnia 0,146, mediana 0,125, 16,3
+           7% zer (brak baseline'u dla par losowych) | kontrola liczby ta
+           gów w modelu |
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 2 lines
+      273  | 8 | Rozkład aktywności na usera, odsetek prawych swipe'ów, w
+           ykrycie botów | Mediana 26 swipe'ów (średnia 60,1; p95 ≈ 250; 
+           maks. 646); selektywność: mediana 4,4%, średnia 17,4%; 18 kont
+            100% prawo (1,14%), 359 kont 0% prawo (22,68%), 231 kont z < 
+           5 swipe'ami (14,59%) | flagowanie kont skrajnych |
+      274  | 9 | Odsetek swipe'ów dających match i rozmowę po matchu | 20
+           ,49% swipe'ów to prawy; 733 matche = 0,77% swipe'ów (487 z zap
+           isanymi obydwoma swipe'ami); 36,70% matchy ma rozmowę (269); r
+           ozmów spoza matchy: 2473 | wybór zmiennej głównej (match vs ch
+           at) |
+      275  | 10 | Odpowiedzi dostawcy na pytania z sekcji 2.2 | Odpowiedz
+           i częściowe z danych (sekcja 2.2); pytania o feed i Superlajk 
+           czekają na dostawcę | wpływ na wykonalność H1–H5 |
+      276 +| 11 | Zgodność wersji profilu z `users`, wiarygodność `change
+          +d_fields` (audyt 2026-10-20) | ostatnia wersja = `users` w 100
+          +% pól; `changed_fields` niepełne dla `sex` (nigdy) i `city` (5
+          +41 vs 303); bio zgodne w 100%; płeć zmieniło 87 userów, wiek 1
+          +2, miasto 118 | cechy pary z wersji z dnia decyzji; nie ufać `
+          +changed_fields` dla płci i miasta |                           
+      277 +| 12 | Swipe'y względem pierwszej wersji profilu (audyt 2026-1
+          +0-20) | 54 597 swipe'ów (46,9%) z dnia pierwszej wersji; 61 11
+          +8 (52,5%) z wcześniejszą wersją; 551 przed pierwszą wersją; 14
+          +8 od userów bez historii | cechy as-of tylko dla swipe'ów z wc
+          +ześniejszą wersją; pozostałe oznaczyć; zapytać dostawcę o dzie
+          +ń utworzenia |                                                
+      278  
+      279  ---
+      280  
+
+● Update(docs/rentfriends_hipotezy_karta_eksploracji.md)
+  ⎿  Added 36 lines
+      292  1. **Wspólny model hierarchiczny** z blokami: demografia, styl
+            życia, zainteresowania, bio, zachowanie. H1, H2 i H5 to różne
+            porównania w obrębie tego samego pipeline'u, co ogranicza dup
+           likację i problem wielokrotnych porównań.
+      293  2. H3 i H4 realizowane tylko przy spełnieniu warunku timestamp
+           ów; w przeciwnym razie przeformułowane do wersji bez okien cza
+           sowych.
+      294  3. Jeśli po EDA liczba matchy okaże się mała, pozostawić H1/H2
+            oraz podzbiór H5 jako wykonalny rdzeń projektu.
+      295 +4. Przed modelowaniem (audyt 2026-10-20): ujednolicić format t
+          +agów (G14) i wersjonować cechy użytkownika według dnia swipe'a
+          + (G2, G16). Bez tego H1 i H2 opierają się na zduplikowanych ta
+          +gach i na bieżącej płci.                                      
+      296  
+      297  ---
+      298 +                                                              
+      299 +## 7. Dziennik audytu (2026-10-20)                            
+      300 +                                                              
+      301 +**Podstawa:** `profile_history` (4508 wersji), `users` (2065),
+          + `swipes` (116 414) oraz notebooki `users_overview` i `profile
+          +_history_overview`. Liczby policzono na danych lokalnych; treś
+          +ć bio nie była wyświetlana.                                   
+      302 +                                                              
+      303 +**Zmiany w karcie:** sekcja 2.1 (wiersz `profile_history`, `us
+          +ers`), 2.2 (pyt. 3, 4, 6, nowy pyt. 9), 3.2 (wersja cech), 3.4
+          + (G2, G6, G12 nowy, G14, G16–G18 nowe), sekcja 4 (nazwy tabel 
+          +we wszystkich hipotezach, H1 przed Jaccardem, H2 płeć z dnia s
+          +wipe'a, H5 statystyki bio w wersjach, literówki), sekcja 5 (wi
+          +ersz 3, wiersze 11–12), sekcja 6 (pkt 4).                     
+      304 +                                                              
+      305 +### Problemy w hipotezach                                     
+      306 +                                                              
+      307 +| ID | Hipoteza | Problem | Status |                          
+      308 +|---|---|---|---|                                             
+      309 +| P1 | H1–H5 | Nazwy tabel `profiles` i `swipes_profiles` nie 
+          +istnieją (tabele: `users`, `swipes`) | poprawione (sekcja 4) |
+      310 +| P2 | H5 | Odwołanie do G12, którego w tabeli nie było | popr
+          +awione (G12 dodany) |                                         
+      311 +| P3 | H1 | G14 zakłada „słownik 124 tagów”; słownika nie ma, 
+          +a 124 to surowe ciągi z duplikatami formatów (256 userów ma ob
+          +a) | otwarte: ujednolicić format |                            
+      312 +| P4 | H1 | Wstępny Jaccard (średnia 0,146) liczony na surowyc
+          +h tagach z duplikatami | otwarte: powtórzyć po P3 |           
+      313 +| P5 | H1 | Tagi stylu życia i zainteresowań nie są rozdzielon
+          +e; część tagów dubluje pola strukturalne | otwarte: decyzja pr
+          +zed modelem |                                                 
+      314 +| P6 | H1, H5 | Kody pól stylu życia bez kodebooka; historia n
+          +ie rozstrzyga, czy `cleanliness`/`noise_level` to wartość domy
+          +ślna | otwarte: pytanie do dostawcy |                         
+      315 +| P7 | H2, H3, H4 | Płeć, wiek i miasto z bieżącego `users`, a
+          + nie z dnia swipe'a (płeć zmieniło 87 userów); różnice 0,8–3,9
+          +% swipe'ów | otwarte: przejście na wersję z dnia decyzji |    
+      316 +| P8 | H2 | Kategoria `O` powstaje głównie przez zmianę płci (
+          +65 z 101 zmian), więc może być artefaktem | otwarte: pytanie d
+          +o dostawcy |                                                  
+      317 +| P9 | H2 | Sekcja 2.2 pyt. 6 twierdziła, że płeć i wiek przyp
+          +isano do swipe'ów; to był bieżący stan | poprawione (pyt. 6 i 
+          +nowy pyt. 9) |                                                
+      318 +| P10 | H3, H4 | Wersje profilu tylko z dokładnością do dnia: 
+          +46,9% swipe'ów z dnia pierwszej wersji, 551 przed nią | otwart
+          +e: pytanie o dzień utworzenia i zapis zmian |                 
+      319 +| P11 | H3, H4 | Okno „z przeszłości” nie pokazuje, co użytkow
+          +nik widział przed decyzją (G3) | ograniczenie, opisane w G2/G3
+          + |                                                            
+      320 +| P12 | H5 | Statystyki bio w H5 liczone na `users` (profile),
+          + a nie na wersjach; różne jednostki | poprawione (opis w H5) |
+      321 +| P13 | H5 | G2 mówił, że pokrycie historii nie jest sprawdzon
+          +e; sprawdzone: bio zgodne w 100% z `changed_fields` | poprawio
+          +ne (G2, G17) |                                                
+      322 +| P14 | H5 | `bio_length` różni się od długości tekstu w 2,3–2
+          +,6% profili i wersji (G18) | otwarte: ustalić definicję |     
+      323 +| P15 | H5 | Audyt danych osobowych w bio nieukończony; flagi 
+          +regex to tylko przesiew | otwarte (G12) |                     
+      324 +| P16 | H1, H2, H5 | G6 nieprecyzyjne („jedno lub kilka miast”
+          +); Hyderabad (45 userów) to anomalia | poprawione (G6); anomal
+          +ia otwarta |                                                  
+      325 +| P17 | H2, H5 | `changed_fields` niepełne dla płci i miasta, 
+          +co grozi błędnym wnioskiem przy szukaniu zmian | poprawione (G
+          +17) |                                                         
+      326 +| P18 | H2 | Wstępne P(prawy) liczone na bieżącej płci | otwar
+          +te: powtórzyć |                                               
+      327 +| P19 | H1–H5 | Literówki i błędy składni: „survivor bias*”, „
+          +apliakcję”, „pare”, „hojnosć”, niedomknięty nawias w H2 | popr
+          +awione |                                                      
+      328 +| P20 | sekcja 5 | Wiek: 65% (wyświetlane profile) i 54% (`use
+          +rs`) to różne jednostki | poprawione (opis w wierszu 3) |     
+      329 +                                                              
+      330 +---                                                           
+      331 +                                                              
+      332 +---                                                           
+
+● Wszystkie 27 zmian weszły. Sprawdzam, czy w karcie nie zostały stare nazwy
+  tabel ani odwołania do nieistniejących wpisów.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Kartę zaktualizowałem: docs/rentfriends_hipotezy_karta_eksploracji.md. Zmiany
+  są opisane w nowej sekcji 7, która zawiera też tabelę problemów. Liczby
+  policzyłem na danych lokalnych, a treści bio nie wyświetlałem.
+
+  Problemy w hipotezach
+
+  Błędy w karcie (poprawione)
+  1. P1 (H1–H5): hipotezy odwołują się do tabel profiles i swipes_profiles,
+     których nie ma. Poprawne nazwy to users i swipes.
+  2. P2 (H5): G12 jest cytowane, ale w tabeli go nie było. Dodałem go.
+  3. P9 (H2): pytanie 6 w sekcji 2.2 twierdziło, że płeć i wiek przypisano do
+     swipe'ów. To był stan bieżący z users, nie stan z dnia swipe'a.
+  4. P13 (H5): G2 mówiło, że pokrycie profile_history nie jest sprawdzone. Jest:
+     bio zgodne w 100% z changed_fields.
+  5. P12 (H5): statystyki bio liczone na profilach (53,4% niepustych,
+     mediana 81) mieszały się ze statystykami z wersji (42,1% pustych,
+     mediana 96). Opisałem jednostki.
+  6. P16 (H1, H2, H5): G6 było nieprecyzyjne. Konkrety: tag student 55%, Wrocław
+     34%, „inne” 28%, LR 92%.
+  7. P19 (H1–H5): literówki i błędy składni („survivor bias*”, „apliakcję”,
+     „pare”, „hojnosć”, niedomknięty nawias w H2).
+  8. P20 (sekcja 5): wiek 65% (wyświetlane profile) i 54% (users) to różne
+     jednostki. Opisałem to w tabeli.
+
+  Problemy merytoryczne (otwarte)
+  9. P3 (H1): G14 zakłada „słownik 124 tagów”, a słownika nie ma. 124 to surowe
+  ciągi, w tym 54 w formie emoji/etykiety obok odpowiedników snake_case. 256
+  userów ma oba formaty, a 159 z nich ma je przy limicie 9 tagów.
+  10. P4 (H1): wstępny Jaccard (średnia 0,146) liczono na zduplikowanych tagach,
+  więc trzeba go powtórzyć.
+  11. P5 (H1): tagi stylu życia i zainteresowań nie są rozdzielone. Część
+  dubluje pola strukturalne: smoking↔non_smoker, noise_level↔quiet_after_22,
+  cleanliness↔loves_cleanliness.
+  12. P6 (H1, H5): kody pól stylu życia nie mają kodebooka. Historia nie
+  rozstrzyga, czy cleanliness i noise_level są domyślne. Rozkład przy utworzeniu
+  jest taki sam jak ogólny.
+  13. P7 (H2, H3, H4): płeć, wiek i miasto są z bieżącego users, a nie z dnia
+  swipe'a. Płeć zmieniło 87 userów (4,2%), wiek 12, miasto 118. Różnice w
+  swipe'ach: płeć aktora 1,8%, płeć odbiorcy 0,78%, wiek aktora 1,33%, miasto
+  aktora 3,88%.
+  14. P8 (H2): kategoria O powstaje głównie przez zmianę płci (65 z 101 zmian).
+  Może być artefaktem.
+  15. P10 i P11 (H3, H4): wersje profilu są tylko z dokładnością do dnia. 46,9%
+  swipe'ów jest z dnia pierwszej wersji, a 551 przed nią. Nie da się więc
+  ustalić, co użytkownik widział przed decyzją. Wymaga to pytania do dostawcy o
+  dzień utworzenia.
+  16. P14 (H5): bio_length różni się od długości tekstu w 2,3% profili i 2,6%
+  wersji.
+  17. P15 (H5): audyt danych osobowych w bio nadal nie jest zrobiony. Flagi
+  regex (cyfry w 9,27% wersji, @ w jednej) to tylko przesiew.
+  18. P17 (H2, H5): changed_fields jest niepełne: sex nigdy nie jest wymienione,
+  city jest wymienione 541 razy przy 303 zmianach w snapshotach.
+  19. P18 (H2): wstępne P(prawy) liczono na bieżącej płci. Trzeba je powtórzyć.
+  20. Anomalia (P16): 45 userów ma miasto Hyderabad (2,2%), co nie pasuje do
+  polskiej aplikacji. Nie wyjaśniłem tego.
+
+  Co dalej
+
+  - Zanim zrobimy model: ujednolicić tagi, rozdzielić styl życia od
+    zainteresowań i przejść na cechy z dnia swipe'a. Te trzy kroki są w karcie
+    jako pkt 4 w sekcji 6.
+  - Pytania do dostawcy: znaczenie O, kody pól stylu życia, dzień utworzenia
+    profilu i powód 551 swipe'ów przed pierwszą wersją, oraz Hyderabad.
+  - Dziennik AI: ta sesja to kolejny wpis do docs/ai-disclosure.md i kolejny log
+    w logs/ai/. Jeszcze ich nie dodałem; mogę to zrobić, gdy wyeksportujesz
+    log.
+
+  Nie commitowałem.
