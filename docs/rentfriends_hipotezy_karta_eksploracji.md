@@ -1,6 +1,6 @@
 # RentFriends — materiał do Karty Eksploracji Danych (M1)
 
-**Status:** dane otrzymane; wstępna EDA wykonana (`notebooks/EDA.ipynb`, wersja z wynikami: `notebooks/EDA-rendered.ipynb`). Sekcje 2, 4 i 5 uzupełniono liczbami z EDA. Pozycje oznaczone `[DO UZUPEŁNIENIA]` nie zostały jeszcze policzone lub czekają na odpowiedź dostawcy. Liczby są opisowe (bez wnioskowania statystycznego).
+**Status:** dane otrzymane; wstępna EDA wykonana (`notebooks/EDA.ipynb`, wersja z wynikami: `notebooks/EDA-rendered.ipynb`). Sekcje 2, 4 i 5 uzupełniono liczbami z EDA. Pytania do dostawcy (feed, Superlajk, wartości domyślne, brakujące swipe'y matchy) pozostają otwarte. Liczby są opisowe (bez wnioskowania statystycznego).
 
 ---
 
@@ -32,11 +32,11 @@ Dane to przetworzone pliki parquet (`data/processed/`), połączone relacyjnie k
 
 | Tabela | Zawartość | Uwagi |
 |---|---|---|
-| `users` | **2065** profili: `user_key`, `sex` (F/M/O), `age_band` (kategorie), `interests` (lista tagów), `bio`, `bio_length`, `budget`, `move_in_month_offset` i inne pola kategorialne | wiek tylko jako przedział, nie w latach; pełna lista kolumn na diagramie ERD w notebooku |
+| `users` | **2065** profili: `user_key`, `sex` (F/M/O), `age_band`, `city`, pola stylu życia (`daily_routine`, `lifestyle`, `work_from_home`, `cleanliness`, `noise_level`, `smoking`, `alcohol`), `room_type`, `budget`, `move_in_month_offset`, `search_goal`, `interests` (lista tagów), `bio`, `bio_length` | wiek tylko jako przedział, nie w latach; pełna lista kolumn na diagramie ERD w notebooku |
 | `swipes` | `user_key`, `target_type` (`profile` / listing), `target_user_key`, `direction` (left/right), `day` | **jedyna informacja czasowa to `day` (int32)**, bez godzin; swipe'y na profile: **95 144** |
 | `matches` | `user_a_key`, `user_b_key`, `day` | **733** matche, bez braków (0% NaN); match = wzajemne prawe swipe'y |
-| `chats` | para użytkowników, flaga `from_match` | bez treści wiadomości; rozmowy po matchu: **269** |
-| `listings` | ogłoszenia mieszkań | atrybuty i powiązanie ze swipe'ami nie były jeszcze analizowane w EDA |
+| `chats` | para użytkowników, `from_match`, `source_listing_key`, dni utworzenia i pierwszej wiadomości | bez treści wiadomości; łącznie **2742** rozmowy, z matcha **269**, z ogłoszenia (bez matcha) 163, pozostałe 2310 |
+| `listings` | **294** ogłoszenia: miasto, dzielnica, `listing_kind` (room/entire), liczba mieszkańców, pokoje, `min_price`/`max_price`, `created_day` | swipe'y na ogłoszenia: **21 270**, wszystkie łączą się z `listings` |
 | `profile_history` | historia zmian profilu, kolumna `changed_fields` | **552** odnotowane zmiany bio |
 
 ### 2.2 Pytania decydujące o wykonalności (stan po EDA)
@@ -44,11 +44,11 @@ Dane to przetworzone pliki parquet (`data/processed/`), połączone relacyjnie k
 1. Czy swipe'y mają znaczniki czasu? Jeśli tak, w jakiej rozdzielczości? **Odpowiedź (EDA): tylko dzień (`day`), bez godzin.** Wśród 7790 par z decyzją obu stron 15,66% (1220) zdecydowało tego samego dnia, więc kolejności nie da się ustalić; pozostałe 84,34% da się uporządkować.
 2. Jak działa feed: ranking, filtry użytkownika (płeć, wiek, palenie, lokalizacja), losowość? Czy B widzi, że A go polubił, przed swoją decyzją? (krytyczne dla H1–H3) - **bez odpowiedzi, dane tego nie rozstrzygają; czekamy na kontakt z przedstawicielem.**
 3. Czy profile (**w tym bio**) mają historię edycji, czy tylko stan z momentu eksportu? (krytyczne dla H5). **Częściowo: istnieje tabela `profile_history` z 552 zmianami bio.** Nie sprawdzono jeszcze, czy zawiera treść poprzednich wersji i jaki okres obejmuje.
-4. Jakie pola stylu życia są w profilu, jakie mają kategorie i czy mają wartości domyślne? Czy są to cechy własne, czy preferencje względem współlokatora? **Częściowo: tagi stylu życia (np. `non_smoker`, `night_owl`, `likes_calm`, `values_privacy`) są w polu `interests` razem ze zwykłymi zainteresowaniami (124 unikalne tagi, maks. 9 na użytkownika), a nie w osobnych polach. Czy to cechy własne czy preferencje, nie wiadomo.**
-5. Jaki jest zakres czasowy danych i liczba użytkowników, swipe'ów, matchy i rozpoczętych rozmów? **2065 użytkowników (1583 z co najmniej jednym swipe'em na profil), 95 144 swipe'y na profile, 733 matche, 269 rozmów po matchu. Zakres czasowy: dłuższy niż 30 dni (351 par ma odstęp > 30 dni); dokładny zakres `day` `[DO UZUPEŁNIENIA]`.**
+4. Jakie pola stylu życia są w profilu, jakie mają kategorie i czy mają wartości domyślne? Czy są to cechy własne, czy preferencje względem współlokatora? **Częściowo. Są osobne pola strukturalne (sekcja 2.1) oraz tagi stylu życia w `interests` (np. `non_smoker`, `night_owl`, `likes_calm`; 124 unikalne tagi, maks. 9 na użytkownika). Pola `daily_routine`, `lifestyle`, `work_from_home`, `smoking`, `alcohol` mają 74-81% braków; `cleanliness` i `noise_level` tylko 1,0% i 1,2%, a najczęstsza kategoria to odpowiednio 53% i 50%, co może wskazywać na wartość domyślną (do potwierdzenia z dostawcą). Czy to cechy własne czy preferencje, nie wiadomo.**
+5. Jaki jest zakres czasowy danych i liczba użytkowników, swipe'ów, matchy i rozpoczętych rozmów? **2065 użytkowników (1583 z co najmniej jednym swipe'em na profil), 95 144 swipe'y na profile i 21 270 na ogłoszenia, 733 matche, 2742 rozmowy (269 z matcha). Zakres czasowy: dni 1-113 (swipe'y), matche i rozmowy od dnia 4.**
 6. Czy ID są spójne między tabelami? Czy boty i konta testowe zostały usunięte? **ID łączą się między `users`, `swipes` i `matches` (płeć i wiek przypisano do wszystkich swipe'ów na profile; po `age_band` odpadło 578 z 95 144). Boty nie zostały usunięte: 18 kont (1,14% swipujących) ma 100% prawych swipe'ów przy ≥ 10 swipe'ach.**
-7. Czy swipe'y na ogłoszenia można powiązać z cechami ogłoszeń (cena, lokalizacja)? **Istnieje tabela `listings` i `target_type` w `swipes`; powiązanie i cechy ogłoszeń `[DO UZUPEŁNIENIA]`, EDA objęła tylko swipe'y na profile.**
-8. Czy istnieje mechanizm "Superlajka" (bezpośredniego wysłania wiadomości, bez wymogu istnienia matcha). **Nie rozstrzygnięto. Flaga `from_match` w `chats` sugeruje, że istnieją rozmowy spoza matchy; ich liczby nie sprawdzono.**
+7. Czy swipe'y na ogłoszenia można powiązać z cechami ogłoszeń (cena, lokalizacja)? **Tak: 100% swipe'ów na ogłoszenia łączy się z `listings` (257 z 294 ogłoszeń ma swipe'y; 16,2% prawych; to samo miasto 16,3% vs inne 14,8%). `min_price` ma wartości skrajne (mediana 1750, maks. 500 000), więc wymaga czyszczenia.**
+8. Czy istnieje mechanizm "Superlajka" (bezpośredniego wysłania wiadomości, bez wymogu istnienia matcha). **Dane to sugerują: tylko 9,8% rozmów (269 z 2742) pochodzi z matcha, 163 z ogłoszenia, a 2310 rozmów nie ma ani matcha, ani ogłoszenia. Mechanizm trzeba potwierdzić z dostawcą. Konsekwencja: rozmowa nie jest zdarzeniem wyłącznie po matchu, więc `y_chat | match` obejmuje tylko 269 rozmów.**
 
 ---
 
@@ -94,7 +94,8 @@ Aby potwierdzić że wniosek hipotezy jest oparty na danych, zbudujemy prosty mo
 | G9 | **Match ≠ decyzja o wspólnym wynajmie** | sformułować wnioski jako dotyczące matcha i zaangażowania |
 | G10 | **Boty, konta nietypowe** (swipe'ują wszystko w prawo/lewo): 18 kont 100% prawo (≥ 10 swipe'ów), 359 kont 0% prawo (22,68% swipujących) | flagowanie, analiza z wykluczeniem i bez |
 | G13 | **Wiek tylko jako `age_band`** (18-20, 21-23, 24-26, 27-30, 31-35, 36+); 65% wyświetlanych profili to 18-20; komórki 27+ są bardzo małe (np. 31-35 → 31-35: 46 swipe'ów) | zamiast ciągłej różnicy wieku używać różnicy numerów przedziałów lub zgodności przedziału; łączyć rzadkie przedziały |
-| G14 | **Styl życia i zainteresowania w jednym polu `interests`** (maks. 9 tagów, sufit: mediana = 9) | wydzielić tagi stylu życia ze słownika (124 tagów) przed analizą H1; Jaccard wrażliwy na sufit |
+| G14 | **Styl życia częściowo w polach strukturalnych (74-81% braków w większości), częściowo w tagach `interests`** (maks. 9 tagów, mediana = 9, sufit) | w H1 użyć tagów stylu życia ze słownika (124 tagi) oraz pól `cleanliness` i `noise_level`; Jaccard wrażliwy na sufit |
+| G15 | **Matche bez kompletu swipe'ów:** dla 246 z 733 matchy (33,6%) w `swipes` jest tylko jeden swipe na profil, drugi nie jest zapisany (mechanizm nieznany) | modele par z decyzją obu stron mają dostęp tylko do 487 matchy; sprawdzić z dostawcą; analiza wrażliwości |
 | G11 | **Anonimizacja:** losowe ID ograniczają łączenie z innymi źródłami; ryzyko reidentyfikacji z bio | przetwarzanie lokalne, bez próby identyfikacji |
 
 ---
@@ -111,7 +112,7 @@ Aby potwierdzić że wniosek hipotezy jest oparty na danych, zbudujemy prosty mo
 - Pary {A,B}, w których obie strony zdecydowały i mają wypełnione pola używane w analizie.
 - Wykluczenie kont oznaczonych jako boty (G10).
 - Progi minimalnej aktywności: propozycja na podstawie rozkładu aktywności (mediana 26, średnia 60, p25 = 9, p95 ≈ 250 swipe'ów): ≥ 10 swipe'ów na użytkownika (odpada ok. 1/4 swipujących), do zatwierdzenia przed modelowaniem. Konta z < 5 swipe'ami to 14,59% swipujących.
-- Liczba par, userów i matchy: 7790 par z decyzją obu stron, 733 matche (ok. 9,4% takich par), 1583 swipujących użytkowników z 2065. Liczba par po filtrach `[DO UZUPEŁNIENIA]`. Reguła 10 matchy na zmienną pozwala na maks. ok. 73 zmienne w modelu, mniej w podzbiorach.
+- Liczba par, userów i matchy: 7790 par z decyzją obu stron, w tym 487 matchy (6,3% takich par; pozostałe 246 z 733 matchy ma zapisany tylko jeden swipe, G15), 1583 swipujących użytkowników z 2065. Po filtrze ≥ 10 swipe'ów obu stron: 7538 par i 470 matchy (5533 pary bez kont skrajnych). Reguła 10 matchy na zmienną pozwala na ok. 47 zmiennych w modelu na parach (73 przy użyciu wszystkich 733 matchy).
 
 **Plan pomiaru:**
 - Zmienna objaśniana: y_match (główna), y_right kierunkowo (wtórna).
@@ -149,7 +150,7 @@ Aby potwierdzić że wniosek hipotezy jest oparty na danych, zbudujemy prosty mo
 - Zmienna objaśniana: y_right (główna, kierunkowa), y_match (wtórna).
 - Stratyfikacja: P(prawy swipe | ta sama płeć) vs P(prawy swipe | różna płeć), osobno według płci nadawcy, z przedziałami ufności.
 - Model z interakcją `płeć_A × płeć_B`; `|Δwiek|`, `Δwiek` ze znakiem); bloki stylu życia i zainteresowań z H1.
-- "Warunek wstępny" - model dwuetapowy: (1) czy para przechodzi bramkę demograficzną, (2) czy w obrębie warstwy działają pozostałe cechy. Próg "bliskie zeru" dla P(prawy | różna płeć) ustalamy przed analizą `[DO UZUPEŁNIENIA]`. Wstępnie żadna komórka nie jest bliska zera.
+- "Warunek wstępny" - model dwuetapowy: (1) czy para przechodzi bramkę demograficzną, (2) czy w obrębie warstwy działają pozostałe cechy. Próg "bliskie zeru" dla P(prawy | różna płeć) jest decyzją zespołu, którą należy zapisać przed analizą. Punkt odniesienia z EDA: najniższa komórka F→M ma 8,7% (95% CI Wilsona 8,3-9,1%), a żadna komórka nie ma CI przy zerze (przedziały nie uwzględniają klastrowania po użytkowniku, więc są zaniżone).
 - **Wynik negatywny:** demografia nie dominuje; styl życia wyjaśnia matcha równie dobrze lub lepiej, więc parametry wpływają na dopasowanie, a nie tylko na strukturę zbioru.
 
 **Wstępne obserwacje z EDA (P(prawy)):** F→F 20,1%, F→M 8,7%, F→O 14,9%; M→F 29,2%, M→M 19,5%, M→O 22,6%; O→F 28,7%, O→M 22,4%, O→O 26,5%. Kobiety rzadziej akceptują mężczyzn niż kobiety, ale prawdopodobieństwo nie jest bliskie zeru, więc dane nie wyglądają na twardą bramkę (opis bez kontroli innych cech i popularności).
@@ -170,9 +171,9 @@ Aby potwierdzić że wniosek hipotezy jest oparty na danych, zbudujemy prosty mo
 **Źródła danych:** `profiles`, `swipes_profiles` (**wymagane timestampy**, G3), `matches`.
 
 **Zakres próby:**
-- Swipe'y, dla których nadawca ma historię ≥ n_min wcześniejszych swipe'ów (próg propozycja: ≥ 10, jak w H1; `[DO UZUPEŁNIENIA]` po zatwierdzeniu).
+- Swipe'y, dla których nadawca ma historię ≥ n_min wcześniejszych swipe'ów (propozycja: ≥ 10, jak w H1, do zatwierdzenia). Swipe'y z taką historią z wcześniejszych dni: 45 315 z 95 144.
 - Pary, w których obie strony zdecydowały: 7790, z czego 6570 (84,34%) w różne dni (odstęp 1 dzień: 1210, 2-3 dni: 1152, 4-7: 1418, 8-14: 1182, 15-30: 1257, > 30: 351). 1220 par (15,66%) zdecydowało tego samego dnia i nie nadaje się do okna czasowego.
-- Liczność po zastosowaniu progu (wpływ selekcji): `[DO UZUPEŁNIENIA]`.
+- Liczność po progu n_min = 10 i wymogu różnych dni: 2308 par i tylko **87 matchy** (1894 pary bez kont skrajnych); dla n_min = 5: 2512 par i 98 matchy; dla n_min = 30: 1614 par i 48 matchy. Selekcja jest silna (zostają aktywni), a przy 87 matchach reguła 10 matchy na zmienną pozwala na ok. 8 zmiennych, więc H3 jest wykonalna tylko w bardzo uproszczonej formie.
 
 **Plan pomiaru:**
 - Preferencje użytkownika estymowane wyłącznie z jego swipe'ów **sprzed** danej decyzji (rozwijane okno)
@@ -200,7 +201,7 @@ Aby potwierdzić że wniosek hipotezy jest oparty na danych, zbudujemy prosty mo
 **Źródła danych:** `swipes_profiles` (**timestampy lub przynajmniej kolejność zdarzeń**), `profiles`, `matches`.
 
 **Zakres próby:**
-- Swipe'y A→B z minimalną historią ≥ n_min swipe'ów po obu stronach (propozycja n_min = 10, `[DO UZUPEŁNIENIA]` po zatwierdzeniu).
+- Swipe'y A→B z minimalną historią ≥ n_min swipe'ów po obu stronach (propozycja n_min = 10, do zatwierdzenia). Liczności jak w H3: 2308 par i 87 matchy po wymogu historii z wcześniejszych dni; po wykluczeniu kont skrajnych 1894 pary. W H4 swipe'y z tego samego dnia też są wyłączone z estymacji `s`.
 - Wykluczenie lub osobna analiza kont o selektywności ≈ 0 lub ≈ 1 (boty, G10). Rozkład selektywności jest bardzo skośny: mediana 4,4%, średnia 17,4%, p75 24,1%, p90 58,3%; 18 kont z 100% prawo, 359 z 0% prawo (≥ 10 swipe'ów). Przy tak dużej masie przy zerze wariancja zmiennej jest ograniczona.
 
 **Plan pomiaru:**
@@ -229,7 +230,7 @@ Aby potwierdzić że wniosek hipotezy jest oparty na danych, zbudujemy prosty mo
 
 **Zakres próby:**
 - Profile z niepustym bio (dla H5b pary, w których oba bio są niepuste).
-- Niepuste bio: 1102 z 2065 profili (53,4%). Rozkład długości `bio_length` jest zwizualizowany w notebooku, statystyki (mediana, IQR) `[DO UZUPEŁNIENIA]`. Liczba par z oboma bio niepustymi `[DO UZUPEŁNIENIA]`; od tego zależy moc H5b.
+- Niepuste bio: 1102 z 2065 profili (53,4%). Długość niepustego bio (znaki): mediana 81, IQR 33-153, maks. 250 (górny limit pola, rozkład ucięty). Par z decyzją obu stron z oboma bio niepustymi: 3535 z 7790, w tym 250 matchy (350 z 733 matchy ma oba bio niepuste). Swipe'y na profile z bio (H5a): 52 371 z 95 144; prawe swipe'y 21,5% (z bio) vs 19,2% (bez bio), różnica opisowa, bez kontroli popularności i kompletności profilu.
 - Dostępna `profile_history` z 552 zmianami bio, więc część bio mogła się zmienić po swipe'ach (G2).
 
 **Plan pomiaru:**
@@ -256,14 +257,14 @@ Aby potwierdzić że wniosek hipotezy jest oparty na danych, zbudujemy prosty mo
 | # | Wskaźnik do policzenia | Wynik | Reguła decyzyjna |
 |---|---|---|---|
 | 1 | Liczba userów, swipe'ów, matchy, rozmów | 2065 userów (1583 swipujących), 95 144 swipe'y na profile (19 495 prawych), 733 matche, 269 rozmów po matchu. Lejek: 20,49% prawych → 7,52% prawych kończy się matchem → 36,70% matchy z rozmową | jeśli matchy < ok. 10× liczba zmiennych modelu, ograniczyć liczbę zmiennych |
-| 2 | Zakres czasowy, obecność timestampów | Tylko `day` (int32), brak godzin; 15,66% par decyzji wzajemnych tego samego dnia; dokładny zakres dni `[DO UZUPEŁNIENIA]` | brak timestampów → H3 i H4 przeformułować lub odrzucić |
+| 2 | Zakres czasowy, obecność timestampów | Tylko `day` (int32), brak godzin; 15,66% par decyzji wzajemnych tego samego dnia; zakres dni 1-113 (112 różnych dni ze swipe'ami) | brak timestampów → H3 i H4 przeformułować lub odrzucić |
 | 3 | Rozkład wieku (zakres, mediana, IQR) | Tylko `age_band`: 18-20 to 65% wyświetlanych profili (61 689 z 94 566), 21-23 19%, pozostałe ≤ 9%; mediana/IQR nie dotyczy | wąski zakres → ostrożna interpretacja H1/H2 dla wieku |
 | 4 | Rozkład płci i macierz nadawca × odbiorca swipe'ów | Macierz 3×3 w sekcji H2: 46 722 swipe'y różnopłciowe, 21,08% prawych (F→M 8,7%, M→F 29,2%); płeć `O` rzadka | brak par różnopłciowych → H2 niewykonalna w proponowanej formie |
-| 5 | Kompletność i rozkład pól stylu życia, wartości domyślne | Pola stylu życia są tagami w `interests`; kompletność innych kolumn `users` zwizualizowana w notebooku, liczby `[DO UZUPEŁNIENIA]`; wartości domyślne niesprawdzone | duże braki → analiza podzbioru lub uzupełnienie z bio |
+| 5 | Kompletność i rozkład pól stylu życia, wartości domyślne | `daily_routine`, `lifestyle`, `work_from_home`, `smoking`, `alcohol`: 74-81% braków; `cleanliness`, `noise_level`: ok. 1% braków, dominująca kategoria 53% i 50% (możliwy default); mediana 4 z 12 pól strukturalnych wypełnionych | duże braki → analiza podzbioru lub uzupełnienie z bio |
 | 6 | Liczba tagów zainteresowań i rozkład Jaccarda | Puste: 2,57%; mediana 9 tagów (sufit 9), średnia 7,2; 124 unikalne tagi; Jaccard na 733 matchach: średnia 0,146, mediana 0,125, 16,37% zer (brak baseline'u dla par losowych) | kontrola liczby tagów w modelu |
-| 7 | Odsetek niepustych bio i rozkład długości | 1102 z 2065 (53,4%) niepustych; histogram długości w notebooku | niski odsetek → H5b ograniczyć do podpróby |
+| 7 | Odsetek niepustych bio i rozkład długości | 1102 z 2065 (53,4%) niepustych; mediana długości 81 znaków, IQR 33-153, maks. 250 | niski odsetek → H5b ograniczyć do podpróby (3535 par z oboma bio) |
 | 8 | Rozkład aktywności na usera, odsetek prawych swipe'ów, wykrycie botów | Mediana 26 swipe'ów (średnia 60,1; p95 ≈ 250; maks. 646); selektywność: mediana 4,4%, średnia 17,4%; 18 kont 100% prawo (1,14%), 359 kont 0% prawo (22,68%), 231 kont z < 5 swipe'ami (14,59%) | flagowanie kont skrajnych |
-| 9 | Odsetek swipe'ów dających match i rozmowę po matchu | 20,49% swipe'ów to prawy; 733 matche = 0,77% swipe'ów; 36,70% matchy ma rozmowę (269) | wybór zmiennej głównej (match vs chat) |
+| 9 | Odsetek swipe'ów dających match i rozmowę po matchu | 20,49% swipe'ów to prawy; 733 matche = 0,77% swipe'ów (487 z zapisanymi obydwoma swipe'ami); 36,70% matchy ma rozmowę (269); rozmów spoza matchy: 2473 | wybór zmiennej głównej (match vs chat) |
 | 10 | Odpowiedzi dostawcy na pytania z sekcji 2.2 | Odpowiedzi częściowe z danych (sekcja 2.2); pytania o feed i Superlajk czekają na dostawcę | wpływ na wykonalność H1–H5 |
 
 ---

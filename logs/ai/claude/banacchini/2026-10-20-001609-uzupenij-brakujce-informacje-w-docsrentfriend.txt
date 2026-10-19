@@ -1,0 +1,220 @@
+
+❯ <browser_instruction># Claude in Chrome browser automation
+
+  You have access to browser automation tools (mcp__claude-in-chrome__*) for
+  interacting with web pages in Chrome. Follow these guidelines for effective
+  browser automation.
+
+  ## Loading deferred tools
+
+  If the mcp__claude-in-chrome__* tools are deferred (must be loaded via
+  ToolSearch before use), load every tool you expect to need in ONE ToolSearch
+  call — the select query accepts a comma-separated list — never one call per
+  tool. Start with the core set:
+
+  ToolSearch with query
+  "select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__naviga
+  te,mcp__claude-in-chrome__computer,mcp__claude-in-chrome__read_page,mcp__clau
+  de-in-chrome__tabs_create_mcp,mcp__claude-in-chrome__tabs_close_mcp"
+
+  Add task-specific tools to the same call when the task obviously needs them:
+  read_console_messages / read_network_requests for debugging, form_input for
+  forms, gif_creator for recordings, javascript_tool for page scripting.
+
+  ## GIF recording
+
+  When performing multi-step browser interactions that the user may want to
+  review or share, use mcp__claude-in-chrome__gif_creator to record them.
+
+  You must ALWAYS:
+  * Capture extra frames before and after taking actions to ensure smooth
+  playback
+  * Name the file meaningfully to help the user identify it later (e.g.,
+  "login_process.gif")
+
+  ## Console log debugging
+
+  You can use mcp__claude-in-chrome__read_console_messages to read console
+  output. Console output may be verbose. If you are looking for specific log
+  entries, use the 'pattern' parameter with a regex-compatible pattern. This
+  filters results efficiently and avoids overwhelming output. For example, use
+  pattern: "[MyApp]" to filter for application-specific logs rather than
+  reading all console output.
+
+  ## Alerts and dialogs
+
+  IMPORTANT: Do not trigger JavaScript alerts, confirms, prompts, or browser
+  modal dialogs through your actions. These browser dialogs block all further
+  browser events and will prevent the extension from receiving any subsequent
+  commands. Instead, when possible, use console.log for debugging and then use
+  the mcp__claude-in-chrome__read_console_messages tool to read those log
+  messages. If a page has dialog-triggering elements:
+  1. Avoid clicking buttons or links that may trigger alerts (e.g., "Delete"
+  buttons with confirmation dialogs)
+  2. If you must interact with such elements, warn the user first that this may
+  interrupt the session
+  3. Use mcp__claude-in-chrome__javascript_tool to check for and dismiss any
+  existing dialogs before proceeding
+
+  If you accidentally trigger a dialog and lose responsiveness, inform the user
+  they need to manually dismiss it in the browser.
+
+  ## Avoid rabbit holes and loops
+
+  When using browser automation tools, stay focused on the specific task. If
+  you encounter any of the following, stop and ask the user for guidance:
+  - Unexpected complexity or tangential browser exploration
+  - Browser tool calls failing or returning errors after 2-3 attempts
+  - No response from the browser extension
+  - Page elements not responding to clicks or input
+  - Pages not loading or timing out
+  - Unable to complete the browser task despite multiple approaches
+
+  Explain what you attempted, what went wrong, and ask how the user would like
+  to proceed. Do not keep retrying the same failing browser action or explore
+  unrelated pages without checking in first.
+
+  ## Tab context and session startup
+
+  IMPORTANT: At the start of each browser automation session, call
+  mcp__claude-in-chrome__tabs_context_mcp first to get information about the
+  user's current browser tabs. Use this context to understand what the user
+  might want to work with before creating new tabs.
+
+  Never reuse tab IDs from a previous/other session. Follow these guidelines:
+  1. Only reuse an existing tab if the user explicitly asks to work with it
+  2. Otherwise, create a new tab with mcp__claude-in-chrome__tabs_create_mcp
+  3. If a tool returns an error indicating the tab doesn't exist or is invalid,
+  call tabs_context_mcp to get fresh tab IDs
+  4. When a tab is closed by the user or a navigation error occurs, call
+  tabs_context_mcp to see what tabs are available</browser_instruction>
+
+❯ uzupełnij brakujące informacje w
+  @docs/rentfriends_hipotezy_karta_eksploracji.md  bazując na
+  @notebooks/EDA-rendered.ipynb . Dodaj stosowny zapis w @docs/ai-disclosure.md
+  ⎿  Read docs/rentfriends_hipotezy_karta_eksploracji.md (279 lines)
+  ⎿  Read docs/ai-disclosure.md (18 lines)
+
+  Ran 4 shell commands (ctrl+o to expand)
+
+● Uzupełniłem kartę eksploracji (docs/rentfriends_hipotezy_karta_eksploracji.md)
+  danymi z notebooka i dodałem wiersz do ai-disclosure.md
+  (docs/ai-disclosure.md). Niczego nie uruchamiałem ani nie sprawdzałem tabel
+  markdown po edycji (poprawiłem tylko jeden wiersz G13, w którym |Δ wiek|
+  rozbijało tabelę). Liczby są przepisane z wyników w EDA-rendered.ipynb. Nie
+  miałem dostępu do data/processed, więc nie sprawdzałem ich na danych.
+
+  Co jest w karcie
+  - Status i sekcja 2: dane są już otrzymane, a schemat został zastąpiony
+    faktycznym. Tabele to users (2065), swipes (95 144 na profile), matches
+    (733), chats (269 po matchu), listings i profile_history (552 zmiany bio).
+  - Pytania 1–8 z sekcji 2.2: odpowiedzi tam, gdzie notebook je daje.
+    - Swipe'y mają tylko day, bez godzin; 15,66% par z decyzją obu stron to ten
+      sam dzień.
+    - Profile mają historię zmian (profile_history).
+    - Tagi stylu życia siedzą w interests.
+    - Boty nie zostały usunięte.
+    - Pytania o feed, Superlajk i cechy ogłoszeń zostały bez odpowiedzi.
+  - Ograniczenia: G2, G3 i G10 uzupełnione liczbami, G7 doprecyzowane. Dodałem
+    nowe G13 (wiek tylko jako przedział) i G14 (zainteresowania i styl życia w
+    jednym polu z sufitem 9 tagów).
+  - H1–H5: wpisałem liczności próby, komórki płeć × płeć, rozkład odstępu
+    czasowego i selektywność, a pod H1 i H2 krótkie wstępne obserwacje.
+  - Tabela z sekcji 5: wszystkie 10 wierszy mają teraz wynik.
+
+  Na co uważać
+  - Własne wyliczenia i propozycje. Podałem, że ok. 9,4% par z decyzją obu stron
+    kończy się matchem (733 z 7790), a reguła „10 matchy na zmienną" daje maks.
+    ok. 73 zmienne. Jako propozycję do zatwierdzenia zapisałem n_min = 10
+    swipe'ów dla H1, H3 i H4. Wszystko to jest oznaczone w tekście jako
+    propozycja albo wyliczenie.
+  - Pozostały [DO UZUPEŁNIENIA]. Zostawiłem je tam, gdzie notebook nie ma
+    danych:
+    - dokładny zakres day;
+    - liczność po filtrach;
+    - statystyki długości bio;
+    - pary z oboma bio niepustymi;
+    - próg „bliskie zeru" dla H2;
+    - pola stylu życia i wartości domyślne poza interests.
+  - Czego nie czytałem. Wykresów ani diagramu ERD nie czytałem, więc pełna lista
+    kolumn users pozostaje w notebooku.
+  - Wpis w ai-disclosure.md. Jako osobę wpisałem „Dominik (banacchini)" na
+    podstawie nazwy użytkownika git, więc popraw na właściwe imię i nazwisko.
+    Ścieżka logu to placeholder, bo sesji trzeba jeszcze wyeksportować do
+    logs/ai/ według logs/ai/README.md.
+  - Poza zakresem. git diff pokazuje też zmiany w pyproject.toml i uv.lock; to
+    nie moje i niczego nie commitowałem.
+
+  Written for: zespół projektowy i prowadzący kurs, czyli czytelnicy karty M1.
+
+❯ <ide_opened_file>The user opened the file
+  /home/dominik/projects/wust/sem2/umc/notebooks/EDA.ipynb in the IDE. This may
+  or may not be related to the current task.</ide_opened_file>
+
+❯ okej, dodaj do notebooka @notebooks/EDA.ipynb komórki pozwalające
+  odpowiedzieć na pola [DO UZUPEŁNIENIA]. Dodaj wykresy, jeśli pole stannowi
+  ważną część analizy.
+
+  Ran 5 shell commands (ctrl+o to expand)
+
+● Odkryłem, że 246 z 733 matchy ma zapisany tylko jeden swipe — czego nie było w
+  karcie. Dodaję komórkę w notebooku prezentującą to, zapisuję zmiany i
+  poprawiam kartę. · summary
+
+  Ran 5 shell commands (ctrl+o to expand)
+  ⎿  Interrupted · What should Claude do instead?
+
+❯ continue
+
+  Ran 5 shell commands (ctrl+o to expand)
+
+● Teraz uzupełniam kartę wynikami z nowych komórek. Przy okazji poprawiam dwa
+  błędy z poprzedniej wersji: odsetek matchy wśród par i opis pól stylu życia.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Dodałem do notebooks/EDA.ipynb komórki dla wszystkich pól [DO UZUPEŁNIENIA] i
+  wpisałem wyniki do karty. Cały notebook wykonał się bez błędów na lokalnych
+  danych (nbconvert), a ruff przechodzi. Komórki zapisałem bez outputów, więc po
+  otwarciu trzeba je uruchomić.
+
+  Nowe komórki są na końcu notebooka i liczą:
+  - Zakres czasowy: dni 1–113, wykres swipe'ów i matchy dziennie.
+  - Rozmowy spoza matchu: wykres źródeł rozmów.
+  - Pola stylu życia: kompletność, wykres braków i rozkład liczby wypełnionych
+    pól.
+  - Liczność prób po filtrach n_min: tabela i wykres dla H1, H3 i H4.
+  - Bio: statystyki długości, wykres i pokrycie par (H5).
+  - H2: przedziały ufności Wilsona dla macierzy płeć × płeć, wykres.
+  - Swipe'y na ogłoszenia: połączenie z listings, wykresy.
+
+  Wyniki, które zmieniają wnioski:
+  - Matche bez kompletu swipe'ów: dla 246 z 733 matchy (33,6%) w swipes jest
+    tylko jeden swipe na profil. Modele na parach z decyzją obu stron dostają
+    więc tylko 487 matchy. Dodałem to jako ograniczenie G15.
+  - Poprawka mojego błędu: w poprzedniej wersji karty napisałem, że ok. 9,4% par
+    z decyzją obu stron kończy się matchem (733/7790). Poprawnie to 487/7790,
+    czyli 6,3%.
+  - H3 przy n_min = 10: zostaje 2308 par i tylko 87 matchy. Wykonalna jest więc
+    wyłącznie w bardzo uproszczonej formie.
+  - Rozmowy: tylko 269 z 2742 pochodzi z matcha, 163 z ogłoszenia, a 2310 nie ma
+    żadnego z tych źródeł. To wskazuje na mechanizm w rodzaju Superlajka, ale
+    trzeba go potwierdzić z dostawcą.
+  - Pola stylu życia: są osobnymi kolumnami, a nie tylko tagami w interests, jak
+    napisałem wcześniej (poprawiłem to w karcie). Większość ma 74–81% braków.
+    cleanliness i noise_level mają ok. 1% braków, a najczęstsza kategoria to 53%
+    i 50%, co może być wartością domyślną.
+  - Bio: mediana długości 81 znaków, IQR 33–153, maksimum 250 (górny limit
+    pola). Par z oboma bio niepustymi jest 3535.
+
+  W karcie nie ma już żadnych [DO UZUPEŁNIENIA]. Próg „bliskie zeru" dla H2 jest
+  decyzją zespołu, więc podałem tylko punkt odniesienia: najniższa komórka F→M
+  ma 8,7% (CI 8,3–9,1%). Przedziały są zaniżone, bo nie uwzględniają
+  klastrowania po użytkowniku. Próg n_min = 10 to nadal moja propozycja, do
+  zatwierdzenia.
+
+  W ai-disclosure.md (docs/ai-disclosure.md) rozszerzyłem wpis z 2026-10-19 o te
+  komórki i o poprawkę błędu 9,4%. Niczego nie commitowałem. pyproject.toml,
+  uv.lock i reports/slides/ zostały bez zmian z mojej strony.
+
+  Written for: zespół projektowy i prowadzący kurs, czyli czytelnicy karty M1.
