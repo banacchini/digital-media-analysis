@@ -90,7 +90,9 @@
 )
 
 #show figure.where(kind: table): set figure.caption(position: top)
-#let tabfig(body, cap) = figure(body, caption: cap, kind: table, supplement: [Tab.], placement: auto)
+#let tabfig(body, cap, placement: auto) = figure(body, caption: cap, kind: table, supplement: [Tab.], placement: placement)
+// Keeps a bold subheading together with its list on one page
+#let keep(body) = block(breakable: false, width: 100%, body)
 
 // Entity-relationship diagram drawn from data/tables_metadata.json (no data involved).
 // Fixed geometry: three columns of 5.4cm on an 18.1cm text width; rows 0.34cm, headers 0.6cm.
@@ -214,6 +216,8 @@
   #text(size: 20pt, weight: 800, tracking: -0.025em, fill: brand-gradient)[Co przewiduje prawy swipe w RentFriends?]
   #v(0.15em)
   #text(size: 9pt, weight: "medium")[Zespół: Dominik Czech, Michał Jankowski, Jakub Smolarczyk, 2026-10-20]
+  #v(0.05em)
+  #text(size: 9pt, weight: "medium")[Repozytorium: https://github.com/banacchini/digital-media-analysis]
 ]
 
 
@@ -239,7 +243,7 @@
   [H2], [Płeć i wiek są związane z `y_right`. Szacujemy wielkość efektu: iloraz szans (ta sama vs różna płeć) według płci nadawcy, z CI.],
   [CI ilorazu szans obejmuje 1. Macierz z @rys-plec widzieliśmy przed sformułowaniem H2, więc ta część jest eksploracyjna.],
   [H3#super[dod.]], [Staranność bio odbiorcy (pusty/niepusty, długość; H3a) przewiduje `y_right` ponad pola strukturalne i liczbę tagów.],
-  [CI efektu obejmuje 0 po kontroli kompletności profilu i popularności. H3b (treść bio) tylko przy wolnych zasobach],
+  [CI efektu obejmuje 0 po kontroli kompletności profilu i popularności. H3b (treść bio) tylko przy wolnych zasobach.],
 )
 #text(size: 8pt)[Dawne ID (dokument techniczny, notebooki): H1 = H1, H2 = H2, H3 = *H5*. H3 jest dodatkowa, bo zakres części NLP jest niepewny.#footnote[Odrzuciliśmy dwie hipotezy wymagające kolejności zdarzeń w ciągu dnia (dopasowanie dwustronne, zgodność selektywności; dawne H3 i H4). Dane mają tylko `day`, a po filtrach zostaje 2308 par i 87 matchy.]]
 
@@ -247,7 +251,7 @@
 
 Zanonimizowany eksport z RentFriends z losowymi identyfikatorami `user_key`. Nie używamy innych platform ani scrapingu.
 
-- *Właściciel, warunki użycia, data otrzymania:* (data statement w przygotowaniu).
+- *Właściciel, warunki użycia, data otrzymania:* opisze je data statement (w przygotowaniu).
 - *Struktura:* sześć tabel powiązanych kluczami użytkownika i ogłoszenia (@rys-erd); kolumny opisują @tab-users, @tab-hist i @tab-events.
 - *Spójność kluczy:* `user_key` łączy `users`, `swipes` i `matches`; 100% swipe'ów na ogłoszenia łączy się z `listings`; zduplikowanych swipe'ów jest 0; match pokrywa się z wzajemnym prawym swipe'em w 99,95%.
 - *Czas:* tylko numer dnia `day` (swipe'y: dni 1–113), bez godzin.
@@ -273,7 +277,7 @@ Zanonimizowany eksport z RentFriends z losowymi identyfikatorami `user_key`. Nie
 
 Opis bez wnioskowania. Dane wstępne: bieżąca płeć z `users`, surowe tagi, z Hyderabad.
 
-*Struktura tabel.* Znaczenia kolumn pochodzą z notebooków `users_overview` i `profile_history_overview`, typy z `data/tables_metadata.json`, a braki z `users_overview` (sekcja 3).
+*Struktura tabel* (@tab-users, @tab-hist, @tab-events). Znaczenia kolumn pochodzą z notebooków `users_overview` i `profile_history_overview`, typy z `data/tables_metadata.json`, a braki z `users_overview` (sekcja 3).
 
 #tabfig(
   table(
@@ -348,10 +352,12 @@ Opis bez wnioskowania. Dane wstępne: bieżąca płeć z `users`, surowe tagi, z
   ],
 )
 
+#keep[
 *Aktywność* (@rys-akt)
 - Mediana 26 swipe'ów na użytkownika (średnia 60,1; p95 ≈ 250; maks. 646). 231 kont (14,59%) ma mniej niż 5 swipe'ów.
 - Selektywność (odsetek prawych): mediana 4,4%, średnia 17,4%.
 - Duże różnice między użytkownikami uzasadniają efekty losowe i wrażliwość na konta skrajne.
+]
 
 *Styl życia i tagi, H1* (@rys-tagi, @rys-pola)
 
@@ -442,19 +448,25 @@ Opis bez wnioskowania. Dane wstępne: bieżąca płeć z `users`, surowe tagi, z
   caption: [Styl życia w tagach `interests` i w polach strukturalnych. Lewy: 10 najczęstszych surowych tagów (`EDA`, „Analiza zainteresowań”). Kolor to wstępny podział według D12, D15 i dokumentu technicznego (`values_privacy` nieprzypisany); `cooking` i `movies_cinema` jako hobby to propozycja przed zamrożeniem codebooka. Prawy: pary tag–pole wskazane w dokumencie technicznym (H1, plan pomiaru) i braki pól z `users_overview`. Liczności tagów pozostałych par nie były liczone. Surowe tagi z duplikatami formatów, z Hyderabad.],
 ) <rys-tagi>
 
+#keep[
 *Demografia, H2* (@rys-plec, @rys-wiek)
 - Ta sama vs różna płeć: kobiety 20,1% vs 9,2% (F→M 8,7%, CI 8,3–9,1%), mężczyźni 19,5% vs 28,9% (M→F 29,2%).
 - Żadna komórka nie jest bliska zeru. Komórki z `O` są małe (O→O: 98 swipe'ów).
 - Wiek: to samo vs różne pasmo daje 21,2% vs 20,0%, ale liczy się kierunek: 18–20 → 18–20 20,4%, 18–20 → 27–30 6,6%. 65% wyświetleń dotyczy profili 18–20.
+]
 
+#keep[
 *Bio, H3*
 - Bio ma 1102 z 2065 profili (53,4%). Mediana 81 znaków (IQR 33–153), sufit 250.
 - P(prawy): 21,5% dla odbiorców z bio, 19,2% bez bio (bez kontroli; wykres: `EDA`, „Bio”).
+]
 
+#keep[
 *Wersje profilu*
 - 4508 wersji; ostatnia zgadza się z `users` w 100% pól.
 - Płeć zmieniło 87 użytkowników (101 zmian, 65 do `O`), wiek 12, miasto 118. `changed_fields` pomija zmiany płci, więc porównujemy snapshoty.
 - Swipe'y względem wersji: 54~597 (46,9%) z dnia pierwszej wersji, 61~118 (52,5%) z wcześniejszą wersją, 551 przed pierwszą, 148 bez historii. Liczone na 116~414 swipe'ach razem z ogłoszeniami. #recalc[dla 95~144 swipe'ów na profile]
+]
 
 #grid(
   columns: (1fr, 1fr),
@@ -471,37 +483,47 @@ Opis bez wnioskowania. Dane wstępne: bieżąca płeć z `users`, surowe tagi, z
 
 = Plan pomiaru zjawiska
 
+#keep[
 *Wersja profilu w dniu swipe'a.* Każdy swipe dostaje flagę źródła:
 - `prior_version`: swipe po dniu pierwszej wersji, czyli ostatnia wersja sprzed dnia swipe'a;
 - `first_version`: swipe z dnia pierwszej wersji lub wcześniejszy, czyli wersja v1;
 - `users_current`: 9 użytkowników bez historii, czyli bieżący `users`.
+]
 
+#keep[
 *Bloki zmiennych* (1–3 skalary na blok, D16)
 - *Demografia:* płeć nadawcy × odbiorcy (`O` jako osobna kategoria), ta sama płeć, różnica pasm wieku ze znakiem i to samo pasmo (pasma 27+ połączone).
 - *Styl życia:* zgodność 7 pól, gdy obie strony je wypełniły („brak danych” jako kategoria); konflikt kierunkowy tagów (np. `non_smoker` vs `smoker`/`vapes`); liczba wspólnych tagów. Pole ma pierwszeństwo przed tagiem, a tag uzupełnia braki.
 - *Zainteresowania:* tagi hobby po ujednoliceniu i deduplikacji, czyli Jaccard i liczba tagów. `student` to status; zwierzęta i `extrovert`/`introvert` należą do stylu życia.
 - *Bio (H3a):* pusty/niepusty, długość liczona z tekstu.
+]
 
+#keep[
 *Model i testy*
 - Regresja logistyczna dla `y_right`; match w modelu drugorzędnym (7790 par).
 - Estymator: regresja logistyczna z krzyżowymi efektami losowymi (wyraz wolny nadawcy i odbiorcy) dla H2 i H3. Dla H1 pooled logit z błędami klastrowanymi dwukierunkowo (nadawca, odbiorca), oceniany w foldach po użytkownikach. Jeśli GLMM nie osiągnie zbieżności, H2 i H3 liczymy pooled logitem z klastrowaniem dwukierunkowym, a H3 raportujemy bez twierdzenia o kontroli popularności.
-- Kontrole: same_city (trzy poziomy: to samo miasto / inne / nieznane dla „inne”). Popularność i hojność jako efekty losowe odbiorcy i nadawcy w GLMM.
+- Kontrole: `same_city` (trzy poziomy: to samo miasto / inne / nieznane dla „inne”). Popularność i hojność jako efekty losowe odbiorcy i nadawcy w GLMM.
 - Walidacja w foldach po użytkownikach; metryki logloss, AUC, AUC-PR.
 - *H1:* ΔlogLoss i ΔAUC po dodaniu bloku, w obu kolejnościach, z CI z bootstrapu po użytkownikach i baseline'em z tasowania bloku. Analiza per pole jest drugorzędna.
 - *H2:* iloraz szans z CI. *H3:* efekt bio z kontrolą liczby tagów i kompletności profilu.
+]
 
+#keep[
 *Instrument AI*
 - Normalizacja tagów (124 surowe ciągi, w tym 54 formy emoji → kanoniczne snake_case): agent generuje mapowanie, człowiek je przegląda i poprawia. Miara: odsetek mapowań poprawionych przez człowieka, z listą korekt.
 - Podział tagów (styl życia / status / hobby / do ustalenia): agent proponuje etykiety, człowiek etykietuje niezależnie, bez wglądu w propozycje agenta. Miara: κ Cohena agent–człowiek z 95% CI (bootstrap po tagach), uzupełniona o odsetek zgodności i macierz pomyłek.
 - Propozycje agenta zapisujemy przed zamrożeniem codebooka. Wersję końcową ustala człowiek, a rozbieżności są raportowane, nie ukrywane.
 - Ewentualne NLP w H3: gold standard z ręcznie oznaczonej próbki, lokalnie. Rozmiar próbki i adnotatorzy są nieustaleni.
+]
 
+#keep[
 *Analizy wrażliwości*
 + Próg ≥ 10 swipe'ów i bez kont skrajnych.
 + Tylko swipe'y z `prior_version`; cechy z bieżącego `users`.
 + Z kontami Hyderabad.
 + Bez kategorii „brak danych” oraz bez `cleanliness`/`noise_level`.
 + Dla matcha: z 246 matchami z jednym swipe'em.
+]
 
 = Ograniczenia danych i możliwe źródła błędu
 
@@ -525,20 +547,21 @@ Opis bez wnioskowania. Dane wstępne: bieżąca płeć z `users`, surowe tagi, z
   table(
     columns: (2.7cm, 1fr, 1fr),
     table.header([*Osoba i rola*], [*M2: raport z metodologią i pierwszymi wynikami*], [*M3: plakat, notatka, prezentacja i obrony*]),
-    // TODO: podmienić "osoba 2" i "osoba 3" na imiona (Michał Jankowski, Jakub Smolarczyk)
     [Dominik Czech \ lead badawczy],
     [pytanie, hipotezy i spójność wniosku; próbny fit estymatora (GLMM); *analiza H2* (iloraz szans z CI)],
     [główny wynik i wniosek na plakacie; notatka dla odbiorcy spoza zespołu; *wrażliwość 5* (match z 246 matchami z jednym swipe'em)],
-    [osoba 2 \ inżynier danych],
+    [Michał Jankowski \ inżynier danych],
     [data statement, zgodność z RODO i regulaminami, filtr Hyderabad; cechy as-of i flagi wersji profilu; przeliczenie liczb na 95~144 swipe'ach; reguła foldów dla par],
     [*analiza H3* (bio); *wrażliwość 2 i 3* (`prior_version`; z Hyderabad); sekcja o danych i ograniczeniach na plakacie],
-    [osoba 3 \ inżynier pipelinu],
+    [Jakub Smolarczyk \ inżynier pipelinu],
     [codebook, normalizacja i podział tagów, gold standard, κ agent–człowiek, analiza błędów; *analiza H1* (ΔlogLoss, ΔAUC, bootstrap po użytkownikach, tasowanie bloku)],
     [*wrażliwość 1 i 4* (próg ≥ 10 i bez kont skrajnych; bez „brak danych” oraz bez `cleanliness`/`noise_level`); wizualizacje H1 z CI],
   ),
   [Podział zadań na M2 i M3. Analizy wrażliwości numerowane jak w sekcji 5.],
+  placement: none,
 ) <tab-podzial>
 
+#keep[
 Pytań do dostawcy nie da się zadać przed kartą, więc otwarte kwestie opisujemy scenariuszami:
 
 #table(
@@ -546,19 +569,24 @@ Pytań do dostawcy nie da się zadać przed kartą, więc otwarte kwestie opisuj
   table.header([*Kwestia*], [*Jeśli…, to…*]),
   [Działanie feedu (filtry, ranking, widoczność lajka)], [Jeśli feed filtruje płeć lub wiek, H2 opisuje ustawienia filtrów, a efekty są zaniżone. Jeśli jest losowy, opisuje preferencje w obserwowanej puli.],
   [Widoczność tagów i bio na karcie], [Jeśli są niewidoczne, brak efektu w H1 lub H3 nie oznacza braku znaczenia, a hipoteza staje się nietestowalna.],
-  [246 matchy z jednym swipe'em; Rozmowy bez matcha (2310 rozmów)], [Jeśli braki są losowe, model na 487 matchach jest reprezentatywny. Jeśli nie, zawężamy wniosek o matchu i sprawdzamy wrażliwość.],
+  [246 matchy z jednym swipe'em; rozmowy bez matcha (2310)], [Jeśli braki są losowe, model na 487 matchach jest reprezentatywny. Jeśli nie, zawężamy wniosek o matchu i sprawdzamy wrażliwość.],
   [Kody pól stylu życia; domyślne `cleanliness`/`noise_level`], [Jeśli to wartości domyślne, wyłączamy te pola. Bez codebooka używamy tylko zgodności równości.],
   [Znaczenie `O`, zmiany płci], [Jeśli `O` to artefakt, wyniki dla `O` podajemy tylko opisowo.],
   [Dzień zerowy; swipe'y z dnia pierwszej wersji i wcześniejsze], [Jeśli v1 powstaje przy rejestracji, przypisanie v1 jest poprawne. Jeśli nie, opieramy się na wrażliwości dla `prior_version`.],
 )
+]
 
 = Dane osobowe i ujawnienie użycia AI
 
+#keep[
 *Dane osobowe*
 - Bio przetwarzamy tylko zagregowanie, bez wyświetlania treści.
 - Przesiew regułami w wersjach bio: cyfry w 9,27% wersji, `@` lub link w 1 wersji, ciągów 9+ cyfr brak. Pełny audyt przed użyciem tekstu.
 - NLP tylko lokalnie, bez zewnętrznych API. Dane nie trafiają do repozytorium, a raport pokazuje tylko agregaty.
+]
 
+#keep[
 *Użycie AI*
-- Kartę przygotował agent Claude Code według decyzji zespołu (`docs/prompts/m1-generation-plan.md`). Review zespołu: #tbc
+- Kartę przygotował agent Claude Code według decyzji zespołu (`docs/prompts/m1-generation-plan.md`). Review zespołu: Dominik Czech 20.10.2026 3:42.
 - Wcześniejsze użycie AI opisuje `docs/ai-disclosure.md`, a logi sesji leżą w `logs/ai/`.
+]
