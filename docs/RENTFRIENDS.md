@@ -150,6 +150,7 @@ Podane przez asystenta, nie zweryfikowane w tej sesji:
 | 2026-10-12 | https://www.otto-schmidt.de/... (BGH I ZR 224/12) | Orzeczenie dot. screen scrapingu, kontekst niemiecki |
 | 2026-10-12 | https://antyweb.pl/jak-znalezc-wspolokatora-ideal-flatmate | Opis Ideal Flatmate (artykuł z 2017 r.) |
 | 2026-10-12 | https://erasmusplay.com (wyniki wyszukiwania) | Strony SEO bez danych o regulaminie |
+| 2026-10-20 | https://github.com/tokotype/PlusJakartaSans (`fonts/ttf/*.ttf`, `OFL.txt`) | Font Plus Jakarta Sans (licencja SIL OFL 1.1) w `reports/assets/fonts/`, krój karty M1 zgodnie z `STYLEGUIDE.md` |
 
 Uwaga: część wyników wyszukiwania to strony agregujące lub SEO. Ich treść wymaga weryfikacji u źródła przed cytowaniem w raporcie.
 
