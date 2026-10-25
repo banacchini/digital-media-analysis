@@ -89,123 +89,8 @@
   supplement: [Rys.],
 )
 
-#show figure.where(kind: table): set figure.caption(position: top)
-#let tabfig(body, cap, placement: auto) = figure(body, caption: cap, kind: table, supplement: [Tab.], placement: placement)
 // Keeps a bold subheading together with its list on one page
 #let keep(body) = block(breakable: false, width: 100%, body)
-
-// Entity-relationship diagram drawn from data/tables_metadata.json (no data involved).
-// Fixed geometry: three columns of 5.4cm on an 18.1cm text width; rows 0.34cm, headers 0.6cm.
-#let er-rh = 0.34cm
-#let er-hh = 0.6cm
-#let er-w = 5.4cm
-#let er-key(t) = text(fill: c-purple-ink, weight: "bold", size: 5.8pt, t)
-#let er-note(t) = text(fill: c-gray, size: 5.8pt, t)
-#let erbox(title, count, rows, accent) = block(
-  width: er-w, fill: white, radius: 5pt, stroke: 0.5pt + c-hair, clip: true, spacing: 0pt,
-  {
-    set block(spacing: 0pt)
-    block(width: 100%, height: er-hh, fill: accent, inset: (x: 6pt), align(horizon, text(
-      fill: white,
-      size: 7.5pt,
-    )[#text(weight: "bold", title) #h(1fr) #count]))
-    for (name, tag) in rows {
-      block(width: 100%, height: er-rh, inset: (x: 6pt), align(horizon, text(size: 6.5pt)[#raw(name) #h(1fr) #tag]))
-    }
-    block(height: 0.1cm)
-  },
-)
-#let at(x, y, body) = place(top + left, dx: x, dy: y, body)
-#let seg(x1, y1, x2, y2, s) = at(0cm, 0cm, line(start: (x1, y1), end: (x2, y2), stroke: s))
-#let arrow-r(x, y, paint) = at(x, y, polygon(fill: paint, (0pt, 0pt), (-4pt, -2.2pt), (-4pt, 2.2pt)))
-#let arrow-l(x, y, paint) = at(x, y, polygon(fill: paint, (0pt, 0pt), (4pt, -2.2pt), (4pt, 2.2pt)))
-#let pk = er-key[PK]
-#let fk-u = er-key[FK → users]
-#let fk-l = er-key[FK → listings]
-#let t-day = er-note[dzień]
-
-#let erd = block(width: 100%, height: 8.6cm, {
-  let solid = 0.7pt + c-purple
-  let dashed = (paint: c-gray, thickness: 0.7pt, dash: "dashed")
-  // Left bus: swipes, matches, profile_history -> users.user_key (key consistency checked in EDA)
-  let bx = 5.875cm
-  seg(bx, 0.77cm, bx, 5.97cm, solid)
-  for y in (0.77cm, 1.45cm, 3.87cm, 4.21cm, 5.97cm) { seg(5.4cm, y, bx, y, solid) }
-  seg(bx, 0.77cm, 6.35cm, 0.77cm, solid)
-  arrow-r(6.35cm, 0.77cm, c-purple)
-  // Right bus: chats, listings -> users.user_key (by column name only, not checked)
-  let rx = 12.225cm
-  seg(rx, 0.77cm, rx, 5.21cm, dashed)
-  for y in (1.11cm, 1.45cm, 1.79cm, 5.21cm) { seg(rx, y, 12.7cm, y, dashed) }
-  seg(11.75cm, 0.77cm, rx, 0.77cm, dashed)
-  arrow-l(11.75cm, 0.77cm, c-gray)
-
-  at(0cm, 0cm, erbox("swipes", "116 414", (
-    ("user_key", fk-u),
-    ("target_type", er-note[profile / listing]),
-    ("target_user_key", fk-u),
-    ("target_listing_key", fk-l),
-    ("direction", er-note[left / right]),
-    ("day", t-day),
-  ), c-blue))
-  at(0cm, 3.1cm, erbox("matches", "733", (
-    ("user_a_key", fk-u),
-    ("user_b_key", fk-u),
-    ("day", t-day),
-  ), c-blue))
-  at(0cm, 5.2cm, erbox("profile_history", "4508 wersji", (
-    ("user_key", fk-u),
-    ("version", er-note[1 = utworzenie]),
-    ("change_type", er-note[created / updated]),
-    ("day", t-day),
-    ("changed_fields", er-note[lista pól]),
-    ("+ 17 pól profilu", er-note[snapshot jak w users]),
-  ), c-gray))
-  at(6.35cm, 0cm, erbox("users", "2065", (
-    ("user_key", pk),
-    ("sex", er-note[F / M / O]),
-    ("age_band", er-note[pasmo wieku]),
-    ("city", none),
-    ("daily_routine", er-note[styl życia]),
-    ("lifestyle", er-note[styl życia]),
-    ("work_from_home", er-note[styl życia]),
-    ("cleanliness", er-note[styl życia]),
-    ("noise_level", er-note[styl życia]),
-    ("smoking", er-note[styl życia]),
-    ("alcohol", er-note[styl życia]),
-    ("interests", er-note[tagi (JSON)]),
-    ("budget", none),
-    ("room_type", none),
-    ("search_goal", none),
-    ("move_in_month_offset", none),
-    ("bio", er-note[tekst]),
-    ("bio_length", none),
-  ), c-purple))
-  at(12.7cm, 0cm, erbox("chats", "2742", (
-    ("chat_key", pk),
-    ("user_a_key", fk-u),
-    ("user_b_key", fk-u),
-    ("first_sender_key", fk-u),
-    ("from_match", er-note[bool]),
-    ("source_listing_key", fk-l),
-    ("chat_created_day", t-day),
-    ("first_message_day", t-day),
-    ("hours_to_first_message", er-note[godziny]),
-  ), c-pink.darken(15%)))
-  at(12.7cm, 4.1cm, erbox("listings", "294", (
-    ("listing_key", pk),
-    ("owner_key", fk-u),
-    ("city", none),
-    ("district", none),
-    ("listing_kind", er-note[room / entire]),
-    ("occupants_count", none),
-    ("rooms_offered", none),
-    ("min_price", none),
-    ("max_price", none),
-    ("is_active", er-note[bool]),
-    ("created_day", t-day),
-  ), c-gray))
-})
 
 // Title: eyebrow with a purple dot, two-line headline, payoff line in the brand gradient
 #block(below: 0.9em)[
@@ -252,18 +137,9 @@
 Zanonimizowany eksport z RentFriends z losowymi identyfikatorami `user_key`. Nie używamy innych platform ani scrapingu.
 
 - *Właściciel, warunki użycia, data otrzymania:* opisze je data statement (w przygotowaniu).
-- *Struktura:* sześć tabel powiązanych kluczami użytkownika i ogłoszenia (@rys-erd); kolumny opisują @tab-users, @tab-hist i @tab-events.
+- *Struktura:* sześć tabel (`users`, `profile_history`, `swipes`, `matches`, `chats`, `listings`) powiązanych kluczami `user_key` i `listing_key`.
 - *Spójność kluczy:* `user_key` łączy `users`, `swipes` i `matches`; 100% swipe'ów na ogłoszenia łączy się z `listings`; zduplikowanych swipe'ów jest 0; match pokrywa się z wzajemnym prawym swipe'em w 99,95%.
 - *Czas:* tylko numer dnia `day` (swipe'y: dni 1–113), bez godzin.
-
-#figure(
-  erd,
-  kind: image,
-  placement: auto,
-  caption: [Schemat tabel i powiązań kluczy (wszystkie kolumny według `data/tables_metadata.json`; `profile_history` powtarza 17 pól profilu z `users`). W nagłówkach liczba wierszy: `swipes` = 95~144 na profile + 21~270 na ogłoszenia. Linia ciągła: spójność kluczy sprawdzona w EDA. Linia przerywana: powiązanie według nazw kolumn, niesprawdzone. Relacje z `listings` (FK → listings) nie są narysowane; swipe'y na ogłoszenia łączą się z `listings` w 100%. Liczności sprzed filtra Hyderabad.],
-  supplement: [Rys.],
-) <rys-erd>
-
 
 = Zakres próby
 
@@ -277,89 +153,16 @@ Zanonimizowany eksport z RentFriends z losowymi identyfikatorami `user_key`. Nie
 
 Opis bez wnioskowania. Dane wstępne: bieżąca płeć z `users`, surowe tagi, z Hyderabad.
 
-*Struktura tabel* (@tab-users, @tab-hist, @tab-events). Znaczenia kolumn pochodzą z notebooków `users_overview` i `profile_history_overview`, typy z `data/tables_metadata.json`, a braki z `users_overview` (sekcja 3).
-
-#tabfig(
-  table(
-    columns: (3.9cm, 1fr, 1.9cm, 1fr),
-    table.header([*Kolumny*], [*Znaczenie*], [*Braki*], [*Uwagi*]),
-    [`user_key`], [pseudonimizowany identyfikator (UUID)], [0%], [unikalny w tabeli],
-    [`sex`], [płeć: F / M / O], [0%], [`O` ma 73 osoby],
-    [`age_band`], [pasmo wieku (18–20 … 36+), nie lata], [0,4%], [6 pasm],
-    [`city`], [miasto; „inne” = pozostałe], [0%], [10 wartości, w tym Hyderabad (45 kont)],
-    [`daily_routine`, `lifestyle`, `work_from_home`, `smoking`, `alcohol`], [kody stylu życia], [73,8–81,1%], [brak codebooka],
-    [`cleanliness`, `noise_level`], [kody stylu życia], [1,0% / 1,2%], [brak codebooka; możliwa wartość domyślna],
-    [`interests`], [lista tagów JSON (0–9)], [0%], [2,57% pustych list; 124 surowe ciągi],
-    [`budget`], [miesięczny budżet], [86,0%], [wartości skrajne do sprawdzenia],
-    [`room_type`, `search_goal`], [kody (`SN`/`SH`; `LR`/`HA`)], [78,6% / 0%], [znaczenie do potwierdzenia; LR 92%],
-    [`move_in_month_offset`], [miesiące do przeprowadzki], [88,1%], [są wartości ujemne],
-    [`bio`, `bio_length`], [opis i jego długość w znakach], [46,6% / 0%], [treść niewyświetlana; sufit 250],
-  ),
-  [Kolumny tabeli `users` (2065 profili, 18 kolumn), stan bieżący z eksportu.],
-) <tab-users>
-
-#tabfig(
-  table(
-    columns: (3.9cm, 1fr, 1fr),
-    table.header([*Kolumny*], [*Znaczenie*], [*Uwagi*]),
-    [`user_key`], [identyfikator jak w `users`], [2056 użytkowników; 9 z `users` bez historii],
-    [`version`], [numer wersji użytkownika, 1 = utworzenie], [maks. 30],
-    [`change_type`], [`created` (tylko wersja 1) lub `updated`], [2056 utworzeń, 2452 aktualizacji],
-    [`day`], [numer dnia wersji; data początkowa nieznana], [dni 2–113],
-    [`changed_fields`], [pola zmienione względem poprzedniej wersji], [nie odnotowuje `sex`; `city` 541 razy przy 303 zmianach],
-    [17 pól profilu, w tym `bio`], [pełny snapshot profilu w danej wersji], [ostatnia wersja zgodna z `users` w 100% pól],
-  ),
-  [Kolumny tabeli `profile_history` (4508 wersji, 22 kolumny).],
-) <tab-hist>
-
-#tabfig(
-  table(
-    columns: (1.8cm, 6cm, 1fr),
-    table.header([*Tabela*], [*Kolumny*], [*Znaczenie i uwagi*]),
-    table.cell(rowspan: 4)[`swipes`], [`user_key`], [nadawca swipe'a],
-    [`target_type`, `target_user_key`, `target_listing_key`], [cel: profil (odbiorca) albo ogłoszenie],
-    [`direction`], [`left` / `right`; prawe: 20,49% swipe'ów na profile],
-    [`day`], [numer dnia (1–113), bez godzin],
-    table.cell(rowspan: 2)[`matches`], [`user_a_key`, `user_b_key`], [para; 487 z 733 matchy ma zapisane oba swipe'y],
-    [`day`], [dzień matcha (4–113)],
-    table.cell(rowspan: 4)[`chats`], [`chat_key`, `user_a_key`, `user_b_key`, `first_sender_key`], [rozmowa, para i osoba, która napisała pierwsza; bez treści],
-    [`from_match`, `source_listing_key`], [źródło: match (269) albo ogłoszenie (163); 2310 bez obu],
-    [`chat_created_day`, `first_message_day`], [dni (4–113)],
-    [`hours_to_first_message`], [godziny do pierwszej wiadomości: jedyna miara czasu poniżej dnia],
-    table.cell(rowspan: 4)[`listings`], [`listing_key`, `owner_key`], [ogłoszenie i jego właściciel],
-    [`city`, `district`, `listing_kind`], [lokalizacja; `room` / `entire`],
-    [`occupants_count`, `rooms_offered`, `min_price`, `max_price`, `is_active`], [`min_price`: mediana 1750, maks. 500~000 (do czyszczenia)],
-    [`created_day`], [dzień utworzenia (12–113)],
-  ),
-  [Kolumny tabel zdarzeń i ogłoszeń. Typy: klucze UUID, dni jako liczby całkowite.],
-) <tab-events>
-
-#grid(
-  columns: (0.95fr, 1.05fr),
-  column-gutter: 12pt,
-  table(
-    columns: (1fr, auto, auto),
-    table.header([*Lejek*], [*Liczba*], [*Odsetek*]),
-    [Swipe'y na profile], [95~144], [100%],
-    [Prawe swipe'y], [19~495], [20,49% swipe'ów],
-    [Matche], [733], [7,52% prawych],
-    [Matche z rozmową], [269], [36,70% matchy],
-  ),
-  [
-    - *Matche:* 487 z oboma swipe'ami, 246 (33,6%) z jednym.
-    - *Rozmowy:* 2742, z czego 269 z matcha, 163 z ogłoszenia, a 2310 bez obu (do skonsultowania z dostawcą).
-    - *Ten sam dzień:* 1220 z 7790 par (15,66%) zdecydowało tego samego dnia.
-  ],
-)
+*Lejek:* 95~144 swipe'ów na profile → 19~495 prawych (20,49%) → 733 matche (7,52% prawych) → 269 matchy z rozmową (36,70%). 246 matchy (33,6%) ma zapisany tylko jeden swipe, a z 2742 rozmów 2310 nie pochodzi ani z matcha, ani z ogłoszenia. 1220 z 7790 par (15,66%) zdecydowało tego samego dnia.
 
 #keep[
-*Aktywność* (@rys-akt)
+*Aktywność*
 - Mediana 26 swipe'ów na użytkownika (średnia 60,1; p95 ≈ 250; maks. 646). 231 kont (14,59%) ma mniej niż 5 swipe'ów.
 - Selektywność (odsetek prawych): mediana 4,4%, średnia 17,4%.
 - Duże różnice między użytkownikami uzasadniają efekty losowe i wrażliwość na konta skrajne.
 ]
 
-*Styl życia i tagi, H1* (@rys-tagi, @rys-pola)
+*Styl życia i tagi, H1* (@rys-tagi)
 
 #block(fill: c-tint, inset: 8pt, radius: 8pt, width: 100%, stroke: (left: 2.5pt + c-purple))[
   *Styl życia jest zapisany w dwóch miejscach:* w 7 polach strukturalnych, które są w większości puste, i w tagach `interests`, które mieszają styl życia z hobby i statusem. Bez rozdzielenia tagów blok „zainteresowań” w H1 mierzyłby po części styl życia.
@@ -463,17 +266,10 @@ Opis bez wnioskowania. Dane wstępne: bieżąca płeć z `users`, surowe tagi, z
 
 #keep[
 *Wersje profilu*
-- 4508 wersji; ostatnia zgadza się z `users` w 100% pól.
-- Płeć zmieniło 87 użytkowników (101 zmian, 65 do `O`), wiek 12, miasto 118. `changed_fields` pomija zmiany płci, więc porównujemy snapshoty.
-- Swipe'y względem wersji: 54~597 (46,9%) z dnia pierwszej wersji, 61~118 (52,5%) z wcześniejszą wersją, 551 przed pierwszą, 148 bez historii. Liczone na 116~414 swipe'ach razem z ogłoszeniami. #recalc[dla 95~144 swipe'ów na profile]
+- 4508 wersji, ostatnia zgodna z `users` w 100% pól. Płeć zmieniło 87 użytkowników (65 do `O`), wiek 12, miasto 118; `changed_fields` pomija zmiany płci, więc porównujemy snapshoty.
+- Swipe'y: 46,9% z dnia pierwszej wersji, 52,5% z wcześniejszą wersją, 551 przed pierwszą, 148 bez historii (liczone na 116~414 swipe'ach razem z ogłoszeniami). #recalc[dla 95~144 swipe'ów na profile]
 ]
 
-#grid(
-  columns: (1fr, 1fr),
-  column-gutter: 10pt,
-  [#fig("figures/R3_aktywnosc_selektywnosc.png")[Liczba swipe'ów na użytkownika (lewy) i selektywność, czyli odsetek prawych swipe'ów (prawy); 1583 użytkowników. Podstawa: swipe'y na profile, `EDA`, „Aktywność użytkowników”. Z Hyderabad. Słupki przy 0 i 1 to konta skrajne (D6).] <rys-akt>],
-  [#fig("figures/R2_kompletnosc_pol.png")[Braki w polach strukturalnych `users` (lewy) i liczba wypełnionych pól na użytkownika (prawy); n = 2065. Podstawa: `EDA`, „Pola stylu życia”. Niskie braki `cleanliness` i `noise_level` mogą wynikać z wartości domyślnych. Wykres obejmuje też pola spoza stylu życia.] <rys-pola>],
-)
 #grid(
   columns: (0.8fr, 1.2fr),
   column-gutter: 10pt,
@@ -483,12 +279,7 @@ Opis bez wnioskowania. Dane wstępne: bieżąca płeć z `users`, surowe tagi, z
 
 = Plan pomiaru zjawiska
 
-#keep[
-*Wersja profilu w dniu swipe'a.* Każdy swipe dostaje flagę źródła:
-- `prior_version`: swipe po dniu pierwszej wersji, czyli ostatnia wersja sprzed dnia swipe'a;
-- `first_version`: swipe z dnia pierwszej wersji lub wcześniejszy, czyli wersja v1;
-- `users_current`: 9 użytkowników bez historii, czyli bieżący `users`.
-]
+*Wersja profilu w dniu swipe'a:* cechy bierzemy z ostatniej wersji sprzed dnia swipe'a (`prior_version`), dla swipe'ów z dnia pierwszej wersji lub wcześniejszych z v1 (`first_version`), a dla 9 użytkowników bez historii z bieżącego `users` (`users_current`).
 
 #keep[
 *Bloki zmiennych* (1–3 skalary na blok, D16)
@@ -543,50 +334,6 @@ Opis bez wnioskowania. Dane wstępne: bieżąca płeć z `users`, surowe tagi, z
 - *Rdzeń:* H1 i H2 na `y_right`. H3a to jeden blok więcej w tym samym modelu; H3b tylko przy wolnym czasie.
 - *Przed modelowaniem:* ujednolicenie tagów, cechy as-of, filtr Hyderabad.
 
-#tabfig(
-  table(
-    columns: (2.7cm, 1fr, 1fr),
-    table.header([*Osoba i rola*], [*M2: raport z metodologią i pierwszymi wynikami*], [*M3: plakat, notatka, prezentacja i obrony*]),
-    [Dominik Czech \ lead badawczy],
-    [pytanie, hipotezy i spójność wniosku; próbny fit estymatora (GLMM); *analiza H2* (iloraz szans z CI)],
-    [główny wynik i wniosek na plakacie; notatka dla odbiorcy spoza zespołu; *wrażliwość 5* (match z 246 matchami z jednym swipe'em)],
-    [Michał Jankowski \ inżynier danych],
-    [data statement, zgodność z RODO i regulaminami, filtr Hyderabad; cechy as-of i flagi wersji profilu; przeliczenie liczb na 95~144 swipe'ach; reguła foldów dla par],
-    [*analiza H3* (bio); *wrażliwość 2 i 3* (`prior_version`; z Hyderabad); sekcja o danych i ograniczeniach na plakacie],
-    [Jakub Smolarczyk \ inżynier pipelinu],
-    [codebook, normalizacja i podział tagów, gold standard, κ agent–człowiek, analiza błędów; *analiza H1* (ΔlogLoss, ΔAUC, bootstrap po użytkownikach, tasowanie bloku)],
-    [*wrażliwość 1 i 4* (próg ≥ 10 i bez kont skrajnych; bez „brak danych” oraz bez `cleanliness`/`noise_level`); wizualizacje H1 z CI],
-  ),
-  [Podział zadań na M2 i M3. Analizy wrażliwości numerowane jak w sekcji 5.],
-  placement: none,
-) <tab-podzial>
-
-#keep[
-Pytań do dostawcy nie da się zadać przed kartą, więc otwarte kwestie opisujemy scenariuszami:
-
-#table(
-  columns: (0.75fr, 1.25fr),
-  table.header([*Kwestia*], [*Jeśli…, to…*]),
-  [Działanie feedu (filtry, ranking, widoczność lajka)], [Jeśli feed filtruje płeć lub wiek, H2 opisuje ustawienia filtrów, a efekty są zaniżone. Jeśli jest losowy, opisuje preferencje w obserwowanej puli.],
-  [Widoczność tagów i bio na karcie], [Jeśli są niewidoczne, brak efektu w H1 lub H3 nie oznacza braku znaczenia, a hipoteza staje się nietestowalna.],
-  [246 matchy z jednym swipe'em; rozmowy bez matcha (2310)], [Jeśli braki są losowe, model na 487 matchach jest reprezentatywny. Jeśli nie, zawężamy wniosek o matchu i sprawdzamy wrażliwość.],
-  [Kody pól stylu życia; domyślne `cleanliness`/`noise_level`], [Jeśli to wartości domyślne, wyłączamy te pola. Bez codebooka używamy tylko zgodności równości.],
-  [Znaczenie `O`, zmiany płci], [Jeśli `O` to artefakt, wyniki dla `O` podajemy tylko opisowo.],
-  [Dzień zerowy; swipe'y z dnia pierwszej wersji i wcześniejsze], [Jeśli v1 powstaje przy rejestracji, przypisanie v1 jest poprawne. Jeśli nie, opieramy się na wrażliwości dla `prior_version`.],
-)
-]
-
 = Dane osobowe i ujawnienie użycia AI
 
-#keep[
-*Dane osobowe*
-- Bio przetwarzamy tylko zagregowanie, bez wyświetlania treści.
-- Przesiew regułami w wersjach bio: cyfry w 9,27% wersji, `@` lub link w 1 wersji, ciągów 9+ cyfr brak. Pełny audyt przed użyciem tekstu.
-- NLP tylko lokalnie, bez zewnętrznych API. Dane nie trafiają do repozytorium, a raport pokazuje tylko agregaty.
-]
-
-#keep[
-*Użycie AI*
-- Kartę przygotował agent Claude Code według decyzji zespołu (`docs/prompts/m1-generation-plan.md`). Review zespołu: Dominik Czech 20.10.2026 3:42.
-- Wcześniejsze użycie AI opisuje `docs/ai-disclosure.md`, a logi sesji leżą w `logs/ai/`.
-]
+Bio przetwarzamy tylko lokalnie i zagregowanie, bez wyświetlania treści i zewnętrznych API; przesiew regułami znalazł cyfry w 9,27% wersji bio i `@` lub link w 1 wersji, więc przed użyciem tekstu robimy pełny audyt. Kartę przygotował agent Claude Code według decyzji zespołu (`docs/prompts/m1-generation-plan.md`, review: Dominik Czech 20.10.2026 3:42); wcześniejsze użycie AI opisują `docs/ai-disclosure.md` i logi w `logs/ai/`.

@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RentFriends · hipotezy M1 v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&subset=latin-ext&display=swap" rel="stylesheet">
+<style>
+/* ===========================================
+   THEME TOKENS (from STYLEGUIDE.md, section 2-3)
+   Change colours here to restyle the whole deck.
+   =========================================== */
+:root {
+    --black: #0F0F0F;
+    --bg: #F4F2EE;
+    --gray: #595959;
+    --blue: #234CE0;
+    --purple: #A247E3;
+    --purple-ink: #8B34C4;
+    --pink: #E95BD2;
+    --white: #FFFFFF;
+
+    --hair: rgba(89, 89, 89, 0.18);
+    --tint: rgba(162, 71, 227, 0.12);
+    --tint-strong: rgba(162, 71, 227, 0.20);
+    --grad: linear-gradient(100deg, #234CE0 6.17%, #A247E3 50%, #E95BD2 93.83%);
+    --grad-h: linear-gradient(to right, #234CE0, #A247E3, #E95BD2);
+
+    --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+    --stage-bg: #E7E4DE;
+    --slide-bg: var(--bg);
+
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ===========================================
+   FIXED 16:9 STAGE: MANDATORY BASE STYLES
+   (viewport-base.css, included in full)
+   =========================================== */
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
+}
+.deck-viewport {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
+}
+.deck-stage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    transform-origin: 0 0;
+    background: var(--slide-bg, #fff);
+}
+.slide {
+    position: absolute;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    background: var(--slide-bg, #fff);
+}
+.slide.active,
+.slide.visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+}
+img, video, canvas, svg { max-width: 100%; max-height: 100%; }
+.deck-controls {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+@media print {
+    html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
+    .deck-viewport { position: static; overflow: visible; background: #fff; }
+    .deck-stage { position: static; width: auto; height: auto; transform: none !important; background: none; }
+    .slide {
+        position: relative; display: block !important; visibility: visible !important;
+        opacity: 1 !important; pointer-events: auto !important;
+        width: 1920px; height: 1080px; break-after: page; page-break-after: always;
+    }
+    .slide:last-child { break-after: auto; page-break-after: auto; }
+    .deck-controls { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+}
+
+/* ===========================================
+   SLIDE BASE + ATMOSPHERE
+   Soft purple glow top-left (styleguide "Glow").
+   =========================================== */
+body { font-family: var(--font); color: var(--black); }
+
+.slide::before {
+    content: "";
+    position: absolute;
+    width: 1100px; height: 1100px;
+    left: -420px; top: -520px;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, rgba(124, 58, 237, 0) 65%);
+    pointer-events: none;
+}
+
+.inner {
+    position: absolute;
+    inset: 0;
+    padding: 92px 120px 120px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===========================================
+   TYPOGRAPHY
+   =========================================== */
+.eyebrow {
+    display: flex; align-items: center; gap: 14px;
+    font-size: 26px; font-weight: 600; color: var(--purple-ink);
+    margin-bottom: 26px;
+}
+.eyebrow::before {
+    content: ""; width: 13px; height: 13px; border-radius: 50%;
+    background: var(--purple);
+}
+h1 {
+    font-size: 112px; font-weight: 800; line-height: 1.04;
+    letter-spacing: -0.03em;
+}
+h2 {
+    font-size: 74px; font-weight: 800; line-height: 1.06;
+    letter-spacing: -0.026em;
+}
+h3 { font-size: 30px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; }
+.grad {
+    background: var(--grad);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+}
+.lead { font-size: 32px; line-height: 1.5; color: var(--gray); font-weight: 500; }
+p, li { font-size: 26px; line-height: 1.55; color: var(--gray); }
+strong { color: var(--black); font-weight: 700; }
+
+/* ===========================================
+   SHARED COMPONENTS
+   =========================================== */
+.card {
+    background: var(--white);
+    border: 1px solid var(--hair);
+    border-radius: 28px;
+    padding: 40px 44px;
+}
+.card.tint { background: var(--tint); border-color: rgba(162, 71, 227, 0.18); }
+.card h3 { margin-bottom: 12px; }
+
+.chip {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 12px 24px; border-radius: 999px;
+    background: var(--tint); color: var(--black);
+    font-size: 24px; font-weight: 600; white-space: nowrap;
+}
+.chip.white { background: var(--white); border: 1px solid var(--hair); }
+.chip.muted { background: transparent; border: 1px dashed rgba(89,89,89,.45); color: var(--gray); }
+
+.icon {
+    width: 72px; height: 72px; border-radius: 20px;
+    background: var(--tint);
+    display: grid; place-items: center; font-size: 36px;
+    flex-shrink: 0;
+}
+
+/* Priority badges: core = black, add-on = purple tint, conditional = outline */
+.badge {
+    display: inline-block; padding: 8px 20px; border-radius: 999px;
+    font-size: 20px; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap;
+}
+.badge.core { background: var(--black); color: var(--white); }
+.badge.addon { background: var(--tint-strong); color: var(--purple-ink); }
+.badge.cond { border: 1.5px solid rgba(89,89,89,.5); color: var(--gray); }
+
+/* Slide footer: course + page number */
+.foot {
+    position: absolute; left: 120px; right: 120px; bottom: 46px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 19px; color: var(--gray); font-weight: 500;
+}
+.brand { display: flex; align-items: center; gap: 12px; font-weight: 700; color: var(--black); }
+.brand i {
+    width: 34px; height: 34px; border-radius: 10px; background: var(--white);
+    box-shadow: 0 1px 2px rgba(0,0,0,.08);
+    display: grid; place-items: center; font-style: normal; font-size: 18px;
+}
+
+/* ===========================================
+   ANIMATIONS
+   .reveal children fade up when their slide becomes visible.
+   Use style="--d:N" to stagger (N × 90ms).
+   =========================================== */
+.reveal {
+    opacity: 0; transform: translateY(28px);
+    transition: opacity .7s var(--ease), transform .7s var(--ease);
+    transition-delay: calc(var(--d, 0) * 90ms);
+}
+.slide.visible .reveal { opacity: 1; transform: none; }
+/* ?static in the URL disables motion (screenshots, PDF export) */
+body.static .reveal { transition: none !important; }
+
+/* ===========================================
+   SLIDE 1: TITLE
+   =========================================== */
+.title-grid { display: grid; grid-template-columns: 1fr 600px; gap: 60px; align-items: center; flex: 1; }
+.title-grid h1 { font-size: 100px; }
+.title-grid .lead { margin-top: 40px; max-width: 900px; }
+.status {
+    margin-top: 48px; display: inline-flex; align-items: center; gap: 14px;
+    padding: 14px 28px; border-radius: 999px; background: var(--white); border: 1px solid var(--hair);
+    font-size: 22px; font-weight: 600;
+}
+.status::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--pink); }
+
+/* Illustrative profile pair, not real users */
+.pair { position: relative; height: 700px; }
+.pcard {
+    position: absolute; width: 450px; background: var(--white);
+    border: 1px solid var(--hair); border-radius: 32px; padding: 34px;
+    box-shadow: 0 24px 48px rgba(9, 20, 50, .10);
+}
+.pcard .who { display: flex; align-items: center; gap: 18px; margin-bottom: 24px; }
+.pcard .av { width: 64px; height: 64px; border-radius: 50%; }
+.pcard .who b { font-size: 26px; }
+.pcard .who span { display: block; font-size: 20px; color: var(--gray); }
+.pcard .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.pcard .chip { font-size: 19px; padding: 9px 18px; }
+.pcard.a { left: 0; top: 0; transform: rotate(-4deg); }
+.pcard.b { right: 0; top: 330px; transform: rotate(3deg); z-index: 1; }
+.pcard.a .av { background: linear-gradient(135deg, #2d3d8a, #8654d9); }
+.pcard.b .av { background: linear-gradient(135deg, #8654d9, #E95BD2); }
+.match-pill {
+    position: absolute; left: -40px; top: 600px; z-index: 2;
+    padding: 18px 34px; border-radius: 999px; background: var(--grad-h); color: var(--white);
+    font-size: 26px; font-weight: 700; box-shadow: 0 16px 36px rgba(162,71,227,.3);
+}
+
+/* ===========================================
+   SLIDE 2: FUNNEL
+   =========================================== */
+.funnel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; margin-top: 70px; }
+.step { position: relative; }
+.step .card { height: 100%; }
+.step .icon { margin-bottom: 28px; }
+.step .num { font-size: 20px; font-weight: 700; color: var(--purple-ink); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 8px; }
+.step.off .card { background: transparent; border: 2px dashed rgba(89,89,89,.4); }
+.step.off h3, .step.off .num { color: var(--gray); }
+.step:not(:last-child)::after {
+    content: "→"; position: absolute; right: -24px; top: 50%; transform: translateY(-50%);
+    font-size: 30px; color: var(--purple); font-weight: 700; z-index: 2;
+}
+.note {
+    margin-top: 48px; display: flex; gap: 22px; align-items: flex-start;
+    font-size: 27px; line-height: 1.5; color: var(--gray); max-width: 1500px;
+}
+.note b { color: var(--black); }
+
+/* ===========================================
+   GENERIC GRIDS
+   =========================================== */
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+.icard { display: flex; flex-direction: column; gap: 24px; }
+
+/* ===========================================
+   SLIDE 4: DATA
+   =========================================== */
+.data-grid { display: grid; grid-template-columns: 1fr 1fr 520px; gap: 32px; margin-top: 60px; }
+.data-grid .chips { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.nolist { list-style: none; margin-top: 18px; display: grid; gap: 16px; }
+.nolist li { display: flex; gap: 14px; align-items: center; font-size: 25px; color: var(--black); font-weight: 600; }
+.nolist li span { width: 36px; height: 36px; border-radius: 50%; background: var(--white); border: 1px solid var(--hair); display: grid; place-items: center; font-size: 18px; color: var(--gray); flex-shrink: 0; }
+
+/* ===========================================
+   SLIDE 5: HYPOTHESES OVERVIEW
+   =========================================== */
+.hlist { margin-top: 56px; display: grid; gap: 18px; }
+.hrow {
+    display: grid; grid-template-columns: 110px 1fr 230px; align-items: center; gap: 30px;
+    padding: 24px 40px; background: var(--white); border: 1px solid var(--hair); border-radius: 24px;
+}
+.hrow .hid { font-size: 36px; font-weight: 800; color: var(--purple-ink); }
+.hrow .ht { font-size: 32px; font-weight: 700; color: var(--black); }
+.hrow .ht small { display: block; font-size: 22px; font-weight: 500; color: var(--gray); margin-top: 2px; }
+.hrow .badge { justify-self: end; }
+
+/* ===========================================
+   SLIDES 6-10: SINGLE HYPOTHESIS
+   =========================================== */
+.hyp { display: grid; grid-template-columns: 820px 1fr; gap: 72px; flex: 1; align-items: center; }
+.hyp-left { display: flex; flex-direction: column; }
+.hyp-tag { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
+.hyp-tag .big {
+    font-size: 30px; font-weight: 800; color: var(--white); background: var(--black);
+    padding: 10px 24px; border-radius: 16px;
+}
+.hyp h2 { font-size: 68px; }
+.quote {
+    margin-top: 84px; position: relative;
+    background: var(--tint); border-radius: 28px; padding: 44px 48px 40px 48px;
+}
+.quote::before {
+    content: "“"; position: absolute; top: -40px; left: 36px;
+    font-size: 150px; line-height: 1; font-weight: 800; color: var(--purple);
+}
+.quote p { font-size: 30px; line-height: 1.45; color: var(--black); font-weight: 500; font-style: italic; }
+.quote span { display: block; margin-top: 16px; font-size: 20px; font-weight: 600; color: var(--purple-ink); font-style: normal; }
+.hyp-right { display: flex; flex-direction: column; gap: 24px; }
+.hyp-right .card { padding: 34px 40px; }
+.label {
+    font-size: 19px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--purple-ink); margin-bottom: 12px;
+}
+.hyp-right p { font-size: 25px; line-height: 1.5; }
+.hyp-right .card.dark { background: var(--black); border-color: var(--black); }
+.hyp-right .card.dark .label { color: #D9C6F7; }
+.hyp-right .card.dark p { color: rgba(244, 242, 238, .88); }
+.hyp-right .card.dark strong { color: var(--white); }
+.cond {
+    display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+    font-size: 22px; color: var(--gray); font-weight: 500;
+}
+
+/* ===========================================
+   SLIDE 11: METHOD STEPS
+   =========================================== */
+.steps4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; margin-top: 64px; }
+.steps4 .card { display: flex; flex-direction: column; gap: 18px; }
+.steps4 .n {
+    width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 26px; font-weight: 800; background: var(--black); color: var(--white);
+}
+.steps4 p { font-size: 24px; }
+
+/* ===========================================
+   SLIDE 12: QUESTIONS TO PROVIDER
+   =========================================== */
+.qgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; margin-top: 52px; }
+.q {
+    background: var(--white); border: 1px solid var(--hair); border-radius: 24px;
+    padding: 28px 30px; display: flex; flex-direction: column; justify-content: space-between; gap: 18px;
+    min-height: 260px;
+}
+.q .qn { font-size: 19px; font-weight: 700; color: var(--purple-ink); }
+.q p { font-size: 24px; line-height: 1.42; color: var(--black); font-weight: 600; }
+.q .for { font-size: 19px; color: var(--gray); font-weight: 600; }
+.q .for b { color: var(--purple-ink); }
+.q.crit { border: 2px solid var(--purple); }
+
+/* ===========================================
+   SLIDE 13: RISKS
+   =========================================== */
+.risk { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; margin-top: 56px; }
+.risk .card { padding: 32px 36px; display: flex; gap: 24px; }
+.risk h3 { font-size: 27px; margin-bottom: 8px; }
+.risk p { font-size: 22px; line-height: 1.45; }
+.risk .icon { width: 64px; height: 64px; font-size: 30px; border-radius: 18px; }
+
+/* ===========================================
+   SLIDE 14: ROADMAP
+   =========================================== */
+.road { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 64px; position: relative; }
+.road::before {
+    content: ""; position: absolute; left: 30px; right: 30px; top: 29px; height: 3px;
+    background: var(--grad-h); border-radius: 3px;
+}
+.milestone { position: relative; padding-right: 40px; }
+.milestone .dot {
+    width: 60px; height: 60px; border-radius: 50%; background: var(--white); border: 3px solid var(--purple);
+    display: grid; place-items: center; font-weight: 800; font-size: 24px; color: var(--purple-ink);
+    position: relative; z-index: 1; margin-bottom: 30px;
+}
+.milestone h3 { margin-bottom: 10px; }
+.milestone p { font-size: 23px; }
+.milestone .badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.fallback {
+    margin-top: 90px; display: flex; align-items: center; gap: 26px;
+    background: var(--white); border: 1px solid var(--hair); border-radius: 24px; padding: 28px 40px;
+}
+.fallback p { font-size: 25px; }
+
+/* ===========================================
+   SLIDE 15: CLOSING
+   =========================================== */
+.closing { flex: 1; display: flex; flex-direction: column; justify-content: center; max-width: 1400px; }
+.closing .lead { margin-top: 40px; max-width: 1150px; }
+.cta-row { margin-top: 56px; display: flex; gap: 18px; flex-wrap: wrap; }
+.btn {
+    padding: 20px 40px; border-radius: 999px; background: var(--black); color: var(--white);
+    font-size: 24px; font-weight: 600;
+}
+.btn.ghost { background: var(--white); color: var(--black); border: 1px solid var(--hair); }
+
+/* ===========================================
+   V2 (5-SLIDE) COMPONENTS
+   =========================================== */
+/* Slide 1: compact funnel strip */
+.mini-funnel { display: flex; align-items: stretch; gap: 18px; margin-top: 84px; }
+.mf {
+    flex: 1; display: flex; align-items: center; gap: 16px;
+    background: var(--white); border: 1px solid var(--hair); border-radius: 24px; padding: 24px 22px;
+}
+.mf .icon { width: 60px; height: 60px; font-size: 30px; border-radius: 18px; }
+.mf b { display: block; font-size: 26px; font-weight: 800; color: var(--black); white-space: nowrap; }
+.mf div > span { font-size: 20px; color: var(--gray); }
+.mf.off { background: transparent; border: 2px dashed rgba(89,89,89,.4); }
+.mf.off b { color: var(--gray); }
+.mf-arrow { align-self: center; font-size: 30px; font-weight: 700; color: var(--purple); }
+.fn-note { margin-top: 36px; font-size: 24px; }
+
+/* Slide 2: data strip under the stake cards */
+.data-strip {
+    margin-top: 28px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 48px;
+    background: var(--white); border: 1px solid var(--hair); border-radius: 28px; padding: 32px 44px;
+}
+.data-strip .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.data-strip .chip { font-size: 21px; padding: 10px 20px; }
+.nolist.inline { margin-top: 6px; gap: 12px; }
+.nolist.inline li { font-size: 23px; }
+
+/* Slide 3: hypotheses table */
+.eyerow { display: flex; justify-content: space-between; align-items: center; }
+.legend { display: flex; gap: 28px; font-size: 19px; color: var(--gray); font-weight: 500; white-space: nowrap; }
+.legend > span { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.legend .badge { font-size: 17px; padding: 6px 14px; }
+.htable { margin-top: 40px; display: grid; gap: 12px; }
+.hhead, .hr { display: grid; grid-template-columns: 80px 1fr 560px 170px; gap: 32px; align-items: center; }
+.hhead { padding: 0 36px; font-size: 18px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--purple-ink); }
+.hr { padding: 20px 36px; background: var(--white); border: 1px solid var(--hair); border-radius: 22px; }
+.hr .hid { font-size: 34px; font-weight: 800; color: var(--purple-ink); }
+.hr .ht { font-size: 28px; font-weight: 700; color: var(--black); line-height: 1.3; }
+.hr .ht small { display: block; margin-top: 4px; font-size: 20px; font-weight: 500; font-style: italic; color: var(--gray); }
+.hr .prod { font-size: 22px; line-height: 1.4; color: var(--gray); }
+.hr .badge { justify-self: end; }
+
+/* Slide 4: method steps + risk rows */
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; margin-top: 48px; }
+.stack { display: grid; gap: 14px; margin-top: 4px; }
+.stack.tight { gap: 12px; }
+.mstep {
+    display: flex; gap: 24px; align-items: flex-start;
+    background: var(--white); border: 1px solid var(--hair); border-radius: 22px; padding: 24px 30px;
+}
+.mstep .n {
+    width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center;
+    font-size: 22px; font-weight: 800; background: var(--black); color: var(--white);
+}
+.mstep h3 { font-size: 26px; margin-bottom: 4px; }
+.mstep p { font-size: 21px; line-height: 1.45; }
+.rrow {
+    display: flex; gap: 20px; align-items: center;
+    background: var(--white); border: 1px solid var(--hair); border-radius: 20px; padding: 16px 24px;
+}
+.rrow .icon { width: 54px; height: 54px; font-size: 26px; border-radius: 16px; }
+.rrow b { display: block; font-size: 23px; color: var(--black); }
+.rrow div > span { font-size: 20px; color: var(--gray); }
+
+/* Slide 5: ask + fallback cards */
+.ask { display: grid; grid-template-columns: 1.45fr 1fr; gap: 28px; margin-top: 44px; }
+.ask .card { padding: 34px 40px; }
+.card.dark { background: var(--black); border-color: var(--black); }
+.card.dark .label { color: #D9C6F7; }
+.card.dark p { color: rgba(244, 242, 238, .85); }
+.card.dark strong { color: var(--white); }
+.crit { display: flex; gap: 18px; align-items: baseline; margin-top: 10px; }
+.crit > span { font-size: 20px; font-weight: 800; color: var(--pink); }
+.crit p { font-size: 25px; }
+.dark-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.dark-chips .chip { background: rgba(255,255,255,.10); color: var(--bg); font-size: 19px; padding: 9px 18px; }
+.ask .tint p { font-size: 25px; }
+
+/* ===========================================
+   DECK CHROME (outside the stage): progress + counter
+   =========================================== */
+.progress { position: fixed; left: 0; top: 0; height: 4px; background: var(--grad-h); z-index: 1000; transition: width .4s var(--ease); }
+.deck-controls {
+    font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--gray);
+    background: rgba(255,255,255,.75); border: 1px solid var(--hair); border-radius: 999px;
+    padding: 6px 14px; backdrop-filter: blur(6px);
+}
+
+/* ===========================================
+   INLINE EDITING (press E or hover top-left corner)
+   =========================================== */
+.edit-hotzone { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 10000; cursor: pointer; }
+.edit-toggle {
+    position: fixed; top: 16px; left: 16px; z-index: 10001;
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--hair);
+    background: var(--white); font-size: 20px; cursor: pointer;
+    opacity: 0; pointer-events: none; transition: opacity .3s ease;
+}
+.edit-toggle.show, .edit-toggle.active { opacity: 1; pointer-events: auto; }
+.edit-toggle.active { outline: 3px solid var(--pink); outline-offset: 3px; }
+body.editing [contenteditable="true"] { outline: 1px dashed rgba(162,71,227,.5); outline-offset: 4px; }
+body.editing [contenteditable="true"]:focus { outline: 3px solid var(--pink); }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="edit-hotzone" aria-hidden="true"></div>
+<button class="edit-toggle" id="editToggle" title="Tryb edycji (E)" aria-label="Tryb edycji">✏️</button>
+
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- ============ 1. HOOK: QUESTION + FUNNEL ============ -->
+<section class="slide active" aria-label="Pytanie">
+  <div class="inner">
+    <div class="eyebrow reveal" style="--d:0">Analiza Mediów Cyfrowych · Karta eksploracji danych (M1)</div>
+    <h1 class="reveal" style="--d:1">Co sprawia, że chcemy<br><span class="grad">zamieszkać razem?</span></h1>
+    <p class="lead reveal" style="--d:2;max-width:1300px;margin-top:36px">Sprawdzamy, które cechy profilu i zachowania w aplikacji RentFriends prowadzą od swipe'a do matcha i do rozmowy.</p>
+    <div class="mini-funnel reveal" style="--d:3">
+      <div class="mf"><span class="icon">👆</span><div><b>Swipe</b><span>Czy profil mnie interesuje?</span></div></div>
+      <span class="mf-arrow">→</span>
+      <div class="mf"><span class="icon">💜</span><div><b>Match</b><span>Zainteresowanie wzajemne</span></div></div>
+      <span class="mf-arrow">→</span>
+      <div class="mf"><span class="icon">💬</span><div><b>Rozmowa</b><span>Para zaczyna działać</span></div></div>
+      <span class="mf-arrow">→</span>
+      <div class="mf off"><span class="icon">🏠</span><div><b>Wspólny wynajem</b><span>Poza naszymi danymi</span></div></div>
+    </div>
+    <p class="fn-note reveal" style="--d:4">Przeprowadzki nie widzimy, więc mierzymy <strong>match</strong> i <strong>rozmowę po matchu</strong>, czyli najbliższe dostępne przybliżenie tej decyzji.</p>
+  </div>
+  <div class="foot">
+    <span class="brand"><i>🏠</i>Analiza Mediów Cyfrowych · 2026</span>
+    <span>Projekt studencki: niezależna analiza, nie publikacja RentFriends</span>
+  </div>
+</section>
+
+<!-- ============ 2. STAKES + DATA ============ -->
+<section class="slide" aria-label="Stawka i dane">
+  <div class="inner">
+    <div class="eyebrow reveal">Stawka</div>
+    <h2 class="reveal" style="--d:1">Lepsze dopasowanie to<br><span class="grad">mniej pustych matchy</span></h2>
+    <div class="grid3" style="margin-top:56px">
+      <div class="card icard reveal" style="--d:2">
+        <div class="icon">🪪</div>
+        <div><h3>Co pokazać na profilu</h3>
+        <p>Które cechy naprawdę ważą przy decyzji, a które są tylko dekoracją.</p></div>
+      </div>
+      <div class="card icard reveal" style="--d:3">
+        <div class="icon">🔀</div>
+        <div><h3>Kogo komu pokazać</h3>
+        <p>Czy kolejność propozycji powinna uwzględniać szansę na zainteresowanie z obu stron.</p></div>
+      </div>
+      <div class="card icard reveal" style="--d:4">
+        <div class="icon">✍️</div>
+        <div><h3>W co zainwestować</h3>
+        <p>Czy opłaca się zachęcać do pełniejszego profilu i staranniejszego bio.</p></div>
+      </div>
+    </div>
+    <div class="data-strip reveal" style="--d:5">
+      <div>
+        <div class="label">Pracujemy na zanonimizowanych danych</div>
+        <div class="chips">
+          <span class="chip">Wiek i płeć</span><span class="chip">Zainteresowania</span><span class="chip">Styl życia</span>
+          <span class="chip">Bio</span><span class="chip">Swipe'y</span><span class="chip">Matche</span><span class="chip">Rozpoczęte rozmowy</span>
+        </div>
+      </div>
+      <div>
+        <div class="label">Czego nie mamy i nie chcemy</div>
+        <ul class="nolist inline">
+          <li><span>✕</span>Zdjęć</li>
+          <li><span>✕</span>Treści wiadomości</li>
+          <li><span>✕</span>Danych osobowych</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand"><i>🏠</i>RentFriends · hipotezy M1</span><span>02 / 05</span></div>
+</section>
+
+<!-- ============ 3. HYPOTHESES ============ -->
+<section class="slide" aria-label="Hipotezy">
+  <div class="inner">
+    <div class="eyerow reveal">
+      <div class="eyebrow" style="margin:0">Hipotezy</div>
+      <div class="legend">
+        <span><span class="badge core">Rdzeń</span> robimy na pewno</span>
+        <span><span class="badge addon">Dodatek</span> rozszerza rdzeń</span>
+        <span><span class="badge cond">Warunkowo</span> jeśli dane pozwolą</span>
+      </div>
+    </div>
+    <h2 class="reveal" style="--d:1;margin-top:26px">Pięć hipotez, <span class="grad">jedno pytanie</span></h2>
+    <div class="htable">
+      <div class="hhead reveal" style="--d:2"><span></span><span>Hipoteza i intuicja</span><span>Co to daje produktowi</span><span style="text-align:right">Priorytet</span></div>
+      <div class="hr reveal" style="--d:2"><span class="hid">H1</span>
+        <span class="ht">Styl życia waży więcej niż wiek i zainteresowania<small>„Wolę współlokatora o podobnych nawykach niż idealnego kumpla.”</small></span>
+        <span class="prod">Tagi stylu życia <strong>na pierwszym planie</strong> profilu i w dopasowaniu</span>
+        <span class="badge core">Rdzeń</span></div>
+      <div class="hr reveal" style="--d:3"><span class="hid">H2</span>
+        <span class="ht">Płeć i wiek to bramka, a nie preferencja<small>„Dziewczyny od razu odfiltrowują chłopaków.”</small></span>
+        <span class="prod">Trafniejsze <strong>domyślne filtry</strong>, mniej zbędnych swipe'ów</span>
+        <span class="badge core">Rdzeń</span></div>
+      <div class="hr reveal" style="--d:4"><span class="hid">H5</span>
+        <span class="ht">Bio mówi więcej niż pola w profilu<small>„Ludzie czytają bio i oceniają, czy ktoś pasuje do klimatu.”</small></span>
+        <span class="prod"><strong>Podpowiedzi przy pisaniu bio</strong>, jeśli staranność się opłaca</span>
+        <span class="badge addon">Dodatek</span></div>
+      <div class="hr reveal" style="--d:5"><span class="hid">H4</span>
+        <span class="ht">Wybredni pasują do wybrednych<small>„Kto dużo odsiewa, dogada się z kimś, kto też odsiewa.”</small></span>
+        <span class="prod">Łączenie osób o <strong>podobnym stylu wybierania</strong></span>
+        <span class="badge cond">Warunkowo</span></div>
+      <div class="hr reveal" style="--d:6"><span class="hid">H3</span>
+        <span class="ht">Liczy się dopasowanie w obie strony<small>„Mój ideał nie musi widzieć ideału we mnie.”</small></span>
+        <span class="prod">Feed oparty na <strong>szansie wzajemności</strong>, nie tylko na guście</span>
+        <span class="badge cond">Warunkowo</span></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand"><i>🏠</i>RentFriends · hipotezy M1</span><span>03 / 05</span></div>
+</section>
+
+<!-- ============ 4. CREDIBILITY: METHOD + RISKS ============ -->
+<section class="slide" aria-label="Wiarygodność">
+  <div class="inner">
+    <div class="eyebrow reveal">Wiarygodność</div>
+    <h2 class="reveal" style="--d:1">Wnioski, którym <span class="grad">można zaufać</span></h2>
+    <div class="two">
+      <div>
+        <div class="label reveal" style="--d:2">Jak dojdziemy do wniosków</div>
+        <div class="stack">
+          <div class="mstep reveal" style="--d:2"><span class="n">1</span><div><h3>Plan zapisany z góry</h3><p>Kryteria sukcesu ustalamy przed analizą, nie pod wynik.</p></div></div>
+          <div class="mstep reveal" style="--d:3"><span class="n">2</span><div><h3>Jeden wspólny model</h3><p>Uwzględnia, że niektórzy są po prostu popularni albo lajkują wszystkich.</p></div></div>
+          <div class="mstep reveal" style="--d:4"><span class="n">3</span><div><h3>Test na nowych osobach</h3><p>Sprawdzamy na użytkownikach, których model wcześniej nie widział.</p></div></div>
+          <div class="mstep reveal" style="--d:5"><span class="n">4</span><div><h3>Porównanie z losowością</h3><p>Podajemy pewność wniosku. Wynik negatywny to też pełna odpowiedź.</p></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="label reveal" style="--d:2">Co może zaburzyć obraz i jak temu zapobiegamy</div>
+        <div class="stack tight">
+          <div class="rrow reveal" style="--d:2"><span class="icon">🎯</span><div><b>Feed decyduje, kogo widzimy</b><span>Ustalamy z RentFriends, jak działa feed</span></div></div>
+          <div class="rrow reveal" style="--d:3"><span class="icon">🏠</span><div><b>Match to nie przeprowadzka</b><span>Wnioski tylko o matchu i rozmowie</span></div></div>
+          <div class="rrow reveal" style="--d:4"><span class="icon">📷</span><div><b>Brak zdjęć</b><span>Ich wpływ ujmujemy jako popularność profilu</span></div></div>
+          <div class="rrow reveal" style="--d:5"><span class="icon">🎓</span><div><b>Podobni użytkownicy</b><span>Głównie studenci, więc ostrożnie uogólniamy</span></div></div>
+          <div class="rrow reveal" style="--d:6"><span class="icon">📉</span><div><b>Mało matchy</b><span>Wtedy prostszy model i mniej hipotez</span></div></div>
+          <div class="rrow reveal" style="--d:7"><span class="icon">🤖</span><div><b>Boty i konta skrajne</b><span>Wyniki liczymy z nimi i bez nich</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand"><i>🏠</i>RentFriends · hipotezy M1</span><span>04 / 05</span></div>
+</section>
+
+<!-- ============ 5. PLAN + ASK ============ -->
+<section class="slide" aria-label="Plan i następny krok">
+  <div class="inner">
+    <div class="eyebrow reveal">Plan i następny krok</div>
+    <h2 class="reveal" style="--d:1">Od danych <span class="grad">do wniosków</span></h2>
+    <div class="road" style="margin-top:52px">
+      <div class="milestone reveal" style="--d:2"><div class="dot">1</div><h3>Dane i odpowiedzi</h3><p>Eksport danych i odpowiedzi RentFriends.</p></div>
+      <div class="milestone reveal" style="--d:3"><div class="dot">2</div><h3>Szybki przegląd</h3><p>10 wskaźników, które rozstrzygają, co jest wykonalne.</p></div>
+      <div class="milestone reveal" style="--d:4"><div class="dot">3</div><h3>Rdzeń projektu</h3>
+        <div class="badges"><span class="badge core">H1</span><span class="badge core">H2</span><span class="badge addon">+ H5</span></div></div>
+      <div class="milestone reveal" style="--d:5"><div class="dot">4</div><h3>Rozszerzenia</h3>
+        <div class="badges"><span class="badge cond">H4</span><span class="badge cond">H3</span></div><p style="margin-top:12px">Jeśli swipe'y mają znaczniki czasu.</p></div>
+    </div>
+    <div class="ask">
+      <div class="card dark reveal" style="--d:6">
+        <div class="label">Czego potrzebujemy od RentFriends</div>
+        <div class="crit"><span>01</span><p><strong>Znaczniki czasu swipe'ów</strong>: decydują o H3 i H4</p></div>
+        <div class="crit"><span>02</span><p><strong>Jak działa feed</strong>: ranking, filtry, losowość, widoczność lajków</p></div>
+        <div class="chips dark-chips">
+          <span class="chip">Historia edycji bio</span><span class="chip">Pola stylu życia</span><span class="chip">Skala danych</span>
+          <span class="chip">Boty usunięte?</span><span class="chip">Cechy ogłoszeń</span><span class="chip">„Superlajk”</span>
+        </div>
+      </div>
+      <div class="card tint reveal" style="--d:7">
+        <div class="label">Plan awaryjny</div>
+        <p>Jeśli matchy będzie mało, zostajemy przy <strong>H1, H2 i części H5</strong>.</p>
+        <p style="margin-top:18px">Po przeglądzie danych zawęzimy całość do <strong>jednej testowalnej tezy</strong>.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <span class="brand"><i>🏠</i>Analiza Mediów Cyfrowych · 2026</span>
+    <span>Projekt studencki: niezależna analiza, nie publikacja RentFriends</span>
+  </div>
+</section>
+
+</main>
+</div>
+<div class="deck-controls" id="counter" aria-live="polite">1 / 5</div>
+
+<script>
+/* ===========================================
+   SLIDE PRESENTATION CONTROLLER
+   Keyboard (arrows, space, PgUp/PgDn, Home/End), wheel, touch swipe.
+   =========================================== */
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.stage = document.getElementById('deckStage');
+        this.counter = document.getElementById('counter');
+        this.progress = document.getElementById('progress');
+        this.current = 0;
+        this.setupStageScale();
+        this.setupKeyboardNav();
+        this.setupWheelNav();
+        this.setupTouchNav();
+        const fromHash = parseInt(location.hash.slice(1), 10);
+        this.show(Number.isFinite(fromHash) ? fromHash - 1 : 0);
+    }
+
+    setupStageScale() {
+        const scale = () => {
+            const f = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+            const x = (window.innerWidth - 1920 * f) / 2;
+            const y = (window.innerHeight - 1080 * f) / 2;
+            this.stage.style.transform = `translate(${x}px, ${y}px) scale(${f})`;
+        };
+        scale();
+        window.addEventListener('resize', scale);
+    }
+
+    setupKeyboardNav() {
+        document.addEventListener('keydown', (e) => {
+            if (document.body.classList.contains('editing')) return;
+            if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); this.show(this.current + 1); }
+            else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); this.show(this.current - 1); }
+            else if (e.key === 'Home') this.show(0);
+            else if (e.key === 'End') this.show(this.slides.length - 1);
+        });
+    }
+
+    setupWheelNav() {
+        let locked = false;
+        window.addEventListener('wheel', (e) => {
+            if (locked || Math.abs(e.deltaY) < 30 || document.body.classList.contains('editing')) return;
+            locked = true;
+            this.show(this.current + (e.deltaY > 0 ? 1 : -1));
+            setTimeout(() => { locked = false; }, 700);
+        }, { passive: true });
+    }
+
+    setupTouchNav() {
+        let sx = 0, sy = 0;
+        window.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+        window.addEventListener('touchend', (e) => {
+            const dx = e.changedTouches[0].clientX - sx;
+            const dy = e.changedTouches[0].clientY - sy;
+            if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) this.show(this.current + (dx < 0 ? 1 : -1));
+        }, { passive: true });
+    }
+
+    show(i) {
+        this.current = Math.max(0, Math.min(i, this.slides.length - 1));
+        this.slides.forEach((s, k) => {
+            s.classList.toggle('active', k === this.current);
+            s.classList.toggle('visible', k === this.current);
+        });
+        this.counter.textContent = `${this.current + 1} / ${this.slides.length}`;
+        this.progress.style.width = `${((this.current + 1) / this.slides.length) * 100}%`;
+        history.replaceState(null, '', `#${this.current + 1}`);
+    }
+}
+
+/* ===========================================
+   INLINE EDITOR
+   E or top-left hotzone toggles edit mode; edits autosave to
+   localStorage (best effort); Ctrl+S downloads the edited HTML.
+   =========================================== */
+class InlineEditor {
+    constructor() {
+        this.isActive = false;
+        this.key = 'rf-m1-deck-v2-edits';
+        this.toggle = document.getElementById('editToggle');
+        this.targets = document.querySelectorAll('.slide h1, .slide h2, .slide h3, .slide p, .slide .chip, .slide .ht, .slide .label, .slide .eyebrow, .slide .btn, .slide .nolist li');
+        this.restore();
+        this.bind();
+    }
+    restore() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(this.key) || '{}');
+            this.targets.forEach((el, i) => { if (saved[i] != null) el.innerHTML = saved[i]; });
+        } catch (_) { /* storage unavailable: ignore */ }
+    }
+    persist() {
+        try {
+            const out = {};
+            this.targets.forEach((el, i) => { out[i] = el.innerHTML; });
+            localStorage.setItem(this.key, JSON.stringify(out));
+        } catch (_) { /* storage unavailable: ignore */ }
+    }
+    toggleEditMode() {
+        this.isActive = !this.isActive;
+        document.body.classList.toggle('editing', this.isActive);
+        this.toggle.classList.toggle('active', this.isActive);
+        this.targets.forEach((el) => el.setAttribute('contenteditable', this.isActive ? 'true' : 'false'));
+        if (!this.isActive) this.persist();
+    }
+    download() {
+        this.persist();
+        const clone = document.documentElement.cloneNode(true);
+        clone.querySelectorAll('[contenteditable]').forEach((el) => el.removeAttribute('contenteditable'));
+        clone.querySelector('body').classList.remove('editing');
+        const blob = new Blob(['<!DOCTYPE html>\n' + clone.outerHTML], { type: 'text/html' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'm1-hipotezy-v2.html';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+    bind() {
+        const hotzone = document.querySelector('.edit-hotzone');
+        let hide = null;
+        const scheduleHide = () => { hide = setTimeout(() => { if (!this.isActive) this.toggle.classList.remove('show'); }, 400); };
+        hotzone.addEventListener('mouseenter', () => { clearTimeout(hide); this.toggle.classList.add('show'); });
+        hotzone.addEventListener('mouseleave', scheduleHide);
+        this.toggle.addEventListener('mouseenter', () => clearTimeout(hide));
+        this.toggle.addEventListener('mouseleave', scheduleHide);
+        hotzone.addEventListener('click', () => this.toggleEditMode());
+        this.toggle.addEventListener('click', () => this.toggleEditMode());
+        document.addEventListener('input', () => this.persist());
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); this.download(); return; }
+            if ((e.key === 'e' || e.key === 'E') && e.target.getAttribute('contenteditable') !== 'true') this.toggleEditMode();
+            if (e.key === 'Escape' && this.isActive) this.toggleEditMode();
+        });
+    }
+}
+
+if (new URLSearchParams(location.search).has('static')) document.body.classList.add('static');
+const deck = new SlidePresentation();
+const editor = new InlineEditor();
+</script>
+</body>
+</html>
