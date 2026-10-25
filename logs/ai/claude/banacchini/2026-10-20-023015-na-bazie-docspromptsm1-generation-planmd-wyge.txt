@@ -1,0 +1,1047 @@
+ ▐▛███▛█   Claude Code v2.1.304
+▝▜██████▀  Opus 5.5 · Claude Pro
+ ▝▝   ▝▝   ~/projects/wust/sem2/umc
+
+
+❯ <browser_instruction># Claude in Chrome browser automation                    
+                                                                                
+  You have access to browser automation tools (mcp__claude-in-chrome__*) for    
+  interacting with web pages in Chrome. Follow these guidelines for effective   
+  browser automation.                                                           
+                                                                                
+  ## Loading deferred tools                                                     
+                                                                                
+  If the mcp__claude-in-chrome__* tools are deferred (must be loaded via        
+  ToolSearch before use), load every tool you expect to need in ONE ToolSearch  
+  call — the select query accepts a comma-separated list — never one call per   
+  tool. Start with the core set:                                                
+                                                                                
+  ToolSearch with query                                                         
+  "select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__naviga 
+  te,mcp__claude-in-chrome__computer,mcp__claude-in-chrome__read_page,mcp__clau 
+  de-in-chrome__tabs_create_mcp,mcp__claude-in-chrome__tabs_close_mcp"          
+                                                                                
+  Add task-specific tools to the same call when the task obviously needs them:  
+  read_console_messages / read_network_requests for debugging, form_input for   
+  forms, gif_creator for recordings, javascript_tool for page scripting.        
+                                                                                
+  ## GIF recording                                                              
+                                                                                
+  When performing multi-step browser interactions that the user may want to     
+  review or share, use mcp__claude-in-chrome__gif_creator to record them.       
+                                                                                
+  You must ALWAYS:                                                              
+  * Capture extra frames before and after taking actions to ensure smooth       
+  playback                                                                      
+  * Name the file meaningfully to help the user identify it later (e.g.,        
+  "login_process.gif")                                                          
+                                                                                
+  ## Console log debugging                                                      
+                                                                                
+  You can use mcp__claude-in-chrome__read_console_messages to read console      
+  output. Console output may be verbose. If you are looking for specific log    
+  entries, use the 'pattern' parameter with a regex-compatible pattern. This    
+  filters results efficiently and avoids overwhelming output. For example, use  
+  pattern: "[MyApp]" to filter for application-specific logs rather than        
+  reading all console output.                                                   
+                                                                                
+  ## Alerts and dialogs                                                         
+                                                                                
+  IMPORTANT: Do not trigger JavaScript alerts, confirms, prompts, or browser    
+  modal dialogs through your actions. These browser dialogs block all further   
+  browser events and will prevent the extension from receiving any subsequent   
+  commands. Instead, when possible, use console.log for debugging and then use  
+  the mcp__claude-in-chrome__read_console_messages tool to read those log       
+  messages. If a page has dialog-triggering elements:                           
+  1. Avoid clicking buttons or links that may trigger alerts (e.g., "Delete"    
+  buttons with confirmation dialogs)                                            
+  2. If you must interact with such elements, warn the user first that this may 
+  interrupt the session                                                         
+  3. Use mcp__claude-in-chrome__javascript_tool to check for and dismiss any    
+  existing dialogs before proceeding                                            
+                                                                                
+  If you accidentally trigger a dialog and lose responsiveness, inform the user 
+  they need to manually dismiss it in the browser.                              
+                                                                                
+  ## Avoid rabbit holes and loops                                               
+                                                                                
+  When using browser automation tools, stay focused on the specific task. If    
+  you encounter any of the following, stop and ask the user for guidance:       
+  - Unexpected complexity or tangential browser exploration                     
+  - Browser tool calls failing or returning errors after 2-3 attempts           
+  - No response from the browser extension                                      
+  - Page elements not responding to clicks or input                             
+  - Pages not loading or timing out                                             
+  - Unable to complete the browser task despite multiple approaches             
+                                                                                
+  Explain what you attempted, what went wrong, and ask how the user would like  
+  to proceed. Do not keep retrying the same failing browser action or explore   
+  unrelated pages without checking in first.                                    
+                                                                                
+  ## Tab context and session startup                                            
+                                                                                
+  IMPORTANT: At the start of each browser automation session, call              
+  mcp__claude-in-chrome__tabs_context_mcp first to get information about the    
+  user's current browser tabs. Use this context to understand what the user     
+  might want to work with before creating new tabs.                             
+                                                                                
+  Never reuse tab IDs from a previous/other session. Follow these guidelines:   
+  1. Only reuse an existing tab if the user explicitly asks to work with it     
+  2. Otherwise, create a new tab with mcp__claude-in-chrome__tabs_create_mcp    
+  3. If a tool returns an error indicating the tab doesn't exist or is invalid, 
+  call tabs_context_mcp to get fresh tab IDs                                    
+  4. When a tab is closed by the user or a navigation error occurs, call        
+  tabs_context_mcp to see what tabs are available</browser_instruction>         
+
+❯ Na bazie @docs/prompts/m1-generation-plan.md wygeneruj plik w formacie łatwo  
+  edytowalnym dla człowieka i renderowalnym do formatu pdf. Notebooki znajdują  
+  się w folderze @notebooks/  a plik z hipotezami to                            
+  @docs/rentfriends_hipotezy_karta_eksploracji.md . W razie jakichkolwiek pytań 
+  - zatrzymaj się i czekaj na odpowiedź.                                        
+  ⎿  Read docs/prompts/m1-generation-plan.md (144 lines)
+  ⎿  Listed directory notebooks/
+  ⎿  Read docs/rentfriends_hipotezy_karta_eksploracji.md (333 lines)
+
+  Read 5 files, ran 4 shell commands (ctrl+o to expand)
+
+● Wyodrębniłem rysunki R1–R4 z zapisanych wyników EDA.ipynb i wszystkie są
+  odpowiednie. Ponieważ na komputerze brak narzędzi do generowania PDF (pandoc,
+  typst, LaTeX), muszę najpierw ustalić format i sposób zapisu karty.
+
+● User answered Claude's questions:
+  ⎿  · W jakim formacie ma powstać karta M1? → Typst (.typ) (Recommended)
+     · Czy mogę zainstalować renderer lokalnie (bez sudo, np. przez `uv tool 
+     install`), żeby zbudować PDF i sprawdzić, czy mieści się w 4 stronach? → 
+     Tak, zainstaluj
+     · Gdzie zapisać kartę i rysunki? → reports/m1/ (Recommended)
+
+  Read 1 file, ran 3 shell commands (ctrl+o to expand)
+
+● Format ustalony: Typst, w reports/m1/. Typst działa przez uvx --from typst
+  (0.15.0). Mam już liczby z zapisanych wyników notebooków. Kopiuję rysunki
+  R1–R4 i piszę kartę.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Write(reports/m1/karta-m1.typ)
+  ⎿  Interrupted · What should Claude do instead?
+
+● Zatrzymałem się: nie zapisałem pliku reports/m1/karta-m1.typ, bo odrzuciłeś
+  ten krok. Na dysku są tylko rysunki R1–R4, skopiowane z zapisanych wyników
+  EDA.ipynb (bez uruchamiania kodu) do reports/m1/figures/.
+
+  Gotowa karta w Typst miała 8 sekcji zgodnych z opisem M1 i liczby wyłącznie z
+  notebooków i pliku z hipotezami. Stare ID hipotez są w niej zamienione na nowe
+  (H3 = dawne H5), a brakujące informacje oznaczone jako [DO POTWIERDZENIA] lub
+  [DO PRZELICZENIA]. Rozbieżności i usterki rysunków chciałem dać w osobnym
+  pliku reports/m1/uwagi-dla-recenzenta.md. Do tej listy trafiłyby:
+  - Pary bez kont skrajnych: notebook podaje 5527, plik z hipotezami 5533.
+    Stosuję 5527.
+  - Brak EDA-rendered.ipynb: rysunki i liczby wziąłem z wyników zapisanych w
+    EDA.ipynb.
+  - Wykres wieku (R4): literówka „Heeatmapa”, angielskie podpisy osi i
+    niepołączone pasma 27+.
+  - Wykres aktywności (R3): literówka „spiwe'ów” na osi.
+
+  Czekam na decyzję, jak dalej. Mogę:
+  - zapisać kartę w obecnej postaci,
+  - najpierw zmienić treść, układ albo lokalizację (powiedz co),
+  - pokazać szkic do przejrzenia, zanim cokolwiek zapiszę.
+
+❯ zapisz kartę w obecnej postaci                                                
+  ⎿  1 skill available
+
+● Write(reports/m1/karta-m1.typ)
+  ⎿  Wrote 151 lines to reports/m1/karta-m1.typ
+       1 // Karta eksploracji danych (M1), RentFriends.
+       3 //   or:   uvx --from typst python -c "import typst; typst.compi
+         le('reports/m1/karta-m1.typ', output='reports/m1/karta-m1.pdf')"
+         iends_hipotezy_karta_eksploracji.md
+       5 // (the "technical document"). Reviewer notes: reports/m1/uwagi-
+       6 
+       7 #set document(title: "Karta eksploracji danych (M1): RentFriends
+       8 #set page(paper: "a4", margin: (x: 1.6cm, y: 1.5cm), numbering: 
+         "1 / 1")
+      10 #set par(justify: true, leading: 0.5em, spacing: 0.75em)
+     … +342 lines (ctrl+o to expand)
+
+● Bash(uvx --from typst python -c "
+      import typst…)
+  ⎿  pages: 3
+  ⎿  1 file changed (binary, mode only or too large to show)
+
+● Karta kompiluje się do PDF i ma 3 strony. Sprawdzam teraz wygląd stron.
+
+● Bash(mkdir -p reports/m1/.preview && uvx --from typst python -c "
+      import typst…)
+  ⎿  p1.png
+     p2.png
+     p3.png
+  ⎿  3 files changed (binary, mode only or too large to show)
+
+  Read 3 files (ctrl+o to expand)
+
+● Bash(rm -r reports/m1/.preview && ls -R reports/m1)
+  ⎿  reports/m1:
+     figures
+     karta-m1.pdf
+     … +7 lines (ctrl+o to expand)
+  ⎿  3 files changed (binary, mode only or too large to show)
+
+● Write(reports/m1/uwagi-dla-recenzenta.md)
+  ⎿  Wrote 48 lines to reports/m1/uwagi-dla-recenzenta.md
+       1 # Karta M1: uwagi dla recenzenta
+       3 Lista do review karty `reports/m1/karta-m1.typ` (przygotowanej p
+         rzez agenta według `docs/prompts/m1-generation-plan.md`).
+       4 
+         tebooka)
+       6 
+       8 |---|---|---|---|
+       9 | Pary bez kont skrajnych, n_min = 10 | 5533 | 5527 (sekcja „Lic
+         zność prób po filtrach aktywności”) | 5527 |
+         | `y_right` główna (decyzja D4) |
+     … +58 lines (ctrl+o to expand)
+
+● Zapisałem kartę bez zmian. Zbudowany z niej PDF ma 3 strony A4 razem z
+  czterema rysunkami, więc mieści się w limicie 4 stron. Wszystkie strony
+  obejrzałem: tabele, przypis, odsyłacze „Rys. N” i oznaczenia [DO …]
+  wyświetlają się poprawnie.
+
+  Pliki w reports/m1/:
+  - karta-m1.typ: źródło karty do edycji, z poleceniem budowania w komentarzu na
+    górze.
+  - karta-m1.pdf: wynik budowania.
+  - figures/: rysunki R1–R4 wycięte z zapisanych wyników EDA.ipynb.
+  - uwagi-dla-recenzenta.md: rozbieżności (np. 5527 vs 5533 par), wszystkie
+    pozycje [DO POTWIERDZENIA] i [DO PRZELICZENIA] oraz drobne usterki rysunków
+    do poprawienia przy przegenerowaniu.
+
+  PDF przebudujesz poleceniem:
+  uvx --from typst python -c "import typst; 
+  typst.compile('reports/m1/karta-m1.typ', output='reports/m1/karta-m1.pdf')"
+  Zamiast tego możesz też zainstalować typst i użyć typst compile.
+
+  Do decyzji przy review:
+  - Rysunki stoją po dwa obok siebie i są przez to dość małe. Na stronie 3
+    zostało ok. ⅓ wolnego miejsca, więc da się je powiększyć bez przekraczania 4
+    stron.
+  - W sekcji 3 marker wyświetla się ze zbędną spacją jako „[DO PRZELICZENIA ]”.
+    To kosmetyka do poprawienia jednym znakiem.
+
+  Niczego nie commitowałem. Nie dopisałem też tej sesji do
+  docs/ai-disclosure.md, choć wymaga tego reguła 4 w AGENTS.md. Mogę dodać ten
+  wiersz, jeśli chcesz. Eksport logu sesji do logs/ai/ musisz zrobić sam.
+
+✻ Sautéed for 1m 39s · done 2:15 AM
+
+❯ dostosuj styl do @STYLEGUIDE.md                                               
+  ⎿  Read STYLEGUIDE.md (149 lines)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Font Plus Jakarta Sans nie jest zainstalowany, a styleguide przewiduje go jako
+  krój. Zanim zmienię styl, potrzebuję trzech decyzji.
+
+● User answered Claude's questions:
+  ⎿  · Skąd wziąć font Plus Jakarta Sans? Na komputerze go nie ma. → Pobierz do 
+     repo (Recommended)
+     · Jakie tło strony? → Ciepłe #F4F2EE (Recommended)
+     · Czy dodać logo RentFriends w stopce? → Bez logo (Recommended)
+
+● Bash(mkdir -p reports/assets/fonts && cd reports/assets/fonts &&
+      base=https://raw.githubusercontent.com/tokotype/PlusJakartaSans/master;
+      for w in Regular Italic Medi…)  ⎿  ok Regular
+     ok Italic
+     ok Medium
+     … +18 lines (ctrl+o to expand)
+  ⎿  Created reports/assets/fonts/OFL.txt (+93 -0)
+       1 +Copyright 2020 The Plus Jakarta Sans Project Authors (https://g
+         +ithub.com/tokotype/PlusJakartaSans)                            
+       2 +                                                               
+       3 +This Font Software is licensed under the SIL Open Font License,
+         + Version 1.1.                                                  
+       4 +This license is copied below, and is also available with a FAQ 
+         +at:                                                            
+       5 +http://scripts.sil.org/OFL                                     
+       6 +                                                               
+       7 +                                                               
+       8 +-----------------------------------------------------------    
+       9 +SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007           
+      10 +-----------------------------------------------------------    
+      11 +                                                               
+      12 +PREAMBLE                                                       
+      13 +The goals of the Open Font License (OFL) are to stimulate world
+         +wide                                                           
+      14 +development of collaborative font projects, to support the font
+         + creation                                                      
+      15 +efforts of academic and linguistic communities, and to provide 
+         +a free and                                                     
+      16 +open framework in which fonts may be shared and improved in par
+         +tnership                                                       
+      17 +with others.                                                   
+      18 +                                                               
+      19 +The OFL allows the licensed fonts to be used, studied, modified
+         + and                                                           
+      20 +redistributed freely as long as they are not sold by themselves
+         +. The                                                          
+      21 +fonts, including any derivative works, can be bundled, embedded
+         +,                                                              
+      22 +redistributed and/or sold with any software provided that any r
+         +eserved                                                        
+      23 +names are not used by derivative works. The fonts and derivativ
+         +es,                                                            
+      24 +however, cannot be released under any other type of license. Th
+         +e                                                              
+      25 +requirement for fonts to remain under this license does not app
+         +ly                                                             
+      26 +to any document created using the fonts or their derivatives.  
+      27 +                                                               
+      28 +DEFINITIONS                                                    
+      29 +"Font Software" refers to the set of files released by the Copy
+         +right                                                          
+      30 +Holder(s) under this license and clearly marked as such. This m
+         +ay                                                             
+      31 +include source files, build scripts and documentation.         
+      32 +                                                               
+      33 +"Reserved Font Name" refers to any names specified as such afte
+         +r the                                                          
+      34 +copyright statement(s).                                        
+      35 +                                                               
+      36 +"Original Version" refers to the collection of Font Software co
+         +mponents as                                                    
+      37 +distributed by the Copyright Holder(s).                        
+      38 +                                                               
+      39 +"Modified Version" refers to any derivative made by adding to, 
+         +deleting,                                                      
+      40 +or substituting -- in part or in whole -- any of the components
+         + of the                                                        
+     … 53 more lines (ctrl+o to expand)
+  ⎿  … 7 more files changed
+
+● Font pobrany (statyczne TTF z repozytorium autora, tokotype, plus licencja
+  OFL). Teraz przerabiam preambułę karty: tło, krój, nagłówki, panel, tabele,
+  znaczniki i stopkę.
+
+● Update(reports/m1/karta-m1.typ)
+  ⎿  Added 92 lines, removed 22 lines
+        1  // Karta eksploracji danych (M1), RentFriends.
+        2 -// Build:  typst compile reports/m1/karta-m1.typ              
+        3 -//   or:   uvx --from typst python -c "import typst; typst.com
+          -pile('reports/m1/karta-m1.typ', output='reports/m1/karta-m1.pd
+          -f')"                                                          
+        2 +// Build (from the repo root; fonts are bundled in reports/ass
+          +ets/fonts):                                                   
+        3 +//   typst compile --font-path reports/assets/fonts reports/m1
+          +/karta-m1.typ                                                 
+        4 +//   or: uvx --from typst python -c "import typst; typst.compi
+          +le('reports/m1/karta-m1.typ', output='reports/m1/karta-m1.pdf'
+          +, font_paths=['reports/assets/fonts'])"                       
+        5  // Numbers come only from saved notebook outputs and docs/rent
+           friends_hipotezy_karta_eksploracji.md
+        6  // (the "technical document"). Reviewer notes: reports/m1/uwag
+           i-dla-recenzenta.md.
+        7 +// Visual style: STYLEGUIDE.md (one-pager rules, section 8). F
+          +igures are kept as rendered in the notebooks.                 
+        8  
+        9 +// Brand tokens (STYLEGUIDE.md, section 2)                    
+       10 +#let c-black = rgb("#0F0F0F")                                 
+       11 +#let c-bg = rgb("#F4F2EE")                                    
+       12 +#let c-gray = rgb("#595959")                                  
+       13 +#let c-blue = rgb("#234CE0")                                  
+       14 +#let c-purple = rgb("#A247E3")                                
+       15 +#let c-purple-ink = rgb("#8B34C4")                            
+       16 +#let c-pink = rgb("#E95BD2")                                  
+       17 +#let c-tint = c-purple.transparentize(88%)                    
+       18 +#let c-hair = c-gray.transparentize(80%)                      
+       19 +#let brand-gradient = gradient.linear(c-blue, c-purple, c-pink
+          +)                                                             
+       20 +                                                              
+       21  #set document(title: "Karta eksploracji danych (M1): RentFrien
+           ds")
+        8 -#set page(paper: "a4", margin: (x: 1.6cm, y: 1.5cm), numbering
+          -: "1 / 1")                                                    
+        9 -#set text(lang: "pl", size: 9.5pt)                            
+       10 -#set par(justify: true, leading: 0.5em, spacing: 0.75em)      
+       22 +#set page(                                                    
+       23 +  paper: "a4",                                                
+       24 +  margin: (x: 1.6cm, top: 1.5cm, bottom: 1.6cm),              
+       25 +  fill: c-bg,                                                 
+       26 +  // Soft purple glow, top-left of the first page only        
+       27 +  background: context if here().page() == 1 {                 
+       28 +    place(top + left, dx: -6cm, dy: -6cm, circle(             
+       29 +      radius: 9cm,                                            
+       30 +      fill: gradient.radial(rgb(124, 58, 237).transparentize(8
+          +5%), rgb(124, 58, 237).transparentize(100%)),                 
+       31 +    ))                                                        
+       32 +  },                                                          
+       33 +  footer: context {                                           
+       34 +    set text(size: 7.5pt, fill: c-gray)                       
+       35 +    line(length: 100%, stroke: 0.5pt + c-hair)                
+       36 +    v(-0.4em)                                                 
+       37 +    grid(                                                     
+       38 +      columns: (1fr, auto),                                   
+       39 +      [Analiza Mediów Cyfrowych · analiza studencka, nie publi
+          +kacja RentFriends],                                           
+       40 +      counter(page).display("1 / 1", both: true),             
+       41 +    )                                                         
+       42 +  },                                                          
+       43 +)                                                             
+       44 +#set text(font: ("Plus Jakarta Sans", "DejaVu Sans"), lang: "p
+          +l", size: 9pt, fill: c-gray)                                  
+       45 +#show raw: set text(font: "DejaVu Sans Mono", size: 0.92em, fi
+          +ll: c-black)                                                  
+       46 +#show strong: set text(fill: c-black)                         
+       47 +#set strong(delta: 300)                                       
+       48 +#set par(justify: true, leading: 0.55em, spacing: 0.8em)      
+       49  #set heading(numbering: "1.")
+       12 -#show heading.where(level: 1): set text(size: 11pt)           
+       13 -#show heading: set block(above: 0.9em, below: 0.5em)          
+       14 -#set list(spacing: 0.45em)                                    
+       15 -#set table(inset: (x: 4pt, y: 2.5pt), stroke: 0.4pt + luma(170
+          -))                                                            
+       16 -#show table: set text(size: 8.5pt)                            
+       50 +#show heading: set text(fill: c-black, weight: 800, tracking: 
+          +-0.02em)                                                      
+       51 +#show heading.where(level: 1): set text(size: 12pt)           
+       52 +#show heading: set block(above: 1.1em, below: 0.55em)         
+       53 +#show heading.where(level: 1): it => block(above: 1.1em, below
+          +: 0.55em)[                                                    
+       54 +  #text(fill: c-purple-ink)[#counter(heading).display(it.numbe
+          +ring)]#h(0.4em)#it.body                                       
+       55 +]                                                             
+       56 +#set list(spacing: 0.5em, marker: text(fill: c-purple)[●], bod
+          +y-indent: 0.5em)                                              
+       57 +#set footnote.entry(separator: line(length: 30%, stroke: 0.5pt
+          + + c-hair))                                                   
+       58 +#show footnote.entry: set text(size: 7.5pt)                   
+       59 +                                                              
+       60 +// Tables: white card with a hairline frame, purple-tinted hea
+          +der, horizontal hairlines only                                
+       61 +#set table(                                                   
+       62 +  inset: (x: 5pt, y: 3pt),                                    
+       63 +  stroke: (x, y) => (top: if y > 0 { 0.5pt + c-hair }),       
+       64 +  fill: (x, y) => if y == 0 { c-tint } else { white },        
+       65 +)                                                             
+       66 +#show table.cell.where(y: 0): set text(fill: c-black, weight: 
+          +"bold")                                                       
+       67 +#show table: set text(size: 8pt)                              
+       68  #show table: set par(justify: false)
+       18 -#set figure(gap: 0.4em)                                       
+       19 -#show figure: set block(above: 0.8em, below: 0.8em)           
+       20 -#show figure.caption: set text(size: 8pt)                     
+       69 +#show table: it => block(radius: 8pt, clip: true, stroke: 0.5p
+          +t + c-hair, it)                                               
+       70 +                                                              
+       71 +#set figure(gap: 0.45em)                                      
+       72 +#show figure: set block(above: 0.9em, below: 0.9em)           
+       73 +#show figure.caption: set text(size: 7.5pt)                   
+       74  #show figure.caption: set align(left)
+       75  #show figure.caption: set par(justify: true)
+       76  #set figure.caption(separator: [. ])
+       77  
+       25 -// Review markers                                             
+       26 -#let mark(body) = text(fill: rgb("#b00020"), weight: "bold", s
+          -ize: 0.85em, body)                                            
+       27 -#let tbc = mark[\[DO POTWIERDZENIA\]]                         
+       28 -#let recalc(what) = mark[\[DO PRZELICZENIA #what\]]           
+       78 +// Review markers: pill chips                                 
+       79 +#let mark(body) = box(                                        
+       80 +  fill: c-tint,                                               
+       81 +  radius: 1em,                                                
+       82 +  inset: (x: 4pt, y: 1.5pt),                                  
+       83 +  baseline: 1.5pt,                                            
+       84 +  text(fill: c-purple-ink, weight: "bold", size: 0.82em, body)
+          +,                                                             
+       85 +)                                                             
+       86 +#let tbc = mark[DO POTWIERDZENIA]                             
+       87 +#let recalc(what) = mark[DO PRZELICZENIA#if what != [] [ #what
+          +]]                                                            
+       88  #let pre = text(style: "italic")[wstępne: bieżąca płeć z `user
+           s`, surowe tagi, z Hyderabad]
+       89  
+       31 -#let fig(path, cap, w: 100%) = figure(image(path, width: w), c
+          -aption: cap, supplement: [Rys.])                              
+       90 +// Notebook charts sit on a white rounded card (they have whit
+          +e backgrounds)                                                
+       91 +#let fig(path, cap, w: 100%) = figure(                        
+       92 +  block(fill: white, radius: 8pt, inset: 4pt, stroke: 0.5pt + 
+          +c-hair, image(path, width: w)),                               
+       93 +  caption: cap,                                               
+       94 +  supplement: [Rys.],                                         
+       95 +)                                                             
+       96  
+       33 -#align(center)[                                               
+       34 -  #text(size: 14pt, weight: "bold")[Karta eksploracji danych (
+          -M1): RentFriends] \                                           
+       35 -  #text(size: 9pt)[Analiza Mediów Cyfrowych · zespół: #tbc · w
+          -ersja robocza do review, 2026-10-20]                          
+       97 +// Title: eyebrow with a purple dot, two-line headline, payoff
+          + line in the brand gradient                                   
+       98 +#block(below: 0.9em)[                                         
+       99 +  #text(size: 9pt, weight: "semibold", fill: c-purple-ink)[#bo
+          +x(baseline: -0.15em, circle(radius: 3pt, fill: c-purple)) #h(0
+          +.3em) Analiza Mediów Cyfrowych · kamień milowy M1]            
+      100 +  #v(0.2em)                                                   
+      101 +  #set par(leading: 0.3em)                                    
+      102 +  #text(size: 20pt, weight: 800, tracking: -0.025em, fill: c-b
+          +lack)[Karta eksploracji danych] \                             
+      103 +  #text(size: 20pt, weight: 800, tracking: -0.025em, fill: bra
+          +nd-gradient)[Co przewiduje prawy swipe w RentFriends?]        
+      104 +  #v(0.15em)                                                  
+      105 +  #text(size: 9pt, weight: "medium")[Zespół: #tbc · wersja rob
+          +ocza do review, 2026-10-20]                                   
+      106  ]
+      107  
+       38 -#block(fill: luma(240), inset: 6pt, radius: 2pt, width: 100%, 
+          -text(size: 8.5pt)[                                            
+      108 +#block(fill: c-tint, inset: 8pt, radius: 10pt, width: 100%, te
+          +xt(size: 8pt)[                                                
+      109    *Podstawa liczb.* Wszystkie liczby w karcie pochodzą z zapis
+           anych wyników notebooków (`EDA`, `users_overview`, `profile_hi
+           story_overview`) i z dokumentu technicznego (`docs/rentfriends
+           _hipotezy_karta_eksploracji.md`). Są *sprzed odfiltrowania Hyd
+           erabad (45 kont)* i sprzed wersjonowania cech profilu (D7, D10
+           ): płeć, wiek i miasto pochodzą z bieżącej tabeli `users`. Lic
+           zności po filtrze: #recalc[po filtrze Hyderabad]. Oznaczenia: 
+           #tbc = założenie lub brak w artefaktach.
+      110  ])
+      111  
+
+● Bash(cd /home/dominik/projects/wust/sem2/umc && grep -n "recalc\[\]"
+      reports/m1/karta-m1.typ; uvx --from typst python -c "
+      import typst…)
+  ⎿  147:*Jednostka analizy:* swipe kierunkowy A→B na profil, a dla matcha
+     para {A, B}. Ten sam użytkownik występuje w wielu parach, więc stosuje
+     my foldy i bootstrap po użytkownikach. *Próba główna* (D6: bez progu a
+     … +12 lines (ctrl+o to expand)
+  ⎿  5 files changed (binary, mode only or too large to show)
+
+  Read 4 files (ctrl+o to expand)
+
+● Zauważyłem trzy usterki: zbyt wąskie odstępy między słowami, znaczniki-pigułki
+  rozpychające interlinię oraz przelewanie się karty na 4. stronę z resztką 5
+  linii — teraz to poprawię.
+
+● Bash(f=reports/m1/karta-m1.typ && python3 - "$f" <<'EOF'
+      import sys…)
+  ⎿  pages: 3
+  ⎿  Updated reports/m1/karta-m1.typ (+8 -8)
+      21  #set document(title: "Karta eksploracji danych (M1): RentFriend
+          s")
+      22  #set page(
+      23    paper: "a4",
+      24 -  margin: (x: 1.6cm, top: 1.5cm, bottom: 1.6cm),               
+      24 +  margin: (x: 1.45cm, top: 1.3cm, bottom: 1.5cm),              
+      25    fill: c-bg,
+      26    // Soft purple glow, top-left of the first page only
+      27    background: context if here().page() == 1 {
+     ...
+      41      )
+      42    },
+      43  )
+      44 -#set text(font: ("Plus Jakarta Sans", "DejaVu Sans"), lang: "pl
+         -", size: 9pt, fill: c-gray)                                    
+      44 +#set text(font: ("Plus Jakarta Sans", "DejaVu Sans"), lang: "pl
+         +", size: 8.7pt, fill: c-gray, spacing: 135%)                   
+      45  #show raw: set text(font: "DejaVu Sans Mono", size: 0.92em, fil
+          l: c-black)
+      46  #show strong: set text(fill: c-black)
+      47  #set strong(delta: 300)
+      48 -#set par(justify: true, leading: 0.55em, spacing: 0.8em)       
+      48 +#set par(justify: true, leading: 0.5em, spacing: 0.7em)        
+      49  #set heading(numbering: "1.")
+      50  #show heading: set text(fill: c-black, weight: 800, tracking: -
+          0.02em)
+      51  #show heading.where(level: 1): set text(size: 12pt)
+      52  #show heading: set block(above: 1.1em, below: 0.55em)
+      53 -#show heading.where(level: 1): it => block(above: 1.1em, below:
+         - 0.55em)[                                                      
+      53 +#show heading.where(level: 1): it => block(above: 0.95em, below
+         +: 0.5em)[                                                      
+      54    #text(fill: c-purple-ink)[#counter(heading).display(it.number
+          ing)]#h(0.4em)#it.body
+      55  ]
+      56 -#set list(spacing: 0.5em, marker: text(fill: c-purple)[●], body
+         --indent: 0.5em)                                                
+      56 +#set list(spacing: 0.42em, marker: text(fill: c-purple)[●], bod
+         +y-indent: 0.5em)                                               
+      57  #set footnote.entry(separator: line(length: 30%, stroke: 0.5pt 
+          + c-hair))
+      58  #show footnote.entry: set text(size: 7.5pt)
+      59  
+     ...
+      69  #show table: it => block(radius: 8pt, clip: true, stroke: 0.5pt
+           + c-hair, it)
+      70  
+      71  #set figure(gap: 0.45em)
+      72 -#show figure: set block(above: 0.9em, below: 0.9em)            
+      72 +#show figure: set block(above: 0.7em, below: 0.7em)            
+      73  #show figure.caption: set text(size: 7.5pt)
+      74  #show figure.caption: set align(left)
+      75  #show figure.caption: set par(justify: true)
+     ...
+      79  #let mark(body) = box(
+     … 9 more lines (ctrl+o to expand)
+  ⎿  … 4 more files changed
+
+  Read 3 files (ctrl+o to expand)
+
+● Teraz karta mieści się na 3 stronach, a wszystkie trzy usterki są poprawione.
+  Buduję końcowy PDF i zapisuję skąd pochodzi font.
+
+● Bash(rm -r reports/m1/.preview && uvx --from typst python -c "
+      import typst…)
+  ⎿  name                                 type              encoding
+       emb sub uni object ID
+     ------------------------------------ ----------------- ---------------
+     … +15 lines (ctrl+o to expand)
+  ⎿  4 files changed (binary, mode only or too large to show)
+
+● Update(docs/RENTFRIENDS.md)
+  ⎿  Added 1 line
+      150  | 2026-10-12 | https://www.otto-schmidt.de/... (BGH I ZR 224/1
+           2) | Orzeczenie dot. screen scrapingu, kontekst niemiecki |
+      151  | 2026-10-12 | https://antyweb.pl/jak-znalezc-wspolokatora-ide
+           al-flatmate | Opis Ideal Flatmate (artykuł z 2017 r.) |
+      152  | 2026-10-12 | https://erasmusplay.com (wyniki wyszukiwania) |
+            Strony SEO bez danych o regulaminie |
+      153 +| 2026-10-20 | https://github.com/tokotype/PlusJakartaSans (`f
+          +onts/ttf/*.ttf`, `OFL.txt`) | Font Plus Jakarta Sans (licencja
+          + SIL OFL 1.1) w `reports/assets/fonts/`, krój karty M1 zgodnie
+          + z `STYLEGUIDE.md` |                                          
+      154  
+      155  Uwaga: część wyników wyszukiwania to strony agregujące lub SEO
+           . Ich treść wymaga weryfikacji u źródła przed cytowaniem w rap
+           orcie.
+      156  
+
+● Update(reports/m1/uwagi-dla-recenzenta.md)
+  ⎿  Added 1 line
+      45  - Rys. 4: literówka w tytule („Heeatmapa”), angielskie podpisy 
+          osi (`sender_age`, `target_age`), pasma 27+ niepołączone (D9; p
+          odpis o tym informuje).
+      46  - Rys. 1: literówka na osi X („spiwe'ów”).
+      47  - Rys. 2: obejmuje też pola spoza bloku stylu życia (`budget`, 
+          `room_type`, `move_in_month_offset`); podpis o tym informuje.
+      48 +- Styl karty (tło, krój, nagłówki, tabele) jest według `STYLEGU
+         +IDE.md`, ale rysunki zostały w kolorach z notebooków (niebieski
+         + matplotlib, viridis), bo plan zabrania ich ponownego rysowania
+         +. Przy przegenerowaniu: seria główna `#A247E3`, porównanie `#23
+         +4CE0`, baseline `#595959`, krój Plus Jakarta Sans (`STYLEGUIDE.
+         +md`, sekcja 8); mapa cieplna R4 może zostać sekwencyjna (styleg
+         +uide nie definiuje skali ciągłej).                             
+      49  - Rysunki 1–4 są sprzed D7/D10 (bieżąca płeć z `users`, surowe 
+          tagi, z Hyderabad). Po przeliczeniu przez zespół (plan, sekcja 
+          7) podmienić pliki pod tymi samymi nazwami.
+
+● Karta ma teraz styl z STYLEGUIDE.md i nadal mieści się na 3 stronach.
+  Wszystkie strony obejrzałem po przebudowaniu PDF, a font jest w nim osadzony.
+
+  Co się zmieniło w karta-m1.typ:
+  - Tło i krój: ciepłe tło #F4F2EE, krój Plus Jakarta Sans. Tekst jest szary
+    (#595959), nagłówki i pogrubienia czarne.
+  - Tytuł: nad nim fioletowa kropka z nadtytułem „Analiza Mediów Cyfrowych ·
+    kamień milowy M1”. Tytuł ma dwie linie, a druga, „Co przewiduje prawy swipe
+    w RentFriends?”, jest w gradiencie marki. To jedyne użycie gradientu,
+    zgodnie z zasadą jednego akcentu. Na stronie 1 w lewym górnym rogu jest
+    delikatna fioletowa poświata.
+  - Nagłówki: pogrubione (800), numery w odcieniu purple-ink, punkty list jako
+    fioletowe kropki.
+  - Panel, tabele i rysunki: panel „Podstawa liczb” ma fioletowe tło i
+    zaokrąglenia. Tabele są białymi kartami z cienką ramką, nagłówkiem na
+    fioletowym tle i tylko poziomymi liniami. Wykresy leżą na białych,
+    zaokrąglonych kartach.
+  - Znaczniki DO POTWIERDZENIA / DO PRZELICZENIA: teraz są pigułkami i nie
+    rozpychają już interlinii.
+  - Stopka: napis „Analiza Mediów Cyfrowych · analiza studencka, nie publikacja
+    RentFriends” i numer strony, bez logo.
+  - Mieszczenie się na 3 stronach: zmniejszyłem marginesy i tekst do 8,7 pt oraz
+    poszerzyłem odstępy między słowami.
+
+  Inne pliki:
+  - Font: pobrałem 7 plików TTF i licencję OFL z repozytorium autora fontu
+    (tokotype) do reports/assets/fonts/. Źródło dopisałem w RENTFRIENDS.md w
+    §9.1.
+  - Polecenie budowania: komentarz na górze .typ ma nowe polecenie z --font-path
+    reports/assets/fonts. Bez tej opcji PDF zbuduje się w kroju zapasowym.
+  - Uwagi dla recenzenta: uwagi-dla-recenzenta.md ma nowy punkt o rysunkach,
+    opisany niżej.
+
+  Rysunki są poza styleguide. Zostały w kolorach z notebooków (niebieski i
+  viridis), bo plan zabrania ich ponownego rysowania. Paletę ze styleguide
+  trzeba nałożyć przy przegenerowaniu w notebookach.
+
+  Niczego nie commitowałem.
+
+✻ Cogitated for 2m 24s · done 2:20 AM
+
+❯ usuń gradient z tła                                                           
+
+● Update(reports/m1/karta-m1.typ)
+  ⎿  Removed 7 lines
+      23    paper: "a4",
+      24    margin: (x: 1.45cm, top: 1.3cm, bottom: 1.5cm),
+      25    fill: c-bg,
+      26 -  // Soft purple glow, top-left of the first page only         
+      27 -  background: context if here().page() == 1 {                  
+      28 -    place(top + left, dx: -6cm, dy: -6cm, circle(              
+      29 -      radius: 9cm,                                             
+      30 -      fill: gradient.radial(rgb(124, 58, 237).transparentize(85
+         -%), rgb(124, 58, 237).transparentize(100%)),                   
+      31 -    ))                                                         
+      32 -  },                                                           
+      26    footer: context {
+      27      set text(size: 7.5pt, fill: c-gray)
+      28      line(length: 100%, stroke: 0.5pt + c-hair)
+
+● Bash(uvx --from typst python -c "
+      import typst…)
+  ⎿  pages: 3
+  ⎿  1 file changed (binary, mode only or too large to show)
+
+● Usunąłem fioletową poświatę z tła pierwszej strony. Tło jest teraz jednolite
+  #F4F2EE. Przebudowany karta-m1.pdf nadal ma 3 strony. Gradient w drugiej linii
+  tytułu zostawiłem; usunę go, jeśli też ma zniknąć.
+
+✻ Sautéed for 10s · done 2:22 AM
+
+❯ zwiększ odstęp między liniami i akapitami. Jeśli coś da się rozbić na         
+  bardziej czytelne paragrafy (np. punkty) - rozbij to, zamiast trzymać w       
+  ciągłym tekście. Przeredaguj teskt żeby był krótszy.                          
+
+  Read 1 file (ctrl+o to expand)
+
+● Przepisuję treść karty: większe odstępy, bloki tekstu zamienione na punkty,
+  krótsze sformułowania. Liczby i zastrzeżenia zostają bez zmian.
+
+● Bash(head -100 reports/m1/karta-m1.typ > reports/m1/.head.typ && python3 -
+      <<'EOF'
+      p='reports/m1/.head.typ'; s=open(p).read()…)
+  ⎿    #text(size: 9pt, weight: "medium")[Zespół: #tbc · wersja robocza do
+     review, 2026-10-20]
+     ]
+  ⎿  Created reports/m1/.head.typ (+101 -0)
+        1 +// Karta eksploracji danych (M1), RentFriends.                
+        2 +// Build (from the repo root; fonts are bundled in reports/ass
+          +ets/fonts):                                                   
+        3 +//   typst compile --font-path reports/assets/fonts reports/m1
+          +/karta-m1.typ                                                 
+        4 +//   or: uvx --from typst python -c "import typst; typst.compi
+          +le('reports/m1/karta-m1.typ', output='reports/m1/karta-m1.pdf'
+          +, font_paths=['reports/assets/fonts'])"                       
+        5 +// Numbers come only from saved notebook outputs and docs/rent
+          +friends_hipotezy_karta_eksploracji.md                         
+        6 +// (the "technical document"). Reviewer notes: reports/m1/uwag
+          +i-dla-recenzenta.md.                                          
+        7 +// Visual style: STYLEGUIDE.md (one-pager rules, section 8). F
+          +igures are kept as rendered in the notebooks.                 
+        8 +                                                              
+        9 +// Brand tokens (STYLEGUIDE.md, section 2)                    
+       10 +#let c-black = rgb("#0F0F0F")                                 
+       11 +#let c-bg = rgb("#F4F2EE")                                    
+       12 +#let c-gray = rgb("#595959")                                  
+       13 +#let c-blue = rgb("#234CE0")                                  
+       14 +#let c-purple = rgb("#A247E3")                                
+       15 +#let c-purple-ink = rgb("#8B34C4")                            
+       16 +#let c-pink = rgb("#E95BD2")                                  
+       17 +#let c-tint = c-purple.transparentize(88%)                    
+       18 +#let c-hair = c-gray.transparentize(80%)                      
+       19 +#let brand-gradient = gradient.linear(c-blue, c-purple, c-pink
+          +)                                                             
+       20 +                                                              
+       21 +#set document(title: "Karta eksploracji danych (M1): RentFrien
+          +ds")                                                          
+       22 +#set page(                                                    
+       23 +  paper: "a4",                                                
+       24 +  margin: (x: 1.45cm, top: 1.3cm, bottom: 1.5cm),             
+       25 +  fill: c-bg,                                                 
+       26 +  footer: context {                                           
+       27 +    set text(size: 7.5pt, fill: c-gray)                       
+       28 +    line(length: 100%, stroke: 0.5pt + c-hair)                
+       29 +    v(-0.4em)                                                 
+       30 +    grid(                                                     
+       31 +      columns: (1fr, auto),                                   
+       32 +      [Analiza Mediów Cyfrowych · analiza studencka, nie publi
+          +kacja RentFriends],                                           
+       33 +      counter(page).display("1 / 1", both: true),             
+       34 +    )                                                         
+       35 +  },                                                          
+       36 +)                                                             
+       37 +#set text(font: ("Plus Jakarta Sans", "DejaVu Sans"), lang: "p
+          +l", size: 8.7pt, fill: c-gray, spacing: 135%)                 
+       38 +#show raw: set text(font: "DejaVu Sans Mono", size: 0.92em, fi
+          +ll: c-black)                                                  
+       39 +#show strong: set text(fill: c-black)                         
+       40 +#set strong(delta: 300)                                       
+     … 61 more lines (ctrl+o to expand)
+
+● Write(reports/m1/.body.typ)
+  ⎿  Wrote 190 lines to reports/m1/.body.typ
+      1 
+        size: 8pt)[
+        rview`, `profile_history_overview`) i dokument techniczny (`docs/
+        rentfriends_hipotezy_karta_eksploracji.md`). Liczby są *sprzed fi
+        ), więc płeć, wiek i miasto pochodzą z bieżącej tabeli `users`. #
+      4   #tbc oznacza założenie lub brak danych w artefaktach.
+      6 
+      7 = Pytanie badawcze i hipotezy
+      9 *Wspólnego najmu nie obserwujemy.* Dane kończą się na rozpoczęciu
+        w aplikacji.
+     … +314 lines (ctrl+o to expand)
+
+● Bash(cd /home/dominik/projects/wust/sem2/umc/reports/m1 && python3 - <<'EOF'
+      b=open('.body.typ').read()…)
+  ⎿  pages: 4
+  ⎿  Updated reports/m1/karta-m1.typ (+131 -54)
+      38  #show raw: set text(font: "DejaVu Sans Mono", size: 0.92em, fil
+          l: c-black)
+      39  #show strong: set text(fill: c-black)
+      40  #set strong(delta: 300)
+      41 -#set par(justify: true, leading: 0.5em, spacing: 0.7em)        
+      41 +#set par(justify: true, leading: 0.72em, spacing: 1.1em)       
+      42  #set heading(numbering: "1.")
+      43  #show heading: set text(fill: c-black, weight: 800, tracking: -
+          0.02em)
+      44  #show heading.where(level: 1): set text(size: 12pt)
+      45  #show heading: set block(above: 1.1em, below: 0.55em)
+      46 -#show heading.where(level: 1): it => block(above: 0.95em, below
+         -: 0.5em)[                                                      
+      46 +#show heading.where(level: 1): it => block(above: 1.4em, below:
+         + 0.75em)[                                                      
+      47    #text(fill: c-purple-ink)[#counter(heading).display(it.number
+          ing)]#h(0.4em)#it.body
+      48  ]
+      49 -#set list(spacing: 0.42em, marker: text(fill: c-purple)[●], bod
+         -y-indent: 0.5em)                                               
+      49 +#set list(spacing: 0.7em, marker: text(fill: c-purple, size: 0.
+         +8em, baseline: -0.1em)[●], body-indent: 0.5em)                 
+      50 +#show list: set block(above: 0.7em, below: 1.1em)              
+      51  #set footnote.entry(separator: line(length: 30%, stroke: 0.5pt 
+          + c-hair))
+      52  #show footnote.entry: set text(size: 7.5pt)
+      53  
+      54  // Tables: white card with a hairline frame, purple-tinted head
+          er, horizontal hairlines only
+      55  #set table(
+      55 -  inset: (x: 5pt, y: 3pt),                                     
+      56 +  inset: (x: 5pt, y: 4pt),                                     
+      57    stroke: (x, y) => (top: if y > 0 { 0.5pt + c-hair }),
+      58    fill: (x, y) => if y == 0 { c-tint } else { white },
+      59  )
+     ...
+      63  #show table: it => block(radius: 8pt, clip: true, stroke: 0.5pt
+           + c-hair, it)
+      64  
+      65  #set figure(gap: 0.45em)
+      65 -#show figure: set block(above: 0.7em, below: 0.7em)            
+      66 +#show figure: set block(above: 1em, below: 1em)                
+      67  #show figure.caption: set text(size: 7.5pt)
+      68  #show figure.caption: set align(left)
+      69  #show figure.caption: set par(justify: true)
+     ...
+       99    #text(size: 9pt, weight: "medium")[Zespół: #tbc · wersja rob
+           ocza do review, 2026-10-20]
+      100  ]
+      101  
+      101 -#block(fill: c-tint, inset: 8pt, radius: 10pt, width: 100%, te
+          -xt(size: 8pt)[                                                
+      102 -  *Podstawa liczb.* Wszystkie liczby w karcie pochodzą z zapis
+          -anych wyników notebooków (`EDA`, `users_overview`, `profile_hi
+          -story_overview`) i z dokumentu technicznego (`docs/rentfriends
+          -_hipotezy_karta_eksploracji.md`). Są *sprzed odfiltrowania Hyd
+          -erabad (45 kont)* i sprzed wersjonowania cech profilu (D7, D10
+          -): płeć, wiek i miasto pochodzą z bieżącej tabeli `users`. Lic
+          -zności po filtrze: #recalc[po filtrze Hyderabad]. Oznaczenia: 
+          -#tbc = założenie lub brak w artefaktach.                      
+      102 +                                                              
+     … 229 more lines (ctrl+o to expand)
+  ⎿  Deleted reports/m1/.head.typ (+0 -101)
+        1 -// Karta eksploracji danych (M1), RentFriends.                
+        2 -// Build (from the repo root; fonts are bundled in reports/ass
+          -ets/fonts):                                                   
+        3 -//   typst compile --font-path reports/assets/fonts reports/m1
+          -/karta-m1.typ                                                 
+        4 -//   or: uvx --from typst python -c "import typst; typst.compi
+          -le('reports/m1/karta-m1.typ', output='reports/m1/karta-m1.pdf'
+          -, font_paths=['reports/assets/fonts'])"                       
+        5 -// Numbers come only from saved notebook outputs and docs/rent
+          -friends_hipotezy_karta_eksploracji.md                         
+        6 -// (the "technical document"). Reviewer notes: reports/m1/uwag
+          -i-dla-recenzenta.md.                                          
+        7 -// Visual style: STYLEGUIDE.md (one-pager rules, section 8). F
+          -igures are kept as rendered in the notebooks.                 
+        8 -                                                              
+        9 -// Brand tokens (STYLEGUIDE.md, section 2)                    
+       10 -#let c-black = rgb("#0F0F0F")                                 
+       11 -#let c-bg = rgb("#F4F2EE")                                    
+       12 -#let c-gray = rgb("#595959")                                  
+       13 -#let c-blue = rgb("#234CE0")                                  
+       14 -#let c-purple = rgb("#A247E3")                                
+       15 -#let c-purple-ink = rgb("#8B34C4")                            
+       16 -#let c-pink = rgb("#E95BD2")                                  
+       17 -#let c-tint = c-purple.transparentize(88%)                    
+       18 -#let c-hair = c-gray.transparentize(80%)                      
+       19 -#let brand-gradient = gradient.linear(c-blue, c-purple, c-pink
+          -)                                                             
+       20 -                                                              
+       21 -#set document(title: "Karta eksploracji danych (M1): RentFrien
+          -ds")                                                          
+       22 -#set page(                                                    
+       23 -  paper: "a4",                                                
+       24 -  margin: (x: 1.45cm, top: 1.3cm, bottom: 1.5cm),             
+       25 -  fill: c-bg,                                                 
+       26 -  footer: context {                                           
+       27 -    set text(size: 7.5pt, fill: c-gray)                       
+       28 -    line(length: 100%, stroke: 0.5pt + c-hair)                
+       29 -    v(-0.4em)                                                 
+       30 -    grid(                                                     
+       31 -      columns: (1fr, auto),                                   
+       32 -      [Analiza Mediów Cyfrowych · analiza studencka, nie publi
+          -kacja RentFriends],                                           
+       33 -      counter(page).display("1 / 1", both: true),             
+       34 -    )                                                         
+       35 -  },                                                          
+       36 -)                                                             
+       37 -#set text(font: ("Plus Jakarta Sans", "DejaVu Sans"), lang: "p
+          -l", size: 8.7pt, fill: c-gray, spacing: 135%)                 
+       38 -#show raw: set text(font: "DejaVu Sans Mono", size: 0.92em, fi
+          -ll: c-black)                                                  
+       39 -#show strong: set text(fill: c-black)                         
+       40 -#set strong(delta: 300)                                       
+     … 61 more lines (ctrl+o to expand)
+  ⎿  Deleted reports/m1/.body.typ (+0 -190)
+        1 -                                                              
+        2 -#block(fill: c-tint, inset: 9pt, radius: 10pt, width: 100%, te
+          -xt(size: 8pt)[                                                
+        3 -  *Podstawa liczb:* zapisane wyniki notebooków (`EDA`, `users_
+          -overview`, `profile_history_overview`) i dokument techniczny (
+          -`docs/rentfriends_hipotezy_karta_eksploracji.md`). Liczby są *
+          -sprzed filtra Hyderabad (45 kont)* i sprzed wersjonowania prof
+          -ili (D7, D10), więc płeć, wiek i miasto pochodzą z bieżącej ta
+          -beli `users`. #recalc[po filtrze Hyderabad] \                 
+        4 -  #tbc oznacza założenie lub brak danych w artefaktach.       
+        5 -])                                                            
+        6 -                                                              
+        7 -= Pytanie badawcze i hipotezy                                 
+        8 -                                                              
+        9 -*Wspólnego najmu nie obserwujemy.* Dane kończą się na rozpoczę
+          -ciu rozmowy, a match nie jest decyzją o najmie. Badamy więc de
+          -cyzje w aplikacji.                                            
+       10 -                                                              
+       11 -*Pytanie:* które cechy pary (A, B) są związane z prawym swipe'
+          -em A→B? W szczególności: czy zgodność stylu życia przewiduje g
+          -o silniej niż zgodność wieku i zainteresowań?                 
+       12 -                                                              
+       13 -- *Zmienna główna:* `y_right`, czyli swipe kierunkowy A→B na p
+          -rofil.                                                        
+       14 -- *Zmienna drugorzędna:* match, tylko dla par z zapisanymi swi
+          -pe'ami obu stron.                                             
+       15 -- *Rozmowy:* tylko opisowo.                                   
+       16 -                                                              
+       17 -#table(                                                       
+       18 -  columns: (auto, 1fr, 1fr),                                  
+       19 -  table.header([*ID*], [*Hipoteza*], [*Co ją obali*]),        
+       20 -  [H1], [Zgodność stylu życia przewiduje `y_right` (i match) s
+          -ilniej niż zgodność wieku i zainteresowań.],                  
+       21 -  [Blok stylu życia nie daje większego przyrostu niż wiek i za
+          -interesowania w obu kolejnościach, CI różnicy obejmuje 0 albo 
+          -blok nie odróżnia się od tasowania.],                         
+       22 -  [H2], [Płeć i wiek są związane z `y_right`. Szacujemy wielko
+          -ść efektu: iloraz szans (ta sama vs różna płeć) według płci na
+          -dawcy, z CI.],                                                
+       23 -  [CI ilorazu szans obejmuje 1. Macierz z rys. 3 widzieliśmy p
+          -rzed sformułowaniem H2, więc ta część jest eksploracyjna.],   
+       24 -  [H3#super[dod.]], [Staranność bio odbiorcy (pusty/niepusty, 
+          -długość; H3a) przewiduje `y_right` ponad pola strukturalne i l
+          -iczbę tagów.],                                                
+       25 -  [CI efektu obejmuje 0 po kontroli kompletności profilu i pop
+          -ularności. H3b (treść bio) tylko przy wolnych zasobach #tbc.],
+       26 -)                                                             
+       27 -#text(size: 8pt)[Dawne ID (dokument techniczny, notebooki): H1
+          - = H1, H2 = H2, H3 = *H5*. H3 jest dodatkowa, bo zakres części
+          - NLP jest niepewny.#footnote[Odrzuciliśmy dwie hipotezy wymaga
+          -jące kolejności zdarzeń w ciągu dnia (dopasowanie dwustronne, 
+          -zgodność selektywności; dawne H3 i H4). Dane mają tylko `day`,
+          - a po filtrach zostaje 2308 par i 87 matchy.]]                
+       28 -                                                              
+       29 -= Źródła danych                                               
+       30 -                                                              
+       31 -Zanonimizowany eksport z RentFriends z losowymi identyfikatora
+          -mi `user_key`. Nie używamy innych platform ani scrapingu.     
+       32 -                                                              
+       33 -- *Właściciel, warunki użycia, data otrzymania:* #tbc (data st
+          -atement w przygotowaniu).                                     
+       34 -- *Spójność kluczy:* `user_key` łączy `users`, `swipes` i `mat
+          -ches`; 100% swipe'ów na ogłoszenia łączy się z `listings`; zdu
+          -plikowanych swipe'ów jest 0; match pokrywa się z wzajemnym pra
+          -wym swipe'em w 99,95%.                                        
+       35 -- *Czas:* tylko numer dnia `day` (swipe'y: dni 1–113), bez god
+          -zin.                                                          
+       36 -                                                              
+       37 -#table(                                                       
+       38 -  columns: (auto, 1fr, auto),                                 
+       39 -  table.header([*Tabela*], [*Zawartość*], [*Liczność*]),      
+       40 -  [`users`], [płeć (F/M/O), `age_band`, miasto, 7 pól stylu ży
+          -cia, tagi `interests`, bio], [2065 profili],                  
+     … 150 more lines (ctrl+o to expand)
+  ⎿  … 5 more files changed
+
+  Read 4 files (ctrl+o to expand)
+
+● Bash(rm -r reports/m1/.preview && sed -i 's/obecnie 3 strony A4 z
+      rysunkami\./obecnie 4 strony A4 z rysunkami (limit A1: ≤ 4)./'
+      reports/m1/uwagi-dla-recenzenta.md &…)
+  ⎿  25:- Długość karty (A1): obecnie 4 strony A4 z rysunkami (limit A1: ≤
+     4).
+     .
+     … +5 lines (ctrl+o to expand)
+  ⎿  Updated reports/m1/uwagi-dla-recenzenta.md (+1 -1)
+      22  - Miara zgodności agenta AI z człowiekiem (D19).
+      23  - Podział zadań na M2 i M3 (sekcja 7).
+      24  - Review zespołu przed oddaniem (A5, sekcja 8).
+      25 -- Długość karty (A1): obecnie 3 strony A4 z rysunkami.         
+      25 +- Długość karty (A1): obecnie 4 strony A4 z rysunkami (limit A1
+         +: ≤ 4).                                                        
+      26  
+      27  ## Pozycje `[DO PRZELICZENIA]`
+      28  
+  ⎿  … 4 more files changed
+
+● Przeredagowałem kartę i zwiększyłem odstępy. Ma teraz 4 strony, czyli tyle,
+  ile wynosi limit z założenia A1, i ostatnia strona jest w połowie pusta.
+  Wszystkie strony obejrzałem po przebudowaniu PDF.
+
+  Odstępy:
+  - Interlinia jest większa: 0,72 em zamiast 0,5 em.
+  - Odstęp między akapitami wzrósł z 0,7 em do 1,1 em.
+  - Większe są też odstępy wokół nagłówków, list, rysunków i w komórkach tabel.
+
+  Podział na punkty:
+  - §1: zmienna główna, drugorzędna i rozmowy są wypunktowane. Teksty w tabeli
+    hipotez są krótsze.
+  - §2–3: źródło danych i zakres próby są w punktach: jednostka, próba główna,
+    wykluczenie, wrażliwość, jednorodność.
+  - §4: lejek jest małą tabelą, obok niej punkty o matchach, rozmowach i
+    decyzjach tego samego dnia. Pozostałe wyniki są pogrupowane pod podtytułami
+    z punktami: aktywność, styl życia i tagi, demografia, bio, wersje profilu.
+  - §5: podgrupy w punktach to reguła wersji profilu (trzy flagi), bloki
+    zmiennych, model i testy, instrument AI oraz numerowana lista pięciu analiz
+    wrażliwości.
+  - §7–8: wykonalność i ujawnienia są w punktach. Kolumna scenariuszy w tabeli
+    ma nagłówek „Jeśli…, to…”.
+
+  Skracanie:
+  - Usunąłem powtórzenia, m.in. zdanie o temacie kursu i część uzasadnień w
+    ograniczeniach.
+  - Liczby, zastrzeżenia i znaczniki zostały te same. Jedyna liczba, która
+    wypadła, to 578 swipe'ów bez pasma wieku. Pośrednio zostaje w podpisie rys.
+    4 („94 566 swipe'ów z age_band”).
+  - W podpisie rys. 3 wypadła liczba zmian płci prowadzących do O (65 ze 101).
+    Ta sama liczba jest w punkcie „Wersje profilu” w §4.
+  - Odwołania do rysunków znów numerują się automatycznie.
+
+  W uwagi-dla-recenzenta.md poprawiłem długość karty na 4 strony.
+
+  Wolne pół strony na końcu można wykorzystać na większe rysunki, które teraz są
+  dość małe. Zrobię to, jeśli chcesz.
+✻ Cooked for 2m 10s · done 2:28 AM
