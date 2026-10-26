@@ -1,0 +1,69 @@
+canonical_tag,proposed_category_claude,proposed_category_gemini,proposed_linked_field,note
+active_sport,hobby,hobby,none,
+always_headphones,lifestyle,lifestyle,noise_level,noise-management habit
+animals,lifestyle,hobby,none,"pets; merges likes_pets and 'Lubię zwierzaki' (D12: pets)"
+backpacking,hobby,hobby,none,
+board_games,hobby,hobby,none,
+bussiness,unclear,unclear,none,"interest or occupation; slug typo kept from mapping"
+camping,hobby,hobby,none,
+cat_person,lifestyle,lifestyle,none,"pets (D12)"
+chill_at_home,lifestyle,lifestyle,lifestyle,time spent at home
+city_breaks,hobby,hobby,none,
+coffee,hobby,hobby,none,
+concerts,hobby,hobby,none,
+cooking,hobby,hobby,none,"card example; kitchen use is a possible borderline"
+cycling,hobby,hobby,none,
+diy,hobby,hobby,none,
+dog_person,lifestyle,lifestyle,none,"pets (D12)"
+drawing_painting,hobby,hobby,none,
+early_bird,lifestyle,lifestyle,daily_routine,
+extrovert,lifestyle,lifestyle,none,"D12"
+foodie,hobby,lifestyle,none,
+gaming,hobby,hobby,none,"borderline: noise, hours at home"
+going_out_friends,lifestyle,hobby,none,social energy; overlaps with often_out
+gym,hobby,hobby,none,
+healthy_food,unclear,lifestyle,none,"diet habit or interest"
+hiking,hobby,hobby,none,
+instruments,hobby,hobby,none,"borderline: noise when practising"
+introvert,lifestyle,lifestyle,none,"D12"
+likes_calm,lifestyle,lifestyle,noise_level,
+likes_parties,lifestyle,lifestyle,noise_level,"hosting parties affects the flat"
+long_talks,unclear,lifestyle,none,"social energy or hobby"
+loves_cleanliness,lifestyle,lifestyle,cleanliness,
+marketing_social,unclear,unclear,none,"occupation or interest"
+mostly_home,lifestyle,lifestyle,lifestyle,time spent at home
+movies_cinema,hobby,hobby,none,"card example"
+music_nonstop,lifestyle,lifestyle,noise_level,"habit affecting noise"
+netflix_relax,hobby,lifestyle,none,
+night_owl,lifestyle,lifestyle,daily_routine,
+no_pets,lifestyle,lifestyle,none,"pets (D12)"
+non_smoker,lifestyle,lifestyle,smoking,
+often_out,lifestyle,lifestyle,lifestyle,"duplicate of often_outside, see notes"
+often_outside,lifestyle,lifestyle,lifestyle,"duplicate of often_out, see notes"
+peace_and_quite,lifestyle,lifestyle,noise_level,"slug typo kept from mapping"
+photography,hobby,hobby,none,
+plants,hobby,hobby,none,"borderline: plants in shared space"
+psychology,hobby,unclear,none,"interest or field of study"
+puzzles,hobby,hobby,none,
+quiet_evenings,lifestyle,lifestyle,noise_level,"card: quiet_evenings <-> noise_level"
+reading,hobby,hobby,none,
+running,hobby,hobby,none,
+self_development,hobby,unclear,none,
+series,hobby,hobby,none,
+silence_after_22,lifestyle,lifestyle,noise_level,"card: quiet_after_22"
+smoker,lifestyle,lifestyle,smoking,"merges smoker_outside and vapes; loses the outside/e-cig distinction"
+street_food,hobby,hobby,none,
+student,status,status,none,"D12"
+swimming,hobby,hobby,none,
+team_sports,hobby,hobby,none,
+tech_it,unclear,unclear,none,"occupation or interest"
+theatre,hobby,hobby,none,
+travel,hobby,hobby,none,
+values_privacy,lifestyle,lifestyle,none,"living preference"
+vanlife,hobby,lifestyle,none,
+video_making,hobby,hobby,none,
+wine_tastings,hobby,hobby,none,"borderline: alcohol"
+winter_sports,hobby,hobby,none,
+works_remote,lifestyle,unclear,work_from_home,
+writing,hobby,hobby,none,
+yoga,hobby,hobby,none,
