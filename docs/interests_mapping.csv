@@ -5,12 +5,12 @@ always_headphones,always_headphones
 animals,animals
 backpacking,backpacking
 🏃 Bieganie,running
-📈 Biznes / startupy,bussiness
+📈 Biznes / startupy,business
 board_games,board_games
 🎲 Board games,board_games
 board_games_with_friends,board_games
-business_startups,bussiness
-📈 Business / startups,bussiness
+business_startups,business
+📈 Business / startups,business
 camping,camping
 🏕️ Camping,camping
 cat_person,cat_person
@@ -26,7 +26,7 @@ cooking,cooking
 🍳 Cooking,cooking
 cycling,cycling
 🚴 Cycling,cycling
-🚶 Często poza domem,often_outside
+🚶 Często poza domem,often_out
 📚 Czytanie,reading
 diy,diy
 dog_person,dog_person
@@ -72,7 +72,7 @@ night_owl,night_owl
 non_smoker,non_smoker
 no_pets,no_pets
 often_out,often_out
-🚬 Palę, ale tylko na zewnątrz,smoker
+"🚬 Palę, ale tylko na zewnątrz",smoker
 💨 Palę elektryki,smoker
 parties,likes_parties
 photography,photography
