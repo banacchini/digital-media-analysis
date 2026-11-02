@@ -21,7 +21,10 @@ Analiza hipotezy H3a (staranność bio odbiorcy a prawy swipe). Specyfikacja:
 uv sync
 # smoke test (10% nadawców, ok. 1 min; wyniki poza gitem)
 scripts/run_h3a.sh 1 0.1 reports/h3a_smoke reports/h3a_smoke/H3a-smoke.ipynb
-# poziom 1 na pełnych danych (w tle, log: reports/h3a/run.log)
+# pełny przebieg: poziom 1, potem poziom 2, odłączony od terminala (setsid + nohup);
+# koniec sesji/terminala go nie przerywa; na końcu run.log: "H3A DONE" albo "H3A FAILED"
+scripts/run_h3a_full.sh
+# albo poziomy osobno; poziom 1 na pełnych danych (w tle, log: reports/h3a/run.log)
 scripts/run_h3a.sh 1
 # poziom 2 (refity GLMM S1, S3, S4, S7 + lme4, jeśli jest R); fity z poziomu 1 idą z cache
 scripts/run_h3a.sh 2
