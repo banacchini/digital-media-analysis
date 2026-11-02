@@ -160,6 +160,7 @@ Uwaga: część wyników wyszukiwania to strony agregujące lub SEO. Ich treść
 - Wszystkie sugestie metodologiczne, cytowania literatury i ustalenia prawne wymagają weryfikacji przez zespół przed użyciem w raporcie.
 - Literatura podana przez asystenta nie została zweryfikowana w źródle.
 - Zgodnie z wymaganiami kursu udział AI należy ujawnić w raporcie.
+- 2026-11-02: analiza H3a przygotowana i uruchomiona z agentem Claude Code (Claude Opus 5.5); wyniki narzędzia w `reports/h3a/`, decyzje w `docs/h3a/decision-log.md`, wpis w `docs/ai-disclosure.md`. Źródła techniczne użyte przez agenta: lokalna dokumentacja (docstringi i kod) pakietów GPBoost 1.8.0 (zmiana API: `std_dev` wycofane na rzecz `get_coef(std_err=True)`, wymóg jawnego interceptu) i statsmodels 0.15 (`cov_cluster_2groups`); paleta wykresów Okabe-Ito sprawdzona walidatorem palet dla daltonistów. Bez źródeł internetowych.
 
 ### 9.3 Zmiany w ustaleniach (korekty)
 
