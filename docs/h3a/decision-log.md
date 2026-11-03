@@ -169,6 +169,21 @@ Wszystkie wpisy z 2026-11-02.
   (tylko agregaty) w `reports/h3a/cache/*.json` z odciskiem danych (hash), więc wznowienie nie
   powtarza fitów; wyniki smoke testów w `reports/h3a_smoke/` (poza gitem).
 
+## D-H3a-26 Pełny przebieg: M1 bez SE, fallback na M2
+- Stan: na pełnych danych optymalizacja GLMM zbiega (status 0 w 3 z 4 prób), ale GPBoost nie
+  liczy SE współczynników (numeryczny Hessian nie PD) w żadnej próbie; to samo w M5 (M1) i w
+  refitach S1, S3, S4, S7 oraz w 8 z 20 replikacji symulacji. Punktowo β_bio = 0,130 (M2: 0,122).
+- Decyzja: zgodnie z §6 promptu M2 przejmuje rolę modelu głównego, bez twierdzenia o kontroli
+  popularności; etykieta końcowa ma adnotację „fallback”. Nic nie zmieniono po zobaczeniu wyników.
+- Do decyzji Dominika: inny sposób uzyskania SE dla GLMM (np. `lme4::glmer` w R albo parametryczny
+  bootstrap) wymaga jawnej zmiany planu.
+- Źródło: prompt §6.
+
+## D-H3a-27 S7 w M3 bez oszacowania
+- Stan: logit z FE nadawcy w modelu rozszerzonym nie zbiega (wartości nieskończone po 200
+  iteracjach), prawdopodobnie przez quasi-separację wskaźników pól stylu życia w obrębie nadawców.
+  S7 raportowane tylko z M2 (M3 nie wchodzi do reguły werdyktu).
+
 ## Wybór estymatora do obrony ustnej
 
 Model główny to GLMM ze skrzyżowanymi losowymi wyrazami wolnymi nadawcy i odbiorcy, bo ten sam
