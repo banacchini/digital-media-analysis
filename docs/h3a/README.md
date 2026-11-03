@@ -45,3 +45,26 @@ scripts/run_h3a.sh 2
 
 Do repo trafiają tylko agregaty; komórki z < 5 użytkownikami są wytłumione.
 Cache jest unieważniany automatycznie, gdy zmienią się dane wejściowe modelu (hash).
+
+## Poziom 3 (diagnostyka post hoc, SE dla GLMM, figury)
+
+Specyfikacja: `docs/prompts/h3a-level3-prompt.md`. Kod: `level3.py` (A1-A5, B1-B3, C4/C5),
+`story_figs.py` (figury A, B, C), `theme.py`, `export3.py` (`h3a_numbers.json`, podpisy,
+`summary_level3.md`), `stats3.py` (E-value, LRT, profil, prawdopodobieństwa standaryzowane).
+
+```bash
+scripts/run_h3a.sh 3                      # wszystko (fity z poziomów 1-2 z cache), ok. 1-2 min
+scripts/run_h3a.sh 3 only=figures         # tylko A5 i figury A-C + liczby/podpisy
+scripts/run_h3a.sh 3 only=diagnostics     # A1-A5 + figury C4, C5
+scripts/run_h3a.sh 3 only=se              # B1 (LRT, profil), B2 (lme4), raport szczebli
+scripts/run_h3a.sh 3 only=lme4            # tylko lme4 (wymaga R i lme4; ok. 1 min)
+scripts/run_h3a.sh 3 bootstrap=1          # B3: bootstrap po nadawcach (B = 200, noc)
+```
+
+Parametry notebooka poziomu 3: `RUN_LEVEL = 3`, `ONLY` (`diagnostics` | `se` | `figures` | `lme4` |
+pusty), `RUN_BOOTSTRAP`. Nie uruchamiaj dwóch przebiegów naraz: oba zapisują `results.json`.
+
+Wyniki: `reports/h3a/summary_level3.md`, `reports/h3a/tables/h3a_a*.csv|md`, `h3a_b_ladder`,
+figury C4/C5 w `figures/h3a_09_*`, `h3a_10_*`, a dla składu slajdów `reports/h3a/export/`
+(`h3a_fig_{A,B,C}.svg|png`, `h3a_numbers.json`, `h3a_captions.md`, `theme.json`; motyw do
+użycia przez H1/H2: `from rentfriends.h3a.theme import apply_theme`).

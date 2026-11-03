@@ -529,10 +529,6 @@ def b1_lrt(ctx: A.Ctx, grid_half_width: float = 0.25, grid_points: int = 11) -> 
 def b2_lme4(ctx: A.Ctx) -> dict:
     """lme4 crossed GLMM with Wald CI (and LRT) for has_bio; classify + M1 = M2 check."""
     res = A.lme4_crosscheck(ctx, with_lrt=True)
-    if res.get("status") == "ok":
-        b, se = M.coef_of(res, "has_bio")
-        res["has_bio_wald"] = C.wald_ci(b, se)
-        res["label"] = C.classify(b, se, ctx.p.margin)
     ctx.res["lme4"] = res
     A.persist(ctx)
     return res

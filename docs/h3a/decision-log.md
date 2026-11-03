@@ -184,13 +184,70 @@ Wszystkie wpisy z 2026-11-02.
   iteracjach), prawdopodobnie przez quasi-separację wskaźników pól stylu życia w obrębie nadawców.
   S7 raportowane tylko z M2 (M3 nie wchodzi do reguły werdyktu).
 
-## Wybór estymatora do obrony ustnej
+## D-H3a-28 Poziom 3: zakres i status analiz [default agenta]
+- Data: 2026-11-03. Zakres: prompt `docs/prompts/h3a-level3-prompt.md` (A1-A5, B1-B3, C, D).
+- Decyzja: reguła werdyktu, margines 0,10 i lista S1-S8 bez zmian; etykieta z poziomu 2 nie
+  jest nadpisywana. Cały blok A to **diagnostyka post hoc, zainicjowana wynikiem S2a** (poza
+  interakcją po płci, zaplanowaną jako S8), bez poprawek na wielokrotność i bez twierdzeń
+  potwierdzających. Nie stratyfikowano po żadnej zmiennej liczonej z `y_right`.
 
-Model główny to GLMM ze skrzyżowanymi losowymi wyrazami wolnymi nadawcy i odbiorcy, bo ten sam
-użytkownik występuje w wielu parach w obu rolach: losowy wyraz nadawcy wchłania jego „hojność”,
-a odbiorcy jego popularność (w tym niezmierzone cechy, np. zdjęcia), więc `has_bio` jest
-porównywane przy tej samej ogólnej atrakcyjności profilu, o ile jest od niej niezależne. Pooled
-logit z błędami klastrowanymi dwukierunkowo nie modeluje popularności, ale daje odporne SE bez
-założeń o rozkładzie efektów losowych i jest drugą nogą reguły zgodności; logit z FE nadawcy
-usuwa hojność nadawcy bez założenia niezależności od cech. Przy braku zbieżności GLMM wynik
-główny przejmuje M2 z adnotacją, że nie kontroluje popularności odbiorcy.
+## D-H3a-29 Kosze „wieku” konta i profilu [default agenta]
+- Kosze ustalone z góry: 0, 1-7, ≥ 8 dni (dzień swipe'a minus dzień pierwszej wersji profilu
+  użytkownika). 467 swipe'ów datowanych **przed** pierwszą wersją nadawcy (wiek ujemny) wchodzi do
+  kosza 0 (to swipe'y `first_version`). 758 swipe'ów (9 użytkowników bez historii) wyłączone z A2.
+- Uwaga: dla nadawcy kosz 0 jest tożsamy z `asof_source = first_version` (42 382 swipe'y), więc
+  „pochodzenie cech” i „dzień konta nadawcy” nie są rozróżnialne po stronie nadawcy.
+
+## D-H3a-30 A1: β z prób GPBoost bliżej M2 niż M3 (anomalia wobec oczekiwania)
+- Wynik: wszystkie 4 konfiguracje dają β_has_bio = 0,129-0,133 (3 z kodem zbieżności 0, jedna z
+  kodem 2: 0,130), wariancja nadawcy 7,6-7,8, odbiorcy 0,56. M2: 0,122, M3: 0,173. Oczekiwanie z
+  promptu (β bliżej M3 przy wariancji nadawcy ≈ 7,8) **nie potwierdziło się**; punkt 0,130 z poziomu 2
+  jest reprezentatywny. W żadnej próbie GPBoost nie podał SE.
+
+## D-H3a-31 A2: diagnoza S2a (post hoc)
+- Wynik: OR (M2) w `prior_version` 1,06 (0,97-1,17), w dopełnieniu 1,21 (1,10-1,34); interakcja
+  has_bio × prior: p = 0,081 (M2), 0,069 (M3). Wiek konta nadawcy: kosz 0: 1,22 / 1-7: 1,06 / ≥ 8: 1,10
+  (M2), interakcja p = 0,086 (M2), 0,121 (M3). Wiek profilu odbiorcy: brak sygnału (p = 0,34 / 0,93).
+  Wniosek: słabszy efekt w S2a jest zgodny z koncentracją efektu w swipe'ach z dnia założenia konta
+  nadawcy, ale żaden test interakcji nie przekracza progu 0,05; M3 zachowuje OR > 1 w obu koszach
+  z oszacowaniem. Nie zmienia to etykiety; adnotacja: „wrażliwy na skład próby wg dnia konta”.
+- M3 bez oszacowania (status `failed`) dla kosza nadawcy ≥ 8 oraz koszy 0 i 1-7 odbiorcy
+  (prawdopodobnie quasi-separacja po ograniczeniu próby).
+
+## D-H3a-32 B1: LRT i profil wiarygodności w GPBoost [default agenta]
+- `GPModel.fit(offset=...)` jest obsługiwany (GPBoost 1.8), więc β_bio wprowadzono jako offset i
+  policzono profil na siatce 11 punktów (±0,25 wokół oszacowania), CI z progu χ² (spline sześcienny).
+- Do reguły dodano `classify_interval` (ta sama logika jak `classify`, dla przedziałów innych niż
+  Wald). Wynik: LRT χ² = 6,83, p = 0,0089; CI 95% dla β: 0,033-0,227 (OR 1,03-1,25); etykieta
+  „potwierdzony”. Log-likelihood to przybliżenie Laplace'a.
+
+## D-H3a-33 B2: `lme4` przez CSV w katalogu tymczasowym; kontrola M1 = M2
+- Zmieniono `analysis.lme4_crosscheck` (bez `arrow`; CSV w `tempfile` z uprawnieniami 0700,
+  kody całkowite, usuwany po zakończeniu; test jednostkowy na symulacji). R i `lme4` 1.1.35.1 były
+  dostępne (poprawka do D-H3a-24).
+- Wynik: β = 0,124, SE = 0,049, OR 1,132 (95% CI 1,028-1,247), LRT p = 0,009, wariancje nadawcy 7,43
+  i odbiorcy 0,557, kod zbieżności 0, bez osobliwości i ostrzeżeń R. Etykieta „potwierdzony” =
+  etykieta M2, więc **reguła zgodności M1 = M2 jest spełniona** (dla M1 = lme4 i dla profilu GPBoost).
+  Kontrola estymatora GPBoost vs lme4: β 0,130-0,133 vs 0,124, wariancje zgodne (brak rozbieżności).
+- Etykieta końcowa z poziomu 2 pozostaje; po poziomie 3 jej adnotacja „fallback” przestaje być
+  konieczna merytorycznie, ale decyzję o zmianie brzmienia pozostawiono Dominikowi.
+
+## D-H3a-34 A5: M3 przeliczone na p.p. [default agenta]
+- M3 (FE nadawcy) nie ma populacyjnego efektu krańcowego; do figury C β z M3 przeliczono na p.p.
+  przy ryzykach bazowych z M2 (`has_bio = 0`). CI z granic β (bez niepewności ryzyka bazowego).
+  Wskazano to w podpisach. Warstwa „inna płeć” pominięta (jak w S8).
+
+## D-H3a-35 Figury A-C: motyw i pas ±1,5 p.p. [default agenta]
+- Czcionka: Plus Jakarta Sans z `reports/assets/fonts` (lokalna, już w repo). Okabe-Ito:
+  szary #6B7280, niebieski #0072B2, pomarańcz #D55E00; tekst akcentowy #B34F00 (kontrast 5,2:1, bo
+  #D55E00 ma 3,9:1). Pas „praktycznie zero” ±1,5 p.p. to wizualny odpowiednik marginesu 0,10
+  log-OR przy bazie ≈ 20% (0,2·0,8·0,10 ≈ 1,6 p.p.), nie nowe kryterium.
+
+## Wybór estymatora do obrony ustnej (szkic do akceptacji Dominika)
+
+Model główny to GLMM ze skrzyżowanymi losowymi wyrazami wolnymi nadawcy i odbiorcy; GPBoost daje
+tylko oszacowanie punktowe (β ≈ 0,13), więc wnioskowanie opiera się na `lme4` (β = 0,124, OR 1,13,
+95% CI 1,03-1,25) i na teście ilorazu wiarygodności (p = 0,009); oba zgadzają się z M2. M2 (pooled
+logit, klastrowanie dwukierunkowe) to druga noga reguły zgodności, a M3 (FE nadawcy) kontroluje
+hojność nadawcy: M2 i M3 mają inne estymandy (populacyjny vs w obrębie nadawcy), co przy dużej
+wariancji nadawcy (≈ 7,5) tłumaczy OR 1,13 vs 1,19.

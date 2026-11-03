@@ -1262,6 +1262,10 @@ def lme4_crosscheck(ctx: Ctx, with_lrt: bool = False) -> dict:
         res["_fingerprint"] = fp
         res["_wall_s"] = time.time() - t0
         path.write_text(json.dumps(res, ensure_ascii=False, indent=1))
+    if res.get("status") == "ok":
+        b, se = M.coef_of(res, "has_bio")
+        res["has_bio_wald"] = C.wald_ci(b, se)
+        res["label"] = C.classify(b, se, ctx.p.margin)
     ctx.res["lme4"] = res
     ctx.runner.log_time("lme4_crosscheck", res.get("_wall_s", 0.0), res["status"])
     persist(ctx)
