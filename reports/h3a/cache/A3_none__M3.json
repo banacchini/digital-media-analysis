@@ -1,0 +1,30 @@
+{
+ "status": "ok",
+ "n_iter": 4,
+ "names": [
+  "has_bio"
+ ],
+ "coef": [
+  0.1975692807849755
+ ],
+ "se": [
+  0.05878086835610197
+ ],
+ "cov": [
+  [
+   0.0034551904846973893
+  ]
+ ],
+ "se_naive": [
+  0.02192731396458504
+ ],
+ "n_obs_used": 76665,
+ "n_senders_used": 876,
+ "n_senders_dropped_all_same": 662,
+ "dropped_cols_no_within_var": [
+  "const"
+ ],
+ "time_s": 0.02551746368408203,
+ "_fingerprint": "8fd8067a7e27293b",
+ "_wall_s": 0.025557756423950195
+}

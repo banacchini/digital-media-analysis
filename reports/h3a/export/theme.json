@@ -1,0 +1,34 @@
+{
+ "colors": {
+  "without_bio": "#6B7280",
+  "with_bio": "#0072B2",
+  "accent": "#D55E00",
+  "accent_text": "#B34F00",
+  "text": "#1F2937",
+  "muted": "#E5E7EB"
+ },
+ "font_family": "Plus Jakarta Sans",
+ "font_fallback": "DejaVu Sans",
+ "font_source": "reports/assets/fonts (local, SIL OFL)",
+ "sizes_pt": {
+  "hero": 52,
+  "title": 26,
+  "label": 21,
+  "small": 15,
+  "min": 14
+ },
+ "canvas_in": [
+  13.33,
+  7.5
+ ],
+ "margin_in": 0.6,
+ "export_dpi": 200,
+ "contrast_on_white": {
+  "without_bio": 4.83,
+  "with_bio": 5.19,
+  "accent": 3.87,
+  "accent_text": 5.2,
+  "text": 14.68,
+  "muted": 1.24
+ }
+}

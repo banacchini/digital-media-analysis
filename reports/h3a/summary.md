@@ -1,21 +1,21 @@
 # H3a: wyniki (generowane automatycznie)
 
-Wygenerowano: 2026-11-03T01:17; poziom przebiegu: 2; SAMPLE_FRAC = 1.0; SEED = 20261102; margines praktycznego zera |log OR| ≤ 0,10.
+Wygenerowano: 2026-11-03T02:29; poziom przebiegu: 3; SAMPLE_FRAC = 1.0; SEED = 20261102; margines praktycznego zera |log OR| ≤ 0,10.
 
 ## Werdykt
 
-**Etykieta końcowa: potwierdzony (fallback: M2 jako model główny, bez kontroli popularności)**
+**Etykieta końcowa: potwierdzony (fallback: M2 jako model główny, bez kontroli popularności); wrażliwy na estymator (lme4: potwierdzony)**
 
 - M1 (GLMM, skrzyżowane efekty losowe): brak oszacowania
 - M2 (pooled logit, klastrowanie dwukierunkowe): potwierdzony
 - M3 (FE nadawcy, klastrowanie po odbiorcy; poza regułą): potwierdzony
-- lme4: skipped (Rscript not found)
+- lme4: ok ()
 
 ## Wynik główny (has_bio: bio odbiorcy niepuste vs puste)
 
 | Model | OR (95% CI; 90% CI) | β | SE | p | MDE OR | Etykieta |
 |---|---|---|---|---|---|---|
-| M1 | brak oszacowania | – | – | – | – | brak oszacowania |
+| M1 | – (95% CI –––; 90% CI –––) | – | – | – | – | brak oszacowania |
 | M2 | 1,130 (95% CI 1,044–1,222; 90% CI 1,058–1,207) | 0,1221 | 0,0402 | 0,0024 | 1,119 | potwierdzony |
 | M3 | 1,189 (95% CI 1,070–1,320; 90% CI 1,088–1,298) | 0,1727 | 0,0536 | 0,0013 | 1,162 | potwierdzony |
 
@@ -57,26 +57,26 @@ Hyderabad: 45 kont; usuwa 849 swipe'ów na profile (jako nadawca 669, jako odbio
 
 | spec   | model   |   n_obs | OR (95% CI)                                    | label             |
 |:-------|:--------|--------:|:-----------------------------------------------|:------------------|
-| S1     | M1      |   76187 | brak oszacowania                               | brak oszacowania  |
+| S1     | M1      |   76187 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
 | S1     | M2      |   76187 | 1,138 (95% CI 1,047–1,238; 90% CI 1,061–1,222) | potwierdzony      |
 | S1     | M3      |   76187 | 1,190 (95% CI 1,071–1,322; 90% CI 1,089–1,300) | potwierdzony      |
 | S2a    | M2      |   47373 | 1,064 (95% CI 0,972–1,165; 90% CI 0,986–1,148) | nierozstrzygający |
 | S2a    | M3      |   47373 | 1,174 (95% CI 1,042–1,322; 90% CI 1,062–1,297) | potwierdzony      |
 | S2b    | M2      |   93717 | 1,127 (95% CI 1,042–1,218; 90% CI 1,055–1,203) | potwierdzony      |
 | S2b    | M3      |   93717 | 1,172 (95% CI 1,051–1,306; 90% CI 1,070–1,284) | potwierdzony      |
-| S3     | M1      |   94566 | brak oszacowania                               | brak oszacowania  |
+| S3     | M1      |   94566 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
 | S3     | M2      |   94566 | 1,128 (95% CI 1,043–1,220; 90% CI 1,056–1,204) | potwierdzony      |
 | S3     | M3      |   94566 | 1,187 (95% CI 1,069–1,318; 90% CI 1,087–1,296) | potwierdzony      |
-| S4     | M1      |   93717 | brak oszacowania                               | brak oszacowania  |
+| S4     | M1      |   93717 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
 | S4     | M2      |   93717 | 1,130 (95% CI 1,044–1,223; 90% CI 1,058–1,208) | potwierdzony      |
 | S4     | M3      |   93717 | 1,188 (95% CI 1,069–1,319; 90% CI 1,088–1,297) | potwierdzony      |
 | S5     | M2      |   93717 | 1,135 (95% CI 1,048–1,229; 90% CI 1,062–1,213) | potwierdzony      |
 | S5     | M3      |   93717 | 1,216 (95% CI 1,099–1,347; 90% CI 1,117–1,325) | potwierdzony      |
 | S6     | M2      |   93717 | 1,130 (95% CI 1,044–1,223; 90% CI 1,058–1,208) | potwierdzony      |
 | S6     | M3      |   93717 | 1,189 (95% CI 1,070–1,320; 90% CI 1,089–1,298) | potwierdzony      |
-| S7     | M1      |   93717 | brak oszacowania                               | brak oszacowania  |
+| S7     | M1      |   93717 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
 | S7     | M2      |   93717 | 1,123 (95% CI 1,040–1,213; 90% CI 1,053–1,198) | potwierdzony      |
-| S7     | M3      |   93717 | brak oszacowania                               | brak oszacowania  |
+| S7     | M3      |   93717 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
 
 Flagi wrażliwości: S1: różne etykiety między estymatorami (brak oszacowania; potwierdzony) | S2a: różne etykiety między estymatorami (nierozstrzygający; potwierdzony) | S3: różne etykiety między estymatorami (brak oszacowania; potwierdzony) | S4: różne etykiety między estymatorami (brak oszacowania; potwierdzony) | S7: różne etykiety między estymatorami (brak oszacowania; potwierdzony) | etykieta M2 inna niż w specyfikacji głównej w: S2a
 
@@ -123,6 +123,11 @@ Flagi wrażliwości: S1: różne etykiety między estymatorami (brak oszacowania
 - D-H3a-21 Prywatność wyników [default agenta]
 - D-H3a-22 Wykresy opisowe [default agenta]
 - D-H3a-25 Timeout i cache [default agenta]
+- D-H3a-28 Poziom 3: zakres i status analiz [default agenta]
+- D-H3a-29 Kosze „wieku” konta i profilu [default agenta]
+- D-H3a-32 B1: LRT i profil wiarygodności w GPBoost [default agenta]
+- D-H3a-34 A5: M3 przeliczone na p.p. [default agenta]
+- D-H3a-35 Figury A-C: motyw i pas ±1,5 p.p. [default agenta]
 
 ## Ograniczenia, które muszą towarzyszyć wynikowi
 
