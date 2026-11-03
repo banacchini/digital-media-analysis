@@ -74,3 +74,31 @@ def wald_ci(beta: float, se: float) -> dict[str, float]:
         "or_hi90": math.exp(beta + Z90 * se),
         "p": float(2 * norm.sf(abs(beta / se))) if se > 0 else float("nan"),
     }
+
+
+def classify_interval(
+    beta_lo90: float,
+    beta_hi90: float,
+    beta_lo95: float,
+    beta_hi95: float,
+    margin: float = 0.10,
+) -> str:
+    """Same rule as `classify`, for intervals that are not Wald (e.g. profile likelihood).
+
+    Arguments are log-odds limits of the 90% and 95% intervals.
+    """
+    vals = (beta_lo90, beta_hi90, beta_lo95, beta_hi95)
+    if any(v is None or not math.isfinite(v) for v in vals):
+        return NOT_ESTIMATED
+    sig_pos, sig_neg = beta_lo95 > 0, beta_hi95 < 0
+    if beta_lo90 >= -margin and beta_hi90 <= margin:
+        if sig_pos:
+            return f"{PRACTICALLY_ZERO} (istotnie dodatni)"
+        if sig_neg:
+            return f"{PRACTICALLY_ZERO} (istotnie ujemny)"
+        return PRACTICALLY_ZERO
+    if sig_pos:
+        return CONFIRMED
+    if sig_neg:
+        return OPPOSITE
+    return INCONCLUSIVE

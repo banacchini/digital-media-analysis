@@ -427,11 +427,22 @@ def _arrays(df: pd.DataFrame, spec: M.Spec):
     )
 
 
+def _spec_fp(spec: M.Spec) -> dict:
+    """Spec as a dict for the cache fingerprint; level-3 fields are omitted at their defaults,
+    so fits cached at levels 1-2 stay valid."""
+    d = dict(spec.__dict__)
+    if d.get("control_set") == "full":
+        d.pop("control_set")
+    if not d.get("interact_cols"):
+        d.pop("interact_cols", None)
+    return d
+
+
 def fit_models(
     ctx: Ctx, key: str, df: pd.DataFrame, spec: M.Spec, which: tuple[str, ...] = ("M1", "M2", "M3")
 ) -> dict:
     X, y, s, r, names, meta = _arrays(df, spec)
-    fp = fingerprint(X, y, s, r, extra={"spec": spec.__dict__, "names": names})
+    fp = fingerprint(X, y, s, r, extra={"spec": _spec_fp(spec), "names": names})
     out = ctx.res.setdefault("fits", {}).setdefault(key, {})
     out["n_obs"] = len(y)
     out["n_senders"] = int(s.max() + 1)
@@ -439,7 +450,11 @@ def fit_models(
     out["dropped_constant"] = meta["dropped_constant"]
     out["dropped_separated"] = meta.get("dropped_separated", [])
     out["dropped_collinear"] = meta.get("dropped_collinear", [])
-    bio = "has_bio" if spec.bio_terms == "binary" and not spec.drop_bio else None
+    bio = (
+        "has_bio"
+        if spec.bio_terms == "binary" and not spec.drop_bio and not spec.interact_cols
+        else None
+    )
     if "M1" in which:
         out["M1"] = ctx.runner.fit(f"{key}__M1", M.fit_glmm, X, y, s, r, names, fp=fp)
     if "M2" in which:
@@ -449,7 +464,7 @@ def fit_models(
     if "M3" in which:
         spec3 = replace(spec, fe_sender=True)
         X3, _, _, _, names3, meta3 = _arrays(df, spec3)
-        fp3 = fingerprint(X3, y, s, r, extra={"spec": spec3.__dict__, "names": names3})
+        fp3 = fingerprint(X3, y, s, r, extra={"spec": _spec_fp(spec3), "names": names3})
         out["M3"] = ctx.runner.fit(
             f"{key}__M3", M.fit_fe_logit, X3, y, s, r, names3, fp=fp3, timeout=False
         )

@@ -31,6 +31,11 @@ class Spec:
     interaction_sender_sex: bool = False  # S8 interaction test
     drop_bio: bool = False  # M6 baseline
     fe_sender: bool = False  # M3: sex_pair coded as receiver sex within sender sex
+    # Level 3: which control blocks enter (A3 sequence): none | demog | demog_completeness | full
+    control_set: str = "full"
+    # Level 3 (A2): 0/1 columns of the analysis frame entered as main effect + interaction
+    # with has_bio.
+    interact_cols: tuple[str, ...] = ()
     extra: dict = field(default_factory=dict)
 
 
@@ -80,22 +85,29 @@ def build_design(t: pd.DataFrame, spec: Spec) -> tuple[pd.DataFrame, dict]:
                 cols[f"bio_spline_{j}"] = b[:, j]
             cols["bio_len_cap"] = t["bio_len_cap"].astype(float)
             meta["spline_design_info"] = di
-    cols["age_band_diff"] = _std(t["age_band_diff"].astype(float))
-    cols["same_band"] = t["same_band"].astype(float)
-    if not spec.extended:
+    cs = spec.control_set
+    if cs != "none":
+        cols["age_band_diff"] = _std(t["age_band_diff"].astype(float))
+        cols["same_band"] = t["same_band"].astype(float)
+    if cs in ("demog_completeness", "full") and not spec.extended:
         cols[spec.completeness_var] = _std(t[spec.completeness_var].astype(float))
-    tc, tz, tcap = spec.tag_vars
-    cols[tc] = _std(t[tc].astype(float))
-    cols[tz] = t[tz].astype(float)
-    cols[tcap] = t[tcap].astype(float)
+    if cs == "full":
+        tc, tz, tcap = spec.tag_vars
+        cols[tc] = _std(t[tc].astype(float))
+        cols[tz] = t[tz].astype(float)
+        cols[tcap] = t[tcap].astype(float)
+    for c in spec.interact_cols:
+        cols[c] = t[c].astype(float)
+        cols[f"has_bio:{c}"] = t["has_bio"].astype(float) * t[c].astype(float)
     parts.append(cols)
-    sp = _dummies(t["sex_pair"], "sex_pair", SEX_PAIR_REF)
-    if spec.fe_sender:
-        # Sender FE absorb the sender-sex main effect; keep only receiver-sex contrasts within
-        # each sender sex (reference: receiver F for every sender sex).
-        sp = sp[[c for c in sp.columns if not c.endswith("→F")]]
-    parts.append(sp)
-    parts.append(_dummies(t["same_city"], "same_city", SAME_CITY_REF))
+    if cs != "none":
+        sp = _dummies(t["sex_pair"], "sex_pair", SEX_PAIR_REF)
+        if spec.fe_sender:
+            # Sender FE absorb the sender-sex main effect; keep only receiver-sex contrasts
+            # within each sender sex (reference: receiver F for every sender sex).
+            sp = sp[[c for c in sp.columns if not c.endswith("→F")]]
+        parts.append(sp)
+        parts.append(_dummies(t["same_city"], "same_city", SAME_CITY_REF))
     if spec.extended:
         parts.append(_dummies(t["receiver_age_band"], "receiver_age_band", "18-20"))
         for c in [c for c in t.columns if c.startswith("r_ls_")]:
@@ -454,6 +466,7 @@ def fit_fe_logit(
         "names": nm,
         "coef": beta.tolist(),
         "se": np.sqrt(np.diag(V)).tolist(),
+        "cov": V.tolist(),
         "se_naive": np.sqrt(np.diag(bread)).tolist(),
         "n_obs_used": int(len(y)),
         "n_senders_used": int(G),
