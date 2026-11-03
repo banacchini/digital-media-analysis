@@ -1,6 +1,8 @@
 """Unit tests for H3a level 3 helpers (synthetic data only)."""
 
 import math
+import shutil
+import subprocess
 
 import numpy as np
 import pandas as pd
@@ -197,3 +199,68 @@ def test_fe_logit_returns_cov():
     k = len(out["names"])
     assert np.array(out["cov"]).shape == (k, k)
     assert np.sqrt(np.diag(out["cov"])) == pytest.approx(out["se"])
+
+
+# ---------------------------------------------------------------- lme4 via temporary CSV (B2)
+
+
+@pytest.mark.skipif(shutil.which("Rscript") is None, reason="Rscript not installed")
+def test_lme4_fit_recovers_known_beta(tmp_path, monkeypatch):
+    from rentfriends.h3a.analysis import lme4_fit
+
+    r = subprocess.run(["Rscript", "-e", "library(lme4)"], capture_output=True)
+    if r.returncode:
+        pytest.skip("lme4 not installed")
+    rng = np.random.default_rng(7)
+    n_s, n_r, n = 150, 150, 12000
+    s = rng.integers(0, n_s, n)
+    rc = rng.integers(0, n_r, n)
+    a, b = rng.normal(0, 0.7, n_s), rng.normal(0, 0.5, n_r)
+    bio = rng.integers(0, 2, n).astype(float)
+    z = rng.normal(size=n)
+    eta = -1.0 + 0.5 * bio + 0.2 * z + a[s] + b[rc]
+    y = (rng.random(n) < expit(eta)).astype(float)
+    X = np.column_stack([np.ones(n), bio, z])
+    monkeypatch.setenv("TMPDIR", str(tmp_path))
+    out = lme4_fit(X, y, s, rc, ["const", "has_bio", "z"], timeout_s=300, with_lrt=True)
+    assert out["status"] == "ok"
+    b_hat, se = M.coef_of(out, "has_bio")
+    assert abs(b_hat - 0.5) < 4 * se
+    assert 0.2 < out["var_sender"] < 0.9 and 0.1 < out["var_receiver"] < 0.6
+    assert out["lrt_p"] < 0.01 and out["lrt_stat"] > 0
+    assert not list(tmp_path.iterdir()), "temporary directory must be removed"
+
+
+# ---------------------------------------------------------------- numbers JSON (Polish format)
+
+
+def test_fmt_pl_decimal_comma_and_nbsp():
+    from rentfriends.h3a.export3 import NBSP, fmt_pl
+
+    assert fmt_pl(1.234, 2) == "1,23"
+    assert fmt_pl(93717, 0) == f"93{NBSP}717"
+    assert fmt_pl(-1.2, 1) == "−1,2"
+    assert fmt_pl(float("nan")) == "–"
+
+
+def test_add_pl_adds_sibling_keys():
+    from rentfriends.h3a.export3 import NBSP, add_pl
+
+    out = add_pl(
+        {"n_obs": 93717, "or": 1.1301, "p": 0.0002, "pct": 14.366, "nested": {"lo95": -1.19}}
+    )
+    assert out["n_obs_pl"] == f"93{NBSP}717"
+    assert out["or_pl"] == "1,13"
+    assert out["p_pl"] == "<0,001"
+    assert out["pct_pl"] == "14,4"
+    assert out["nested"]["lo95_pl"] == "−1,2"
+    assert out["or"] == 1.1301  # raw value kept
+
+
+def test_classify_interval_cases():
+    m = 0.10
+    # CI wholly inside the margin, 95% CI excludes 0 -> practically zero (significant positive)
+    assert C.classify_interval(0.02, 0.08, 0.015, 0.085, m).startswith(C.PRACTICALLY_ZERO)
+    assert C.classify_interval(-0.30, -0.10, -0.35, -0.05, m) == C.OPPOSITE
+    assert C.classify_interval(-0.05, 0.30, -0.10, 0.35, m) == C.INCONCLUSIVE
+    assert C.classify_interval(0.04, 0.30, 0.03, 0.35, m) == C.CONFIRMED

@@ -8,6 +8,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import time
 from dataclasses import dataclass, field, replace
 from importlib import metadata
 from pathlib import Path
@@ -300,6 +301,27 @@ def describe(ctx: Ctx) -> None:
                 lw=2,
                 label="z bio" if hb else "bez bio",
             )
+        for k2, hb in enumerate((0, 1)):
+            sub = f1[f1["has_bio"] == hb].set_index("plec_nadawcy").reindex(sexes)
+            for xi, val in zip(np.arange(3) + (k2 - 0.5) * 0.25, sub["right_rate"], strict=True):
+                if pd.notna(val):
+                    ax.annotate(
+                        f"{100 * val:.1f}%".replace(".", ","),
+                        (xi, 100 * val),
+                        xytext=(0, 14),
+                        textcoords="offset points",
+                        ha="center",
+                        fontsize=12,
+                        color=F.GRAY if hb == 0 else F.BLUE,
+                    )
+        ax.annotate(
+            f"N = {len(t):,} swipe'ów; {t['s_key'].nunique():,} nadawców; "
+            f"{t['r_key'].nunique():,} odbiorców".replace(",", "\u00a0"),
+            (0.99, 0.02),
+            xycoords="axes fraction",
+            ha="right",
+            fontsize=12,
+        )
         ax.set_xticks(range(3), ["Kobiety (F)", "Mężczyźni (M)", "Inna (O)"])
         ax.set_xlabel("Płeć nadawcy")
         ax.set_ylabel("Odsetek prawych swipe'ów [%]")
@@ -674,7 +696,20 @@ def m5_length(ctx: Ctx) -> pd.DataFrame:
     ax.set_xscale("log")
     ax.set_xticks([1, 3, 10, 30, 100, 250], ["1", "3", "10", "30", "100", "250"])
     ax.set_xlabel("Długość bio [znaki, skala log]")
-    ax.set_ylabel(f"OR prawego swipe'a vs {ref:.0f} znaków")
+    ax.set_ylabel("OR względem mediany długości")
+    dens = sub.groupby("bio_len").agg(n=("y_right", "size"), nr=("r_key", "nunique"))
+    dens = dens[dens["nr"] >= 5].reindex(grid).dropna()  # aggregate only, cells < 5 hidden
+    rug = ax.inset_axes([0, 0, 1, 0.07], sharex=ax)
+    rug.vlines(dens.index, 0, 1, color=F.GRAY, alpha=0.5, lw=1.2)
+    rug.set_axis_off()
+    ax.text(
+        0.01,
+        0.085,
+        "gęstość danych (kreski = długości, dla których są dane)",
+        transform=ax.transAxes,
+        fontsize=11,
+        color=F.GRAY,
+    )
     ax.set_title("Długość bio a prawy swipe (M2, spline, tylko niepuste bio)")
     ax.legend(loc="lower right")
     F.pl_decimal(ax, "y")
@@ -980,7 +1015,8 @@ def sensitivity_s8(ctx: Ctx) -> dict:
     for i, (_, row) in enumerate(f4.iterrows()):
         col = F.BLUE if row["model"] == "M2" else F.GREEN
         _ci(ax, i, row, col)
-        ylabels.append(f"{row['plec_nadawcy']} · {row['model']}")
+        sex_pl = {"F": "Kobiety", "M": "Mężczyźni", "O": "Inna płeć"}[row["plec_nadawcy"]]
+        ylabels.append(f"{sex_pl} ({row['model']})")
     ax.set_yticks(range(len(f4)), ylabels)
     ax.invert_yaxis()
     ax.set_xscale("log")
@@ -1052,13 +1088,40 @@ def forest(ctx: Ctx) -> pd.DataFrame:
             )
             seen.add(m)
             _ci(ax, i + off[m], row, colors[m], lab)
+    if "main" in specs:
+        i_main = specs.index("main")
+        l4 = ctx.res.get("lme4", {})
+        if l4.get("status") == "ok" and "has_bio_wald" in l4:
+            w = l4["has_bio_wald"]
+            _ci(ax, i_main + 0.45, w | {"or": w["or"]}, F.GRAY, "lme4 (GLMM, CI Walda)")
+        m1 = ctx.res.get("fits", {}).get("main", {}).get("M1", {})
+        b1, _ = M.coef_of(m1, "has_bio")
+        if math.isfinite(b1):
+            ax.plot(
+                math.exp(b1),
+                i_main - 0.45,
+                "o",
+                color="white",
+                mec=colors["M1"],
+                mew=2,
+                ms=8,
+                label="M1 GLMM GPBoost (punkt, bez CI)",
+            )
+    from matplotlib.lines import Line2D
+
+    handles, labels = ax.get_legend_handles_labels()
+    handles += [
+        Line2D([], [], color=F.GRAY, lw=5, alpha=0.85),
+        Line2D([], [], color=F.GRAY, lw=1.6),
+    ]
+    labels += ["gruby słupek = 90% CI", "cienki słupek = 95% CI"]
     ax.set_yticks(range(len(specs)), [SPEC_LABELS[s] for s in specs], fontsize=12)
     ax.invert_yaxis()
     ax.set_xscale("log")
     _or_ticks(ax)
     ax.set_xlabel("OR prawego swipe'a: bio vs brak bio (skala log)")
     ax.set_title("H3a: OR dla has_bio we wszystkich specyfikacjach")
-    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.17), ncol=4, fontsize=11)
+    ax.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, -0.17), ncol=3, fontsize=11)
     ax.grid(axis="y", visible=False)
     out = allrows[["spec", "model", "or", "or_lo95", "or_hi95", "or_lo90", "or_hi90", "label"]]
     ctx.saver.save_fig(
@@ -1067,7 +1130,8 @@ def forest(ctx: Ctx) -> pd.DataFrame:
         out.assign(margin_lo=math.exp(-ctx.p.margin), margin_hi=math.exp(ctx.p.margin)),
         caption="Rys. F3. OR dla has_bio (bio odbiorcy niepuste vs puste) w modelu głównym i "
         "analizach wrażliwości; cienki słupek 95% CI, gruby 90% CI; szary pas: margines "
-        "praktycznego zera [e^-0,10; e^0,10]. lme4 pominięty (brak R).",
+        "praktycznego zera [e^-0,10; e^0,10]. Wiersz lme4: GLMM ze skrzyżowanymi efektami "
+        "losowymi (CI Walda); punkt M1: oszacowanie GPBoost bez SE.",
         model="M1/M2/M3, S1-S7",
         n_swipes=len(ctx.main),
         n_receivers=ctx.main["r_key"].nunique(),
@@ -1079,54 +1143,126 @@ def forest(ctx: Ctx) -> pd.DataFrame:
 # ============================================================================ lme4
 
 
-def lme4_crosscheck(ctx: Ctx) -> dict:
-    """glmer(nAGQ = 0) with crossed (1|sender) + (1|receiver) on the main spec, if R is there.
+LME4_R_SCRIPT = r"""
+args <- commandArgs(TRUE)
+dir <- args[1]; with_lrt <- args[2] == "1"
+suppressMessages(library(lme4))
+d <- read.csv(file.path(dir, "d.csv"))
+d$sender <- factor(d$sender); d$receiver <- factor(d$receiver)
+xcols <- setdiff(names(d), c("y", "sender", "receiver"))
+ctrl <- glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
+msgs <- character()
+fit <- function(cols) {
+  f <- as.formula(paste("y ~", paste(cols, collapse = " + "), "+ (1|sender) + (1|receiver)"))
+  withCallingHandlers(
+    glmer(f, data = d, family = binomial, nAGQ = 0, control = ctrl),
+    warning = function(w) { msgs <<- c(msgs, conditionMessage(w)); invokeRestart("muffleWarning") },
+    message = function(m) { msgs <<- c(msgs, conditionMessage(m)); invokeRestart("muffleMessage") })
+}
+t0 <- Sys.time()
+m <- fit(xcols)
+secs <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
+cf <- summary(m)$coefficients
+write.csv(data.frame(term = rownames(cf), est = cf[, 1], se = cf[, 2]),
+          file.path(dir, "coef.csv"), row.names = FALSE)
+vc <- as.data.frame(VarCorr(m))
+write.csv(vc[, c("grp", "vcov")], file.path(dir, "var.csv"), row.names = FALSE)
+info <- data.frame(loglik = as.numeric(logLik(m)), singular = isSingular(m),
+                   conv_code = ifelse(is.null(m@optinfo$conv$opt), NA, m@optinfo$conv$opt),
+                   secs = secs, lrt_stat = NA, lrt_p = NA, loglik_null = NA)
+if (with_lrt) {
+  m0 <- fit(setdiff(xcols, "x1"))
+  info$loglik_null <- as.numeric(logLik(m0))
+  info$lrt_stat <- 2 * (info$loglik - info$loglik_null)
+  info$lrt_p <- pchisq(info$lrt_stat, 1, lower.tail = FALSE)
+}
+write.csv(info, file.path(dir, "info.csv"), row.names = FALSE)
+writeLines(unique(msgs), file.path(dir, "msgs.txt"))
+"""
 
-    Data go through a parquet file in a temporary directory that is removed afterwards.
-    Note: this branch could not be tested in the build environment (no R installed).
+
+def lme4_fit(
+    X: np.ndarray,
+    y: np.ndarray,
+    s: np.ndarray,
+    r: np.ndarray,
+    names: list[str],
+    timeout_s: float,
+    with_lrt: bool = False,
+) -> dict:
+    """glmer(nAGQ = 0, bobyqa) with crossed (1|sender) + (1|receiver).
+
+    Data go through a CSV in a private temporary directory (mode 0700, integer codes instead of
+    user keys), which is deleted afterwards. `X` must contain `const` first and `has_bio`
+    second (it becomes `x1`, the term tested by the LRT).
     """
     import tempfile
 
     if not shutil.which("Rscript"):
-        res = {"status": "skipped", "reason": "Rscript not found"}
-    else:
-        chk = subprocess.run(
-            ["Rscript", "-e", "library(lme4); library(arrow)"], capture_output=True, text=True
-        )
-        if chk.returncode:
-            res = {"status": "skipped", "reason": "R packages lme4/arrow missing"}
-        else:
-            X, y, s, r, names, _ = _arrays(ctx.main, M.Spec())
-            cols = [f"x{i}" for i in range(1, len(names))]
-            df = pd.DataFrame(X[:, 1:], columns=cols).assign(y=y, sender=s, receiver=r)
-            with tempfile.TemporaryDirectory() as td:
-                pq = Path(td) / "d.parquet"
-                df.to_parquet(pq)
-                form = "y ~ " + " + ".join(cols) + " + (1|sender) + (1|receiver)"
-                code = (
-                    f"library(lme4); library(arrow); d <- read_parquet('{pq}'); "
-                    "d$sender <- factor(d$sender); d$receiver <- factor(d$receiver); "
-                    f"m <- glmer({form}, data = d, family = binomial, nAGQ = 0); "
-                    "s <- summary(m)$coefficients; "
-                    "cat(sprintf('%.10g,%.10g\\n', s[,1], s[,2]), sep='')"
-                )
-                try:
-                    out = subprocess.run(
-                        ["Rscript", "-e", code],
-                        capture_output=True,
-                        text=True,
-                        timeout=ctx.runner.timeout_s,
-                    )
-                    vals = [list(map(float, ln.split(","))) for ln in out.stdout.split()]
-                    res = {
-                        "status": "ok" if out.returncode == 0 else "failed",
-                        "names": names,
-                        "coef": [v[0] for v in vals],
-                        "se": [v[1] for v in vals],
-                    }
-                except subprocess.TimeoutExpired:
-                    res = {"status": "timeout"}
+        return {"status": "skipped", "reason": "Rscript not found"}
+    cols = [f"x{i}" for i in range(1, len(names))]
+    df = pd.DataFrame(X[:, 1:], columns=cols).assign(y=y, sender=s, receiver=r)
+    with tempfile.TemporaryDirectory(prefix="h3a_lme4_") as td:
+        Path(td).chmod(0o700)
+        df.to_csv(Path(td) / "d.csv", index=False)
+        script = Path(td) / "fit.R"
+        script.write_text(LME4_R_SCRIPT)
+        try:
+            out = subprocess.run(
+                ["Rscript", str(script), td, "1" if with_lrt else "0"],
+                capture_output=True,
+                text=True,
+                timeout=timeout_s,
+            )
+        except subprocess.TimeoutExpired:
+            return {"status": "timeout"}
+        if out.returncode != 0:
+            return {"status": "failed", "error": out.stderr[-400:]}
+        coef = pd.read_csv(Path(td) / "coef.csv")
+        var = pd.read_csv(Path(td) / "var.csv")
+        info = pd.read_csv(Path(td) / "info.csv").iloc[0]
+        msgs = [m for m in (Path(td) / "msgs.txt").read_text().splitlines() if m.strip()]
+    nm = ["const", *names[1:]]
+    est = dict(zip(coef["term"], coef["est"], strict=True))
+    se = dict(zip(coef["term"], coef["se"], strict=True))
+    keys = ["(Intercept)", *cols]
+    return {
+        "status": "ok",
+        "names": nm,
+        "coef": [float(est[k]) for k in keys],
+        "se": [float(se[k]) for k in keys],
+        "var_sender": float(var.loc[var["grp"] == "sender", "vcov"].iloc[0]),
+        "var_receiver": float(var.loc[var["grp"] == "receiver", "vcov"].iloc[0]),
+        "loglik": float(info["loglik"]),
+        "singular": bool(info["singular"]),
+        "conv_code": None if pd.isna(info["conv_code"]) else int(info["conv_code"]),
+        "r_warnings": msgs,
+        "time_s": float(info["secs"]),
+        "lrt_stat": None if pd.isna(info["lrt_stat"]) else float(info["lrt_stat"]),
+        "lrt_p": None if pd.isna(info["lrt_p"]) else float(info["lrt_p"]),
+        "loglik_null": None if pd.isna(info["loglik_null"]) else float(info["loglik_null"]),
+    }
+
+
+def lme4_crosscheck(ctx: Ctx, with_lrt: bool = False) -> dict:
+    """lme4 on the main specification (data via a private temporary CSV, no arrow)."""
+    X, y, s, r, names, _ = _arrays(ctx.main, M.Spec())
+    assert names[:2] == ["const", "has_bio"]
+    fp = fingerprint(X, y, s, r, extra={"lme4": True, "lrt": with_lrt})
+    key = "lme4_main" + ("_lrt" if with_lrt else "")
+    path = ctx.runner.cache_dir / f"{key}.json"
+    res = None
+    if path.exists():
+        cached = json.loads(path.read_text())
+        if cached.get("_fingerprint") == fp and cached.get("status") == "ok":
+            res = cached
+    if res is None:
+        t0 = time.time()
+        res = lme4_fit(X, y, s, r, names, ctx.runner.timeout_s, with_lrt)
+        res["_fingerprint"] = fp
+        res["_wall_s"] = time.time() - t0
+        path.write_text(json.dumps(res, ensure_ascii=False, indent=1))
     ctx.res["lme4"] = res
-    ctx.runner.log_time("lme4_crosscheck", 0.0, res["status"])
+    ctx.runner.log_time("lme4_crosscheck", res.get("_wall_s", 0.0), res["status"])
     persist(ctx)
     return res
