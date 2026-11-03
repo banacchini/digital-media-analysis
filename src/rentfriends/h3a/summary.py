@@ -117,6 +117,17 @@ def write_summary(
         )
     d1 = res.get("m1_diag", {})
     L.append("\n## Estymator M1: zbieżność i czasy\n")
+    att = d1.get("attempts") or []
+    n_conv = sum(1 for a in att if a.get("convergence_status") == 0)
+    m1 = res.get("fits", {}).get("main", {}).get("M1", {})
+    if d1.get("status") != "ok" and "has_bio" in m1.get("names", []):
+        b = m1["coef"][m1["names"].index("has_bio")]
+        L.append(
+            f"- **Optymalizacja zbieżna w {n_conv}/{len(att)} próbach, ale GPBoost nie policzył "
+            "SE (numeryczny Hessian nie jest dodatnio określony), więc M1 nie ma CI ani etykiety; "
+            f"zadziałał fallback z §6 promptu.** Oszacowanie punktowe z ostatniej próby: "
+            f"β = {_f(b, 4)}, OR = {_f(math.exp(b))} (bez SE, nie do wnioskowania)."
+        )
     L.append(
         f"- status: {d1.get('status')}; optymalizator: {d1.get('optimizer')}; "
         f"kod zbieżności GPBoost: {d1.get('convergence_status')} (0 = zbieżny); "
