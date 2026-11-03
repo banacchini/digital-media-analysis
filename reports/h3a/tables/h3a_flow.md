@@ -1,0 +1,5 @@
+| krok                                            |   swipes |   prawe |   nadawcy |   odbiorcy |
+|:------------------------------------------------|---------:|--------:|----------:|-----------:|
+| Swipe'y na profile                              |    95144 |   19495 |      1583 |       1394 |
+| Po wykluczeniu Hyderabad (nadawca lub odbiorca) |    94295 |   19363 |      1544 |       1363 |
+| Po complete-case (zmienne modelu)               |    93717 |   19325 |      1538 |       1359 |

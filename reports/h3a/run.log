@@ -1,0 +1,896 @@
+Input Notebook:  notebooks/H3a.ipynb
+Output Notebook: notebooks/H3a-rendered.ipynb
+Working directory: .
+Executing:   0%|          | 0/24 [00:00<?, ?cell/s][IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+Executing notebook with kernel: python3
+Executing Cell 1---------------------------------------
+Ending Cell 1------------------------------------------
+Executing:   4%|▍         | 1/24 [00:00<00:12,  1.80cell/s]Executing Cell 2---------------------------------------
+Ending Cell 2------------------------------------------
+Executing Cell 3---------------------------------------
+Ending Cell 3------------------------------------------
+Executing Cell 4---------------------------------------
+Ending Cell 4------------------------------------------
+Executing:  17%|█▋        | 4/24 [00:01<00:08,  2.42cell/s]Executing Cell 5---------------------------------------
+Ending Cell 5------------------------------------------
+Executing Cell 6---------------------------------------
+<Figure size 1000x560 with 1 Axes>
+                                              krok  swipes  prawe  nadawcy  odbiorcy
+0                               Swipe'y na profile   95144  19495     1583      1394
+1  Po wykluczeniu Hyderabad (nadawca lub odbiorca)   94295  19363     1544      1363
+2                Po complete-case (zmienne modelu)   93717  19325     1538      1359
+                     miara     karta       asof  odchylenie_pct  bieżący_users  flaga_>1pct
+0           profile_swipes  95144.00  95144.000           0.000            NaN        False
+1             right_swipes  19495.00  19495.000           0.000            NaN        False
+2          right_share_pct     20.49     20.490          -0.000            NaN        False
+3                  swipers   1583.00   1583.000           0.000            NaN        False
+4                    users   2065.00   2065.000           0.000            NaN        False
+5          swipes_with_bio  52371.00  52297.000          -0.141      52371.000        False
+6       right_pct_with_bio     21.50     21.420          -0.372         21.537        False
+7    right_pct_without_bio     19.20     19.355           0.807         19.208        False
+8  missing_age_band_swipes    578.00    578.000           0.000            NaN        False
+Hyderabad: {'accounts': 45, 'accounts_any_version': 45, 'profile_swipes_removed': 849, 'as_sender': 669, 'as_receiver': 627}
+Źródło wersji as-of: {'s': {'prior_version': 50932, 'first_version': 44086, 'users_current': 126}, 'r': {'prior_version': 88848, 'first_version': 5625, 'users_current': 671}, 'pair': {'prior_version': 47540, 'first_version': 46846, 'users_current': 758}}
+G18 (bio_length vs tekst): {'receiver_snapshots': 2195, 'share_mismatch': 0.020045558086560365, 'share_swipes_mismatch': 0.025718910283359958}
+Braki po filtrze Hyderabad: {'age_band_diff': 578, 'same_band': 578}
+
+Ending Cell 6------------------------------------------
+Executing:  25%|██▌       | 6/24 [00:02<00:07,  2.43cell/s]Executing Cell 7---------------------------------------
+Ending Cell 7------------------------------------------
+Executing Cell 8---------------------------------------
+<Figure size 1000x560 with 1 Axes>
+<Figure size 1000x560 with 1 Axes>
+<Figure size 1000x560 with 1 Axes>
+{'share_empty_swipes': np.float64(0.4498863599987195), 'share_cap_among_nonempty': 0.01737949762389681, 'bio_len_median_nonempty': 95.0, 'bio_len_iqr_nonempty': [50.0, 161.0]}
+
+Ending Cell 8------------------------------------------
+Executing:  33%|███▎      | 8/24 [00:03<00:07,  2.23cell/s]Executing Cell 9---------------------------------------
+Ending Cell 9------------------------------------------
+Executing Cell 10--------------------------------------
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+
+H3A START 2026-11-02T21:10:45+01:00
+Input Notebook:  notebooks/H3a.ipynb
+Output Notebook: notebooks/H3a-rendered.ipynb
+Working directory: .
+Executing:   0%|          | 0/24 [00:00<?, ?cell/s][IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+Executing notebook with kernel: python3
+Executing Cell 1---------------------------------------
+Ending Cell 1------------------------------------------
+Executing:   4%|▍         | 1/24 [00:00<00:08,  2.58cell/s]Executing Cell 2---------------------------------------
+Ending Cell 2------------------------------------------
+Executing Cell 3---------------------------------------
+Ending Cell 3------------------------------------------
+Executing Cell 4---------------------------------------
+Ending Cell 4------------------------------------------
+Executing:  17%|█▋        | 4/24 [00:01<00:07,  2.59cell/s]Executing Cell 5---------------------------------------
+Ending Cell 5------------------------------------------
+Executing Cell 6---------------------------------------
+<Figure size 1000x560 with 1 Axes>
+                                              krok  swipes  prawe  nadawcy  odbiorcy
+0                               Swipe'y na profile   95144  19495     1583      1394
+1  Po wykluczeniu Hyderabad (nadawca lub odbiorca)   94295  19363     1544      1363
+2                Po complete-case (zmienne modelu)   93717  19325     1538      1359
+                     miara     karta       asof  odchylenie_pct  bieżący_users  flaga_>1pct
+0           profile_swipes  95144.00  95144.000           0.000            NaN        False
+1             right_swipes  19495.00  19495.000           0.000            NaN        False
+2          right_share_pct     20.49     20.490          -0.000            NaN        False
+3                  swipers   1583.00   1583.000           0.000            NaN        False
+4                    users   2065.00   2065.000           0.000            NaN        False
+5          swipes_with_bio  52371.00  52297.000          -0.141      52371.000        False
+6       right_pct_with_bio     21.50     21.420          -0.372         21.537        False
+7    right_pct_without_bio     19.20     19.355           0.807         19.208        False
+8  missing_age_band_swipes    578.00    578.000           0.000            NaN        False
+Hyderabad: {'accounts': 45, 'accounts_any_version': 45, 'profile_swipes_removed': 849, 'as_sender': 669, 'as_receiver': 627}
+Źródło wersji as-of: {'s': {'prior_version': 50932, 'first_version': 44086, 'users_current': 126}, 'r': {'prior_version': 88848, 'first_version': 5625, 'users_current': 671}, 'pair': {'prior_version': 47540, 'first_version': 46846, 'users_current': 758}}
+G18 (bio_length vs tekst): {'receiver_snapshots': 2195, 'share_mismatch': 0.020045558086560365, 'share_swipes_mismatch': 0.025718910283359958}
+Braki po filtrze Hyderabad: {'age_band_diff': 578, 'same_band': 578}
+
+Ending Cell 6------------------------------------------
+Executing:  25%|██▌       | 6/24 [00:02<00:07,  2.47cell/s]Executing Cell 7---------------------------------------
+Ending Cell 7------------------------------------------
+Executing Cell 8---------------------------------------
+<Figure size 1000x560 with 1 Axes>
+<Figure size 1000x560 with 1 Axes>
+<Figure size 1000x560 with 1 Axes>
+{'share_empty_swipes': np.float64(0.4498863599987195), 'share_cap_among_nonempty': 0.01737949762389681, 'bio_len_median_nonempty': 95.0, 'bio_len_iqr_nonempty': [50.0, 161.0]}
+
+Ending Cell 8------------------------------------------
+Executing:  33%|███▎      | 8/24 [00:03<00:07,  2.19cell/s]Executing Cell 9---------------------------------------
+Ending Cell 9------------------------------------------
+Executing Cell 10--------------------------------------
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+
+{'n_reps': 20,
+ 'n_ok': 12,
+ 'true_beta_bio': 0.15,
+ 'mean_beta_bio': 0.15946782022876246,
+ 'bias_beta_bio': 0.009467820228762469,
+ 'emp_sd_beta_bio': 0.05240716345188459,
+ 'mean_se_beta_bio': 0.04516109781386607,
+ 'coverage95_beta_bio': 0.9166666666666666,
+ 'true_var_sender': 1.5,
+ 'mean_var_sender': 1.4597092368449547,
+ 'true_var_receiver': 0.5,
+ 'mean_var_receiver': 0.5001974577153075,
+ 'mean_fit_s': 7.336773296197255,
+ 'optimizers': ["gradient_descent {'delta_rel_conv': 1e-08}",
+  'lbfgs',
+  "lbfgs {'delta_rel_conv': 1e-08}"]}
+Ending Cell 10-----------------------------------------
+Executing:  42%|████▏     | 10/24 [09:30<23:28, 100.61s/cell]Executing Cell 11--------------------------------------
+Ending Cell 11-----------------------------------------
+Executing Cell 12--------------------------------------
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+  model                  status      beta        se        or   or_lo95   or_hi95   or_lo90   or_hi90         p    mde_or             label
+0    M1  not_converged_or_no_se       NaN       NaN       NaN       NaN       NaN       NaN       NaN       NaN       NaN  brak oszacowania
+1    M2                      ok  0.122125  0.040187  1.129895  1.044313  1.222491  1.057622  1.207107  0.002374  1.119099      potwierdzony
+2    M3                      ok  0.172745  0.053581  1.188563  1.070074  1.320173  1.088294  1.298070  0.001264  1.161867      potwierdzony
+{'label_M1': 'brak oszacowania', 'label_M2': 'potwierdzony', 'label_M3': 'potwierdzony', 'final': 'potwierdzony (fallback: M2 jako model główny, bez kontroli popularności)', 'lme4': 'pominięty (brak Rscript)', 'ame_M2': {'ame_pp': 1.9014251377286537, 'se_pp': 0.6155227818247532, 'lo95_pp': 0.6950226441722834, 'hi95_pp': 3.107827631285024}}
+{'status': 'not_converged_or_no_se', 'optimizer': "lbfgs {'delta_rel_conv': 1e-08}", 'convergence_status': 2, 'n_iter': 27, 'time_s': 8.462459087371826, 'var_sender': 7.7698976897200325, 'var_receiver': 0.5592802217717461, 'var_sender_se': 0.4018941360371455, 'var_receiver_se': 0.03314457887706699, 'loglik': -27845.495884444972, 'attempts': [{'optimizer': 'lbfgs', 'convergence_status': 0, 'time_s': 6.481233358383179}, {'optimizer': 'gradient_descent', 'convergence_status': 0, 'time_s': 31.447845220565796}, {'optimizer': "gradient_descent {'delta_rel_conv': 1e-08}", 'convergence_status': 0, 'time_s': 52.702144622802734}, {'optimizer': "lbfgs {'delta_rel_conv': 1e-08}", 'convergence_status': 2, 'time_s': 8.462459087371826}]}
+{'n_obs_used': 76665, 'n_senders_used': 876, 'n_senders_dropped_all_same': 662, 'dropped_cols_no_within_var': ['const']}
+
+Ending Cell 12-----------------------------------------
+Executing:  50%|█████     | 12/24 [11:10<16:44, 83.71s/cell] Executing Cell 13--------------------------------------
+Ending Cell 13-----------------------------------------
+Executing Cell 14--------------------------------------
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+<Figure size 1000x560 with 1 Axes>
+  model  beta_log1p_len        se  or_doubling  or_doubling_lo95  or_doubling_hi95                  status    or_cap  or_cap_lo95  or_cap_hi95
+0    M1        0.127468       NaN     1.092375               NaN               NaN  not_converged_or_no_se  0.942022          NaN          NaN
+1    M2        0.044085  0.019438     1.031029          1.004159          1.058618                      ok  0.912061     0.689186     1.207012
+Ending Cell 14-----------------------------------------
+Executing:  58%|█████▊    | 14/24 [11:53<10:34, 63.50s/cell]Executing Cell 15--------------------------------------
+Ending Cell 15-----------------------------------------
+Executing Cell 16--------------------------------------
+<Figure size 1000x560 with 2 Axes>
+{'status': 'ok',
+ 'n_splits': 5,
+ 'n_boot': 1000,
+ 'logloss_base': 0.48846455871879096,
+ 'logloss_full': 0.48821782992778845,
+ 'auc_base': 0.6330933958874126,
+ 'auc_full': 0.6365218721093826,
+ 'd_logloss': -0.0002467287910025151,
+ 'd_logloss_lo95': -0.0005069151912649977,
+ 'd_logloss_hi95': -4.208206212134868e-06,
+ 'd_auc': 0.003428476221969956,
+ 'd_auc_lo95': 0.001887189041135301,
+ 'd_auc_hi95': 0.004987293913791978}
+Ending Cell 16-----------------------------------------
+Executing:  67%|██████▋   | 16/24 [12:40<06:46, 50.86s/cell]Executing Cell 17--------------------------------------
+Ending Cell 17-----------------------------------------
+Executing Cell 18--------------------------------------
+<Figure size 1000x560 with 1 Axes>
+{'funnel': {'receivers_in_sample': 1359,
+  'with_bio_text_change': 291,
+  'with_status_change': 128,
+  'swipes_on_status_changers': 11696,
+  'swipes_after_exclusions': 10865,
+  'swipes_eligible_receivers': 2179,
+  'with_min_swipes_each_side': 17,
+  'gate_threshold': 30,
+  'gate_passed': False,
+  'clean_only': False},
+ 'funnel_clean': {'receivers_in_sample': 1359,
+  'with_bio_text_change': 291,
+  'with_status_change': 65,
+  'swipes_on_status_changers': 5927,
+  'swipes_after_exclusions': 5476,
+  'swipes_eligible_receivers': 1170,
+  'with_min_swipes_each_side': 9,
+  'gate_threshold': 30,
+  'gate_passed': False,
+  'clean_only': True},
+ 'verdict': 'niemożliwe do zmierzenia tym projektem: 17 odbiorców < 30'}
+Ending Cell 18-----------------------------------------
+Executing:  75%|███████▌  | 18/24 [12:41<03:30, 35.10s/cell]Executing Cell 19--------------------------------------
+Ending Cell 19-----------------------------------------
+Executing Cell 20--------------------------------------
+/home/dominik/projects/wust/sem2/umc/src/rentfriends/h3a/models.py:430: RuntimeWarning: invalid value encountered in divide
+  [np.bincount(g, weights=w * X[:, j], minlength=G) / wsum for j in range(k)]
+
+<Figure size 1000x560 with 1 Axes>
+   spec model            status  n_obs  n_receivers      beta        se        or   or_lo95   or_hi95   or_lo90   or_hi90         p              label
+0    S1    M2                ok  76187         1273  0.129659  0.042934  1.138440  1.046560  1.238386  1.060815  1.221744  0.002528       potwierdzony
+1    S1    M3                ok  76187         1273  0.173842  0.053818  1.189868  1.070751  1.322236  1.089064  1.300002  0.001237       potwierdzony
+2   S2a    M2                ok  47373         1259  0.062101  0.046210  1.064070  0.971932  1.164942  0.986188  1.148102  0.178986  nierozstrzygający
+3   S2a    M3                ok  47373         1259  0.160162  0.060746  1.173701  1.041959  1.322101  1.062096  1.297034  0.008374       potwierdzony
+4   S2b    M2                ok  93717         1359  0.119265  0.039828  1.126669  1.042065  1.218142  1.055225  1.202950  0.002749       potwierdzony
+5   S2b    M3                ok  93717         1359  0.158561  0.055450  1.171824  1.051146  1.306356  1.069674  1.283728  0.004243       potwierdzony
+6    S3    M2                ok  94566         1390  0.120306  0.039918  1.127842  1.042965  1.219626  1.056167  1.204381  0.002580       potwierdzony
+7    S3    M3                ok  94566         1390  0.171553  0.053335  1.187147  1.069315  1.317963  1.087438  1.295998  0.001298       potwierdzony
+8    S4    M2                ok  93717         1359  0.122383  0.040247  1.130187  1.044460  1.222951  1.057790  1.207539  0.002360       potwierdzony
+9    S4    M3                ok  93717         1359  0.172088  0.053577  1.187783  1.069381  1.319294  1.087588  1.297208  0.001318       potwierdzony
+10   S5    M2                ok  93717         1359  0.126548  0.040637  1.134904  1.048018  1.228992  1.061525  1.213355  0.001845       potwierdzony
+11   S5    M3                ok  93717         1359  0.195797  0.051898  1.216280  1.098646  1.346509  1.116760  1.324668  0.000161       potwierdzony
+12   S6    M2                ok  93717         1359  0.122383  0.040230  1.130187  1.044494  1.222909  1.057820  1.207504  0.002350       potwierdzony
+13   S6    M3                ok  93717         1359  0.172933  0.053563  1.188787  1.070314  1.320373  1.088532  1.298275  0.001244       potwierdzony
+14   S7    M2                ok  93717         1359  0.116095  0.039452  1.123102  1.039531  1.213392  1.052535  1.198401  0.003254       potwierdzony
+15   S7    M3  failed_nonfinite  93717         1359       NaN       NaN       NaN       NaN       NaN       NaN       NaN       NaN   brak oszacowania
+{'senders_main': 1538, 'senders_ge10': 1134, 'all_right_ge10': 15, 'all_left_ge10': 328, 'senders_kept': 791}
+{'terms': ['has_bio:sender_sex=M', 'has_bio:sender_sex=O'], 'coef': [-0.18418900355795503, -0.10854758179858442], 'se': [0.06637274287019969, 0.18988734325491502], 'wald_chi2': 7.821730401806833, 'df': 2, 'p': 0.02002316950078277}
+
+Ending Cell 20-----------------------------------------
+Executing:  83%|████████▎ | 20/24 [13:01<01:49, 27.37s/cell]Executing Cell 21--------------------------------------
+Ending Cell 21-----------------------------------------
+Executing Cell 22--------------------------------------
+{'status': 'skipped', 'reason': 'Rscript not found'}
+
+Ending Cell 22-----------------------------------------
+Executing Cell 23--------------------------------------
+Ending Cell 23-----------------------------------------
+Executing Cell 24--------------------------------------
+<Figure size 1000x560 with 1 Axes>
+# H3a: wyniki (generowane automatycznie)
+
+Wygenerowano: 2026-11-02T21:23; poziom przebiegu: 1; SAMPLE_FRAC = 1.0; SEED = 20261102; margines praktycznego zera |log OR| ≤ 0,10.
+
+## Werdykt
+
+**Etykieta końcowa: potwierdzony (fallback: M2 jako model główny, bez kontroli popularności)**
+
+- M1 (GLMM, skrzyżowane efekty losowe): brak oszacowania
+- M2 (pooled logit, klastrowanie dwukierunkowe): potwierdzony
+- M3 (FE nadawcy, klastrowanie po odbiorcy; poza regułą): potwierdzony
+- lme4: skipped (Rscript not found)
+
+## Wynik główny (has_bio: bio odbiorcy niepuste vs puste)
+
+| Model | OR (95% CI; 90% CI) | β | SE | p | MDE OR | Etykieta |
+|---|---|---|---|---|---|---|
+| M1 | – (95% CI –––; 90% CI –––) | – | – | – | – | brak oszacowania |
+| M2 | 1,130 (95% CI 1,044–1,222; 90% CI 1,058–1,207) | 0,1221 | 0,0402 | 0,0024 | 1,119 | potwierdzony |
+| M3 | 1,189 (95% CI 1,070–1,320; 90% CI 1,088–1,298) | 0,1727 | 0,0536 | 0,0013 | 1,162 | potwierdzony |
+
+Średni efekt krańcowy (M2, populacyjny): 1,90 p.p. (95% CI 0,70–3,11 p.p.; SE z klastrowaniem dwukierunkowym, delta method).
+
+## Estymator M1: zbieżność i czasy
+
+- status: not_converged_or_no_se; optymalizator: lbfgs {'delta_rel_conv': 1e-08}; kod zbieżności GPBoost: 2 (0 = zbieżny); iteracje: 27; czas fitu: 8,5 s
+- wariancja efektu losowego nadawcy: 7,770 (SE 0,402); odbiorcy: 0,559 (SE 0,033); log-likelihood (Laplace): -27845,5
+- próby optymalizatorów: [{'optimizer': 'lbfgs', 'convergence_status': 0, 'time_s': 6.481233358383179}, {'optimizer': 'gradient_descent', 'convergence_status': 0, 'time_s': 31.447845220565796}, {'optimizer': "gradient_descent {'delta_rel_conv': 1e-08}", 'convergence_status': 0, 'time_s': 52.702144622802734}, {'optimizer': "lbfgs {'delta_rel_conv': 1e-08}", 'convergence_status': 2, 'time_s': 8.462459087371826}]
+- sanity check (symulacja na rzeczywistym designie, 12/20 fitów OK): β_bio prawdziwe 0,150, średnie 0,159, obciążenie 0,0095; SD empiryczne 0,0524 vs średni SE 0,0452; pokrycie 95% CI 0,92; wariancje 1,460/1,500 (nadawca), 0,500/0,500 (odbiorca)
+
+## Przepływ próby
+
+| krok                                            |   swipes |   prawe |   nadawcy |   odbiorcy |
+|:------------------------------------------------|---------:|--------:|----------:|-----------:|
+| Swipe'y na profile                              |    95144 |   19495 |      1583 |       1394 |
+| Po wykluczeniu Hyderabad (nadawca lub odbiorca) |    94295 |   19363 |      1544 |       1363 |
+| Po complete-case (zmienne modelu)               |    93717 |   19325 |      1538 |       1359 |
+
+Hyderabad: 45 kont; usuwa 849 swipe'ów na profile (jako nadawca 669, jako odbiorca 627).
+
+## M5: długość bio (drugorzędne, bez werdyktu)
+
+- M1: OR na podwojenie długości 1,092 (95% CI –––); OR dla sufitu 250 znaków 0,942 (95% CI –––)
+- M2: OR na podwojenie długości 1,031 (95% CI 1,004–1,059); OR dla sufitu 250 znaków 0,912 (95% CI 0,689–1,207)
+
+## M6: przyrost predykcyjny (opisowy)
+
+- ΔlogLoss = -2.47e-04 (95% CI -5.07e-04 do -4.21e-06); ΔAUC = 3.43e-03 (95% CI 1.89e-03 do 4.99e-03); AUC baseline 0,633. Wnioskowanie opiera się na regule z sekcji 7, nie na M6.
+
+## M4: analiza w obrębie odbiorcy
+
+- lejek: 1359 odbiorców → 291 ze zmianą tekstu bio → 128 ze zmianą pusty↔niepusty → 17 z ≥ 5 swipe'ami po każdej stronie (próg 30); wariant „bez zmian innych pól”: 9.
+- **niemożliwe do zmierzenia tym projektem: 17 odbiorców < 30**.
+
+## Analizy wrażliwości S1-S7
+
+| spec   | model   |   n_obs | OR (95% CI)                                    | label             |
+|:-------|:--------|--------:|:-----------------------------------------------|:------------------|
+| S1     | M2      |   76187 | 1,138 (95% CI 1,047–1,238; 90% CI 1,061–1,222) | potwierdzony      |
+| S1     | M3      |   76187 | 1,190 (95% CI 1,071–1,322; 90% CI 1,089–1,300) | potwierdzony      |
+| S2a    | M2      |   47373 | 1,064 (95% CI 0,972–1,165; 90% CI 0,986–1,148) | nierozstrzygający |
+| S2a    | M3      |   47373 | 1,174 (95% CI 1,042–1,322; 90% CI 1,062–1,297) | potwierdzony      |
+| S2b    | M2      |   93717 | 1,127 (95% CI 1,042–1,218; 90% CI 1,055–1,203) | potwierdzony      |
+| S2b    | M3      |   93717 | 1,172 (95% CI 1,051–1,306; 90% CI 1,070–1,284) | potwierdzony      |
+| S3     | M2      |   94566 | 1,128 (95% CI 1,043–1,220; 90% CI 1,056–1,204) | potwierdzony      |
+| S3     | M3      |   94566 | 1,187 (95% CI 1,069–1,318; 90% CI 1,087–1,296) | potwierdzony      |
+| S4     | M2      |   93717 | 1,130 (95% CI 1,044–1,223; 90% CI 1,058–1,208) | potwierdzony      |
+| S4     | M3      |   93717 | 1,188 (95% CI 1,069–1,319; 90% CI 1,088–1,297) | potwierdzony      |
+| S5     | M2      |   93717 | 1,135 (95% CI 1,048–1,229; 90% CI 1,062–1,213) | potwierdzony      |
+| S5     | M3      |   93717 | 1,216 (95% CI 1,099–1,347; 90% CI 1,117–1,325) | potwierdzony      |
+| S6     | M2      |   93717 | 1,130 (95% CI 1,044–1,223; 90% CI 1,058–1,208) | potwierdzony      |
+| S6     | M3      |   93717 | 1,189 (95% CI 1,070–1,320; 90% CI 1,089–1,298) | potwierdzony      |
+| S7     | M2      |   93717 | 1,123 (95% CI 1,040–1,213; 90% CI 1,053–1,198) | potwierdzony      |
+| S7     | M3      |   93717 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
+
+Flagi wrażliwości: S2a: różne etykiety między estymatorami (nierozstrzygający; potwierdzony) | S7: różne etykiety między estymatorami (brak oszacowania; potwierdzony) | etykieta M2 inna niż w specyfikacji głównej w: S2a
+
+## S8: płeć nadawcy
+
+- F: M2 1,259 (95% CI 1,133–1,399; 90% CI 1,152–1,376) [potwierdzony]; M3 1,307 (95% CI 1,145–1,493; 90% CI 1,169–1,462) [potwierdzony]
+- M: M2 1,031 (95% CI 0,937–1,134; 90% CI 0,951–1,117) [nierozstrzygający]; M3 1,089 (95% CI 0,973–1,218; 90% CI 0,991–1,196) [nierozstrzygający]
+- O: pominięte (za mało danych: 28 nadawców, 355 prawych)
+- test interakcji has_bio × płeć nadawcy (Wald, df = 2): χ² = 7,82, p = 0,0200
+
+## Kontrola zgodności z kartą M1
+
+| miara                   |    karta |      asof |   odchylenie_pct |   bieżący_users | flaga_>1pct   |
+|:------------------------|---------:|----------:|-----------------:|----------------:|:--------------|
+| profile_swipes          | 95144    | 95144     |            0     |         nan     | False         |
+| right_swipes            | 19495    | 19495     |            0     |         nan     | False         |
+| right_share_pct         |    20.49 |    20.49  |           -0     |         nan     | False         |
+| swipers                 |  1583    |  1583     |            0     |         nan     | False         |
+| users                   |  2065    |  2065     |            0     |         nan     | False         |
+| swipes_with_bio         | 52371    | 52297     |           -0.141 |       52371     | False         |
+| right_pct_with_bio      |    21.5  |    21.42  |           -0.372 |          21.537 | False         |
+| right_pct_without_bio   |    19.2  |    19.355 |            0.807 |          19.208 | False         |
+| missing_age_band_swipes |   578    |   578     |            0     |         nan     | False         |
+
+## Decyzje oznaczone [default agenta]
+
+- D-H3a-2 Gałąź `banacchini/h3-notebook` zamiast `h3a-notebook` [default agenta]
+- D-H3a-4 Kilka wersji jednego dnia [default agenta]
+- D-H3a-5 `asof_source` na poziomie pary [default agenta]
+- D-H3a-6 Cztery polskie etykiety tagów spoza mapowania [default agenta]
+- D-H3a-8 G18: rozbieżność `bio_length` [default agenta]
+- D-H3a-9 GPBoost 1.8: SE, intercept, optymalizatory [default agenta]
+- D-H3a-10 Standaryzacja i kategorie referencyjne [default agenta]
+- D-H3a-11 Separacja i współliniowość w designie [default agenta]
+- D-H3a-12 M2: własna implementacja CGM i AME [default agenta]
+- D-H3a-13 M3: logit z FE nadawcy, profilowany Newton [default agenta]
+- D-H3a-14 M5: dwie specyfikacje długości [default agenta]
+- D-H3a-15 M6 [default agenta]
+- D-H3a-16 M4: definicje bramki [default agenta]
+- D-H3a-17 S1 [default agenta]
+- D-H3a-18 S7 bez `profile_completeness` [default agenta]
+- D-H3a-19 S8 [default agenta]
+- D-H3a-20 Sanity check GLMM [default agenta]
+- D-H3a-21 Prywatność wyników [default agenta]
+- D-H3a-22 Wykresy opisowe [default agenta]
+- D-H3a-25 Timeout i cache [default agenta]
+
+## Ograniczenia, które muszą towarzyszyć wynikowi
+
+- Związek ≠ przyczynowość: wynik opisuje współwystępowanie bio i prawego swipe'a w obserwowanej ekspozycji, nie efekt napisania bio.
+- Brak zdjęć: popularność odbiorcy jest kontrolowana tylko jako efekt losowy (M1); założenie niezależności efektu losowego od has_bio jest wątłe (zdjęcia i staranność profilu mogą iść w parze).
+- Ekspozycja przez feed: nie znamy algorytmu rankingu i filtrów; kto komu się wyświetla, może zależeć od profilu (także od bio).
+- Czas tylko w dniach: wersja profilu przypisana regułą as-of (D7); swipe'y z dnia zmiany są przypisane do wersji sprzed dnia.
+- Próba samoselekcyjna i jednorodna (studenci, głównie 18-20 lat, kilka miast); brak uogólnienia na wszystkich szukających współlokatora. Match ≠ najem.
+- Pola stylu życia mają duże braki (74-81% w 5 z 7 pól); `profile_completeness` jest więc grubą miarą staranności profilu.
+- Mapowanie tagów (`interests_mapping.csv`) nie jest zrecenzowane przez człowieka; liczba tagów jest prowizoryczna (stąd S6).
+- Widoczność bio na karcie profilu: informacja od Dominika, brak potwierdzenia dostawcy.
+
+
+Ending Cell 24-----------------------------------------
+Executing: 100%|██████████| 24/24 [13:01<00:00, 14.61s/cell]Executing: 100%|██████████| 24/24 [13:04<00:00, 32.67s/cell]
+Input Notebook:  notebooks/H3a.ipynb
+Output Notebook: notebooks/H3a-rendered.ipynb
+Working directory: .
+Executing:   0%|          | 0/24 [00:00<?, ?cell/s][IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+Executing notebook with kernel: python3
+Executing Cell 1---------------------------------------
+Ending Cell 1------------------------------------------
+Executing:   4%|▍         | 1/24 [00:00<00:13,  1.72cell/s]Executing Cell 2---------------------------------------
+Ending Cell 2------------------------------------------
+Executing Cell 3---------------------------------------
+Ending Cell 3------------------------------------------
+Executing Cell 4---------------------------------------
+Ending Cell 4------------------------------------------
+Executing:  17%|█▋        | 4/24 [00:01<00:08,  2.47cell/s]Executing Cell 5---------------------------------------
+Ending Cell 5------------------------------------------
+Executing Cell 6---------------------------------------
+<Figure size 1000x560 with 1 Axes>
+                                              krok  swipes  prawe  nadawcy  odbiorcy
+0                               Swipe'y na profile   95144  19495     1583      1394
+1  Po wykluczeniu Hyderabad (nadawca lub odbiorca)   94295  19363     1544      1363
+2                Po complete-case (zmienne modelu)   93717  19325     1538      1359
+                     miara     karta       asof  odchylenie_pct  bieżący_users  flaga_>1pct
+0           profile_swipes  95144.00  95144.000           0.000            NaN        False
+1             right_swipes  19495.00  19495.000           0.000            NaN        False
+2          right_share_pct     20.49     20.490          -0.000            NaN        False
+3                  swipers   1583.00   1583.000           0.000            NaN        False
+4                    users   2065.00   2065.000           0.000            NaN        False
+5          swipes_with_bio  52371.00  52297.000          -0.141      52371.000        False
+6       right_pct_with_bio     21.50     21.420          -0.372         21.537        False
+7    right_pct_without_bio     19.20     19.355           0.807         19.208        False
+8  missing_age_band_swipes    578.00    578.000           0.000            NaN        False
+Hyderabad: {'accounts': 45, 'accounts_any_version': 45, 'profile_swipes_removed': 849, 'as_sender': 669, 'as_receiver': 627}
+Źródło wersji as-of: {'s': {'prior_version': 50932, 'first_version': 44086, 'users_current': 126}, 'r': {'prior_version': 88848, 'first_version': 5625, 'users_current': 671}, 'pair': {'prior_version': 47540, 'first_version': 46846, 'users_current': 758}}
+G18 (bio_length vs tekst): {'receiver_snapshots': 2195, 'share_mismatch': 0.020045558086560365, 'share_swipes_mismatch': 0.025718910283359958}
+Braki po filtrze Hyderabad: {'age_band_diff': 578, 'same_band': 578}
+
+Ending Cell 6------------------------------------------
+Executing:  25%|██▌       | 6/24 [00:02<00:07,  2.49cell/s]Executing Cell 7---------------------------------------
+Ending Cell 7------------------------------------------
+Executing Cell 8---------------------------------------
+<Figure size 1000x560 with 1 Axes>
+<Figure size 1000x560 with 1 Axes>
+<Figure size 1000x560 with 1 Axes>
+{'share_empty_swipes': np.float64(0.4498863599987195), 'share_cap_among_nonempty': 0.01737949762389681, 'bio_len_median_nonempty': 95.0, 'bio_len_iqr_nonempty': [50.0, 161.0]}
+
+Ending Cell 8------------------------------------------
+Executing:  33%|███▎      | 8/24 [00:03<00:06,  2.31cell/s]Executing Cell 9---------------------------------------
+Ending Cell 9------------------------------------------
+Executing Cell 10--------------------------------------
+{'n_reps': 20,
+ 'n_ok': 12,
+ 'true_beta_bio': 0.15,
+ 'mean_beta_bio': 0.15946782022876246,
+ 'bias_beta_bio': 0.009467820228762469,
+ 'emp_sd_beta_bio': 0.05240716345188459,
+ 'mean_se_beta_bio': 0.04516109781386607,
+ 'coverage95_beta_bio': 0.9166666666666666,
+ 'true_var_sender': 1.5,
+ 'mean_var_sender': 1.4597092368449547,
+ 'true_var_receiver': 0.5,
+ 'mean_var_receiver': 0.5001974577153075,
+ 'mean_fit_s': 7.336773296197255,
+ 'optimizers': ["gradient_descent {'delta_rel_conv': 1e-08}",
+  'lbfgs',
+  "lbfgs {'delta_rel_conv': 1e-08}"]}
+Ending Cell 10-----------------------------------------
+Executing:  42%|████▏     | 10/24 [00:03<00:04,  3.08cell/s]Executing Cell 11--------------------------------------
+Ending Cell 11-----------------------------------------
+Executing Cell 12--------------------------------------
+  model                  status      beta        se        or   or_lo95   or_hi95   or_lo90   or_hi90         p    mde_or             label
+0    M1  not_converged_or_no_se       NaN       NaN       NaN       NaN       NaN       NaN       NaN       NaN       NaN  brak oszacowania
+1    M2                      ok  0.122125  0.040187  1.129895  1.044313  1.222491  1.057622  1.207107  0.002374  1.119099      potwierdzony
+2    M3                      ok  0.172745  0.053581  1.188563  1.070074  1.320173  1.088294  1.298070  0.001264  1.161867      potwierdzony
+{'label_M1': 'brak oszacowania', 'label_M2': 'potwierdzony', 'label_M3': 'potwierdzony', 'final': 'potwierdzony (fallback: M2 jako model główny, bez kontroli popularności)', 'lme4': 'pominięty (brak Rscript)', 'ame_M2': {'ame_pp': 1.9014251377286537, 'se_pp': 0.6155227818247532, 'lo95_pp': 0.6950226441722834, 'hi95_pp': 3.107827631285024}}
+{'status': 'not_converged_or_no_se', 'optimizer': "lbfgs {'delta_rel_conv': 1e-08}", 'convergence_status': 2, 'n_iter': 27, 'time_s': 8.462459087371826, 'var_sender': 7.7698976897200325, 'var_receiver': 0.5592802217717461, 'var_sender_se': 0.4018941360371455, 'var_receiver_se': 0.03314457887706699, 'loglik': -27845.495884444972, 'attempts': [{'optimizer': 'lbfgs', 'convergence_status': 0, 'time_s': 6.481233358383179}, {'optimizer': 'gradient_descent', 'convergence_status': 0, 'time_s': 31.447845220565796}, {'optimizer': "gradient_descent {'delta_rel_conv': 1e-08}", 'convergence_status': 0, 'time_s': 52.702144622802734}, {'optimizer': "lbfgs {'delta_rel_conv': 1e-08}", 'convergence_status': 2, 'time_s': 8.462459087371826}]}
+{'n_obs_used': 76665, 'n_senders_used': 876, 'n_senders_dropped_all_same': 662, 'dropped_cols_no_within_var': ['const']}
+
+Ending Cell 12-----------------------------------------
+Executing:  50%|█████     | 12/24 [00:03<00:02,  4.17cell/s]Executing Cell 13--------------------------------------
+Ending Cell 13-----------------------------------------
+Executing Cell 14--------------------------------------
+<Figure size 1000x560 with 1 Axes>
+  model  beta_log1p_len        se  or_doubling  or_doubling_lo95  or_doubling_hi95                  status    or_cap  or_cap_lo95  or_cap_hi95
+0    M1        0.127468       NaN     1.092375               NaN               NaN  not_converged_or_no_se  0.942022          NaN          NaN
+1    M2        0.044085  0.019438     1.031029          1.004159          1.058618                      ok  0.912061     0.689186     1.207012
+Ending Cell 14-----------------------------------------
+Executing:  58%|█████▊    | 14/24 [00:04<00:02,  4.30cell/s]Executing Cell 15--------------------------------------
+Ending Cell 15-----------------------------------------
+Executing Cell 16--------------------------------------
+<Figure size 1000x560 with 2 Axes>
+{'status': 'ok',
+ 'n_splits': 5,
+ 'n_boot': 1000,
+ 'logloss_base': 0.48846455871879096,
+ 'logloss_full': 0.48821782992778845,
+ 'auc_base': 0.6330933958874126,
+ 'auc_full': 0.6365218721093826,
+ 'd_logloss': -0.0002467287910025151,
+ 'd_logloss_lo95': -0.0005069151912649977,
+ 'd_logloss_hi95': -4.208206212134868e-06,
+ 'd_auc': 0.003428476221969956,
+ 'd_auc_lo95': 0.001887189041135301,
+ 'd_auc_hi95': 0.004987293913791978}
+Ending Cell 16-----------------------------------------
+Executing:  67%|██████▋   | 16/24 [00:04<00:01,  4.52cell/s]Executing Cell 17--------------------------------------
+Ending Cell 17-----------------------------------------
+Executing Cell 18--------------------------------------
+<Figure size 1000x560 with 1 Axes>
+{'funnel': {'receivers_in_sample': 1359,
+  'with_bio_text_change': 291,
+  'with_status_change': 128,
+  'swipes_on_status_changers': 11696,
+  'swipes_after_exclusions': 10865,
+  'swipes_eligible_receivers': 2179,
+  'with_min_swipes_each_side': 17,
+  'gate_threshold': 30,
+  'gate_passed': False,
+  'clean_only': False},
+ 'funnel_clean': {'receivers_in_sample': 1359,
+  'with_bio_text_change': 291,
+  'with_status_change': 65,
+  'swipes_on_status_changers': 5927,
+  'swipes_after_exclusions': 5476,
+  'swipes_eligible_receivers': 1170,
+  'with_min_swipes_each_side': 9,
+  'gate_threshold': 30,
+  'gate_passed': False,
+  'clean_only': True},
+ 'verdict': 'niemożliwe do zmierzenia tym projektem: 17 odbiorców < 30'}
+Ending Cell 18-----------------------------------------
+Executing:  75%|███████▌  | 18/24 [00:05<00:01,  4.37cell/s]Executing Cell 19--------------------------------------
+Ending Cell 19-----------------------------------------
+Executing Cell 20--------------------------------------
+<Figure size 1000x560 with 1 Axes>
+   spec model            status  n_obs  n_receivers      beta        se        or   or_lo95   or_hi95   or_lo90   or_hi90         p              label
+0    S1    M2                ok  76187         1273  0.129659  0.042934  1.138440  1.046560  1.238386  1.060815  1.221744  0.002528       potwierdzony
+1    S1    M3                ok  76187         1273  0.173842  0.053818  1.189868  1.070751  1.322236  1.089064  1.300002  0.001237       potwierdzony
+2   S2a    M2                ok  47373         1259  0.062101  0.046210  1.064070  0.971932  1.164942  0.986188  1.148102  0.178986  nierozstrzygający
+3   S2a    M3                ok  47373         1259  0.160162  0.060746  1.173701  1.041959  1.322101  1.062096  1.297034  0.008374       potwierdzony
+4   S2b    M2                ok  93717         1359  0.119265  0.039828  1.126669  1.042065  1.218142  1.055225  1.202950  0.002749       potwierdzony
+5   S2b    M3                ok  93717         1359  0.158561  0.055450  1.171824  1.051146  1.306356  1.069674  1.283728  0.004243       potwierdzony
+6    S3    M2                ok  94566         1390  0.120306  0.039918  1.127842  1.042965  1.219626  1.056167  1.204381  0.002580       potwierdzony
+7    S3    M3                ok  94566         1390  0.171553  0.053335  1.187147  1.069315  1.317963  1.087438  1.295998  0.001298       potwierdzony
+8    S4    M2                ok  93717         1359  0.122383  0.040247  1.130187  1.044460  1.222951  1.057790  1.207539  0.002360       potwierdzony
+9    S4    M3                ok  93717         1359  0.172088  0.053577  1.187783  1.069381  1.319294  1.087588  1.297208  0.001318       potwierdzony
+10   S5    M2                ok  93717         1359  0.126548  0.040637  1.134904  1.048018  1.228992  1.061525  1.213355  0.001845       potwierdzony
+11   S5    M3                ok  93717         1359  0.195797  0.051898  1.216280  1.098646  1.346509  1.116760  1.324668  0.000161       potwierdzony
+12   S6    M2                ok  93717         1359  0.122383  0.040230  1.130187  1.044494  1.222909  1.057820  1.207504  0.002350       potwierdzony
+13   S6    M3                ok  93717         1359  0.172933  0.053563  1.188787  1.070314  1.320373  1.088532  1.298275  0.001244       potwierdzony
+14   S7    M2                ok  93717         1359  0.116095  0.039452  1.123102  1.039531  1.213392  1.052535  1.198401  0.003254       potwierdzony
+15   S7    M3  failed_nonfinite  93717         1359       NaN       NaN       NaN       NaN       NaN       NaN       NaN       NaN   brak oszacowania
+{'senders_main': 1538, 'senders_ge10': 1134, 'all_right_ge10': 15, 'all_left_ge10': 328, 'senders_kept': 791}
+{'terms': ['has_bio:sender_sex=M', 'has_bio:sender_sex=O'], 'coef': [-0.18418900355795503, -0.10854758179858442], 'se': [0.06637274287019969, 0.18988734325491502], 'wald_chi2': 7.821730401806833, 'df': 2, 'p': 0.02002316950078277}
+
+Ending Cell 20-----------------------------------------
+Executing:  83%|████████▎ | 20/24 [00:07<00:01,  2.12cell/s]Executing Cell 21--------------------------------------
+Ending Cell 21-----------------------------------------
+Executing Cell 22--------------------------------------
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminated since its line search has not been successful. This can mean that no further progress is possible (the parameters are then essentially a local optimum) or that the optimizer has stopped prematurely. Consider restarting the optimizer by setting the parameter 'max_num_restarts_lbfgs' to a value larger than 0 (see also 'cold_restart_lbfgs') to check this and to potentially find a better optimum
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default for parallel computations. Run gpboost.tune_num_threads() to benchmark different numbers of threads and to select a tuned default for this session. For the best performance, try different values of 'num_parallel_threads' on the 'GPModel' you are using.
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+[GPBoost] [Warning] Cannot calculate standard deviations for regression coefficients since the approximated Hessian is not positive definite
+
+<Figure size 1000x560 with 1 Axes>
+   spec model                  status  n_obs  n_receivers  beta  se  or  or_lo95  or_hi95  or_lo90  or_hi90   p             label
+0    S1    M1  not_converged_or_no_se  76187         1273   NaN NaN NaN      NaN      NaN      NaN      NaN NaN  brak oszacowania
+7    S3    M1  not_converged_or_no_se  94566         1390   NaN NaN NaN      NaN      NaN      NaN      NaN NaN  brak oszacowania
+10   S4    M1  not_converged_or_no_se  93717         1359   NaN NaN NaN      NaN      NaN      NaN      NaN NaN  brak oszacowania
+17   S7    M1  not_converged_or_no_se  93717         1359   NaN NaN NaN      NaN      NaN      NaN      NaN NaN  brak oszacowania
+{'status': 'skipped', 'reason': 'Rscript not found'}
+
+Ending Cell 22-----------------------------------------
+Executing:  92%|█████████▏| 22/24 [07:09<02:09, 64.91s/cell]Executing Cell 23--------------------------------------
+Ending Cell 23-----------------------------------------
+Executing Cell 24--------------------------------------
+<Figure size 1000x560 with 1 Axes>
+# H3a: wyniki (generowane automatycznie)
+
+Wygenerowano: 2026-11-02T21:31; poziom przebiegu: 2; SAMPLE_FRAC = 1.0; SEED = 20261102; margines praktycznego zera |log OR| ≤ 0,10.
+
+## Werdykt
+
+**Etykieta końcowa: potwierdzony (fallback: M2 jako model główny, bez kontroli popularności)**
+
+- M1 (GLMM, skrzyżowane efekty losowe): brak oszacowania
+- M2 (pooled logit, klastrowanie dwukierunkowe): potwierdzony
+- M3 (FE nadawcy, klastrowanie po odbiorcy; poza regułą): potwierdzony
+- lme4: skipped (Rscript not found)
+
+## Wynik główny (has_bio: bio odbiorcy niepuste vs puste)
+
+| Model | OR (95% CI; 90% CI) | β | SE | p | MDE OR | Etykieta |
+|---|---|---|---|---|---|---|
+| M1 | – (95% CI –––; 90% CI –––) | – | – | – | – | brak oszacowania |
+| M2 | 1,130 (95% CI 1,044–1,222; 90% CI 1,058–1,207) | 0,1221 | 0,0402 | 0,0024 | 1,119 | potwierdzony |
+| M3 | 1,189 (95% CI 1,070–1,320; 90% CI 1,088–1,298) | 0,1727 | 0,0536 | 0,0013 | 1,162 | potwierdzony |
+
+Średni efekt krańcowy (M2, populacyjny): 1,90 p.p. (95% CI 0,70–3,11 p.p.; SE z klastrowaniem dwukierunkowym, delta method).
+
+## Estymator M1: zbieżność i czasy
+
+- status: not_converged_or_no_se; optymalizator: lbfgs {'delta_rel_conv': 1e-08}; kod zbieżności GPBoost: 2 (0 = zbieżny); iteracje: 27; czas fitu: 8,5 s
+- wariancja efektu losowego nadawcy: 7,770 (SE 0,402); odbiorcy: 0,559 (SE 0,033); log-likelihood (Laplace): -27845,5
+- próby optymalizatorów: [{'optimizer': 'lbfgs', 'convergence_status': 0, 'time_s': 6.481233358383179}, {'optimizer': 'gradient_descent', 'convergence_status': 0, 'time_s': 31.447845220565796}, {'optimizer': "gradient_descent {'delta_rel_conv': 1e-08}", 'convergence_status': 0, 'time_s': 52.702144622802734}, {'optimizer': "lbfgs {'delta_rel_conv': 1e-08}", 'convergence_status': 2, 'time_s': 8.462459087371826}]
+- sanity check (symulacja na rzeczywistym designie, 12/20 fitów OK): β_bio prawdziwe 0,150, średnie 0,159, obciążenie 0,0095; SD empiryczne 0,0524 vs średni SE 0,0452; pokrycie 95% CI 0,92; wariancje 1,460/1,500 (nadawca), 0,500/0,500 (odbiorca)
+
+## Przepływ próby
+
+| krok                                            |   swipes |   prawe |   nadawcy |   odbiorcy |
+|:------------------------------------------------|---------:|--------:|----------:|-----------:|
+| Swipe'y na profile                              |    95144 |   19495 |      1583 |       1394 |
+| Po wykluczeniu Hyderabad (nadawca lub odbiorca) |    94295 |   19363 |      1544 |       1363 |
+| Po complete-case (zmienne modelu)               |    93717 |   19325 |      1538 |       1359 |
+
+Hyderabad: 45 kont; usuwa 849 swipe'ów na profile (jako nadawca 669, jako odbiorca 627).
+
+## M5: długość bio (drugorzędne, bez werdyktu)
+
+- M1: OR na podwojenie długości 1,092 (95% CI –––); OR dla sufitu 250 znaków 0,942 (95% CI –––)
+- M2: OR na podwojenie długości 1,031 (95% CI 1,004–1,059); OR dla sufitu 250 znaków 0,912 (95% CI 0,689–1,207)
+
+## M6: przyrost predykcyjny (opisowy)
+
+- ΔlogLoss = -2.47e-04 (95% CI -5.07e-04 do -4.21e-06); ΔAUC = 3.43e-03 (95% CI 1.89e-03 do 4.99e-03); AUC baseline 0,633. Wnioskowanie opiera się na regule z sekcji 7, nie na M6.
+
+## M4: analiza w obrębie odbiorcy
+
+- lejek: 1359 odbiorców → 291 ze zmianą tekstu bio → 128 ze zmianą pusty↔niepusty → 17 z ≥ 5 swipe'ami po każdej stronie (próg 30); wariant „bez zmian innych pól”: 9.
+- **niemożliwe do zmierzenia tym projektem: 17 odbiorców < 30**.
+
+## Analizy wrażliwości S1-S7
+
+| spec   | model   |   n_obs | OR (95% CI)                                    | label             |
+|:-------|:--------|--------:|:-----------------------------------------------|:------------------|
+| S1     | M1      |   76187 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
+| S1     | M2      |   76187 | 1,138 (95% CI 1,047–1,238; 90% CI 1,061–1,222) | potwierdzony      |
+| S1     | M3      |   76187 | 1,190 (95% CI 1,071–1,322; 90% CI 1,089–1,300) | potwierdzony      |
+| S2a    | M2      |   47373 | 1,064 (95% CI 0,972–1,165; 90% CI 0,986–1,148) | nierozstrzygający |
+| S2a    | M3      |   47373 | 1,174 (95% CI 1,042–1,322; 90% CI 1,062–1,297) | potwierdzony      |
+| S2b    | M2      |   93717 | 1,127 (95% CI 1,042–1,218; 90% CI 1,055–1,203) | potwierdzony      |
+| S2b    | M3      |   93717 | 1,172 (95% CI 1,051–1,306; 90% CI 1,070–1,284) | potwierdzony      |
+| S3     | M1      |   94566 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
+| S3     | M2      |   94566 | 1,128 (95% CI 1,043–1,220; 90% CI 1,056–1,204) | potwierdzony      |
+| S3     | M3      |   94566 | 1,187 (95% CI 1,069–1,318; 90% CI 1,087–1,296) | potwierdzony      |
+| S4     | M1      |   93717 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
+| S4     | M2      |   93717 | 1,130 (95% CI 1,044–1,223; 90% CI 1,058–1,208) | potwierdzony      |
+| S4     | M3      |   93717 | 1,188 (95% CI 1,069–1,319; 90% CI 1,088–1,297) | potwierdzony      |
+| S5     | M2      |   93717 | 1,135 (95% CI 1,048–1,229; 90% CI 1,062–1,213) | potwierdzony      |
+| S5     | M3      |   93717 | 1,216 (95% CI 1,099–1,347; 90% CI 1,117–1,325) | potwierdzony      |
+| S6     | M2      |   93717 | 1,130 (95% CI 1,044–1,223; 90% CI 1,058–1,208) | potwierdzony      |
+| S6     | M3      |   93717 | 1,189 (95% CI 1,070–1,320; 90% CI 1,089–1,298) | potwierdzony      |
+| S7     | M1      |   93717 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
+| S7     | M2      |   93717 | 1,123 (95% CI 1,040–1,213; 90% CI 1,053–1,198) | potwierdzony      |
+| S7     | M3      |   93717 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
+
+Flagi wrażliwości: S1: różne etykiety między estymatorami (brak oszacowania; potwierdzony) | S2a: różne etykiety między estymatorami (nierozstrzygający; potwierdzony) | S3: różne etykiety między estymatorami (brak oszacowania; potwierdzony) | S4: różne etykiety między estymatorami (brak oszacowania; potwierdzony) | S7: różne etykiety między estymatorami (brak oszacowania; potwierdzony) | etykieta M2 inna niż w specyfikacji głównej w: S2a
+
+## S8: płeć nadawcy
+
+- F: M2 1,259 (95% CI 1,133–1,399; 90% CI 1,152–1,376) [potwierdzony]; M3 1,307 (95% CI 1,145–1,493; 90% CI 1,169–1,462) [potwierdzony]
+- M: M2 1,031 (95% CI 0,937–1,134; 90% CI 0,951–1,117) [nierozstrzygający]; M3 1,089 (95% CI 0,973–1,218; 90% CI 0,991–1,196) [nierozstrzygający]
+- O: pominięte (za mało danych: 28 nadawców, 355 prawych)
+- test interakcji has_bio × płeć nadawcy (Wald, df = 2): χ² = 7,82, p = 0,0200
+
+## Kontrola zgodności z kartą M1
+
+| miara                   |    karta |      asof |   odchylenie_pct |   bieżący_users | flaga_>1pct   |
+|:------------------------|---------:|----------:|-----------------:|----------------:|:--------------|
+| profile_swipes          | 95144    | 95144     |            0     |         nan     | False         |
+| right_swipes            | 19495    | 19495     |            0     |         nan     | False         |
+| right_share_pct         |    20.49 |    20.49  |           -0     |         nan     | False         |
+| swipers                 |  1583    |  1583     |            0     |         nan     | False         |
+| users                   |  2065    |  2065     |            0     |         nan     | False         |
+| swipes_with_bio         | 52371    | 52297     |           -0.141 |       52371     | False         |
+| right_pct_with_bio      |    21.5  |    21.42  |           -0.372 |          21.537 | False         |
+| right_pct_without_bio   |    19.2  |    19.355 |            0.807 |          19.208 | False         |
+| missing_age_band_swipes |   578    |   578     |            0     |         nan     | False         |
+
+## Decyzje oznaczone [default agenta]
+
+- D-H3a-2 Gałąź `banacchini/h3-notebook` zamiast `h3a-notebook` [default agenta]
+- D-H3a-4 Kilka wersji jednego dnia [default agenta]
+- D-H3a-5 `asof_source` na poziomie pary [default agenta]
+- D-H3a-6 Cztery polskie etykiety tagów spoza mapowania [default agenta]
+- D-H3a-8 G18: rozbieżność `bio_length` [default agenta]
+- D-H3a-9 GPBoost 1.8: SE, intercept, optymalizatory [default agenta]
+- D-H3a-10 Standaryzacja i kategorie referencyjne [default agenta]
+- D-H3a-11 Separacja i współliniowość w designie [default agenta]
+- D-H3a-12 M2: własna implementacja CGM i AME [default agenta]
+- D-H3a-13 M3: logit z FE nadawcy, profilowany Newton [default agenta]
+- D-H3a-14 M5: dwie specyfikacje długości [default agenta]
+- D-H3a-15 M6 [default agenta]
+- D-H3a-16 M4: definicje bramki [default agenta]
+- D-H3a-17 S1 [default agenta]
+- D-H3a-18 S7 bez `profile_completeness` [default agenta]
+- D-H3a-19 S8 [default agenta]
+- D-H3a-20 Sanity check GLMM [default agenta]
+- D-H3a-21 Prywatność wyników [default agenta]
+- D-H3a-22 Wykresy opisowe [default agenta]
+- D-H3a-25 Timeout i cache [default agenta]
+
+## Ograniczenia, które muszą towarzyszyć wynikowi
+
+- Związek ≠ przyczynowość: wynik opisuje współwystępowanie bio i prawego swipe'a w obserwowanej ekspozycji, nie efekt napisania bio.
+- Brak zdjęć: popularność odbiorcy jest kontrolowana tylko jako efekt losowy (M1); założenie niezależności efektu losowego od has_bio jest wątłe (zdjęcia i staranność profilu mogą iść w parze).
+- Ekspozycja przez feed: nie znamy algorytmu rankingu i filtrów; kto komu się wyświetla, może zależeć od profilu (także od bio).
+- Czas tylko w dniach: wersja profilu przypisana regułą as-of (D7); swipe'y z dnia zmiany są przypisane do wersji sprzed dnia.
+- Próba samoselekcyjna i jednorodna (studenci, głównie 18-20 lat, kilka miast); brak uogólnienia na wszystkich szukających współlokatora. Match ≠ najem.
+- Pola stylu życia mają duże braki (74-81% w 5 z 7 pól); `profile_completeness` jest więc grubą miarą staranności profilu.
+- Mapowanie tagów (`interests_mapping.csv`) nie jest zrecenzowane przez człowieka; liczba tagów jest prowizoryczna (stąd S6).
+- Widoczność bio na karcie profilu: informacja od Dominika, brak potwierdzenia dostawcy.
+
+
+Ending Cell 24-----------------------------------------
+Executing: 100%|██████████| 24/24 [07:10<00:00, 45.24s/cell]Executing: 100%|██████████| 24/24 [07:12<00:00, 18.04s/cell]
+H3A DONE 2026-11-02T21:31:04+01:00

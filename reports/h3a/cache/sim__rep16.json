@@ -1,0 +1,96 @@
+{
+ "optimizer": "lbfgs {'delta_rel_conv': 1e-08}",
+ "convergence_status": 0,
+ "n_iter": 16,
+ "time_s": 6.279324293136597,
+ "names": [
+  "const",
+  "has_bio",
+  "age_band_diff",
+  "same_band",
+  "profile_completeness",
+  "tag_count_receiver",
+  "tag_zero",
+  "tag_cap",
+  "sex_pair=F→M",
+  "sex_pair=F→O",
+  "sex_pair=M→F",
+  "sex_pair=M→M",
+  "sex_pair=M→O",
+  "sex_pair=O→F",
+  "sex_pair=O→M",
+  "sex_pair=O→O",
+  "same_city=different",
+  "same_city=unknown"
+ ],
+ "coef": [
+  -1.7756847231483055,
+  0.24230380540983257,
+  -0.020304027044125324,
+  0.03897916975250964,
+  -0.012479676881120963,
+  0.015449410469620188,
+  0.15138040968648284,
+  -0.05131059387319774,
+  -0.007302861985365865,
+  0.2362529548503549,
+  -0.04891042537098278,
+  -0.044466880773621216,
+  0.19174742044275095,
+  -0.3273471961259012,
+  -0.2688586059973821,
+  -0.03817604486457224,
+  -0.13362705464200933,
+  -0.0877516879537475
+ ],
+ "se": [
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null
+ ],
+ "var_sender": 1.4262321161474334,
+ "var_receiver": 0.4890184224393654,
+ "var_sender_se": 0.07190756212268792,
+ "var_receiver_se": 0.026549054983785843,
+ "loglik": -40831.588775283235,
+ "status": "not_converged_or_no_se",
+ "attempts": [
+  {
+   "optimizer": "lbfgs",
+   "convergence_status": 0,
+   "time_s": 5.850481986999512
+  },
+  {
+   "optimizer": "gradient_descent",
+   "convergence_status": 0,
+   "time_s": 10.648178577423096
+  },
+  {
+   "optimizer": "gradient_descent {'delta_rel_conv': 1e-08}",
+   "convergence_status": 0,
+   "time_s": 15.409603834152222
+  },
+  {
+   "optimizer": "lbfgs {'delta_rel_conv': 1e-08}",
+   "convergence_status": 0,
+   "time_s": 6.279324293136597
+  }
+ ],
+ "_fingerprint": "c918771aa66b8e02",
+ "_wall_s": 39.12661552429199
+}
