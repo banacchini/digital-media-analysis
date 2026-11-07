@@ -1,0 +1,2158 @@
+
+❯ /model
+  ⎿  Set model to Opus 5.5 and saved as your default for new sessions
+
+❯ @docs/prompts/h3a-notebook-prompt.md ZMIANA: Po przejściu pilota uruchom
+  pełne badania tak, żeby trwały max 3 godziny. Nie czekaj na akceptację.
+  ⎿  Read docs/prompts/h3a-notebook-prompt.md (292 lines)
+
+● Zaczynam od rozpoznania repozytorium i istniejących artefaktów.
+
+  Read 1 file, ran 3 shell commands (ctrl+o to expand)
+
+● Status: przeczytałem prompt i dokumenty repo (codebook, plan M1/D7, data
+  statement, disclosure). Teraz sprawdzam dane (tylko schemat i agregaty, bez
+  wierszy) i środowisko (gpboost, R).
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Brak R (cross-check lme4 zostanie pominięty i zalogowany). Dodaję zależności.
+
+● Bash(uv add gpboost statsmodels scikit-learn scipy papermill nbformat
+      nbconvert 2>&1 | tail -5 && uv pip list 2>/dev/null | grep -iE
+      "gpboost|statsmodels|papermill|s…)
+  ⎿   + tqdm==4.70.1
+      + urllib3==2.8.0
+      + webencodings==0.6.1
+     … +9 lines (ctrl+o to expand)
+  ⎿  Updated pyproject.toml (+7 -0)
+       6  requires-python = ">=3.13"
+       7  dependencies = [
+       8      "fastparquet>=2026.9.0",
+       9 +    "gpboost>=1.8.0",                                          
+      10      "ipykernel>=7.4.0",
+      11      "matplotlib>=3.11.2",
+      12 +    "nbconvert>=7.17.2",                                       
+      13 +    "nbformat>=5.11.1",                                        
+      14      "pandas>=3.0.6",
+      15 +    "papermill>=2.7.0",                                        
+      16      "pyarrow>=26.0.0",
+      17 +    "scikit-learn>=1.9.1",                                     
+      18 +    "scipy>=1.18.1",                                           
+      19      "seaborn>=0.13.2",
+      20 +    "statsmodels>=0.15.0",                                     
+      21  ]
+      22  
+      23  [dependency-groups]
+  ⎿  … 1 more file changed
+
+  Searched for 1 pattern, ran 4 shell commands (ctrl+o to expand)
+
+● Status: zależności zainstalowane (gpboost 1.8.0, statsmodels 0.15, papermill).
+  Sprawdzam API GPBoost (SE, intercept), potem piszę moduł.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Teraz szybki eksperyment GPBoost na danych symulowanych: intercept, czas fitu,
+  odtwarzanie parametrów.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Intercept trzeba dodać jawnie (GPBoost ostrzega). Przy n=95k SE dla
+  współczynników bywają NaN (Hessian nie PD) — testuję inne optymalizatory.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Plan estymacji ustalony: lbfgs → przy NaN SE fallback na gradient_descent.
+  Sprawdzam teraz klastrowanie dwukierunkowe i margeff w statsmodels.
+
+  Ran 3 shell commands (ctrl+o to expand)
+
+● Konwencje GPBoost potwierdzone (status 0 = zbieżność). Zerkam na STYLEGUIDE
+  (wykresy) i ładuję skill dataviz przed pisaniem kodu wykresów.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Skill(dataviz)
+  ⎿  Successfully loaded skill
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Paleta: #0072B2, #D55E00, #009E73 + szary #595959 dla linii odniesienia
+  (walidator: PASS). Piszę moduł src/rentfriends/h3a/.
+
+● Write(src/rentfriends/h3a/__init__.py)
+  ⎿  Wrote 5 lines to src/rentfriends/h3a/__init__.py
+      1 """H3a analysis: receiver bio effort (empty vs non-empty, length)
+         and right swipes.
+      2
+      3 Only aggregated results leave this package (see `privacy.py`). Bi
+        o text and user keys are
+      4 used in memory to build features and are never printed or written
+         to disk.
+      5 """
+
+● Write(src/rentfriends/h3a/config.py)
+  ⎿  Wrote 44 lines to src/rentfriends/h3a/config.py
+       1 """Constants and defaults for the H3a analysis (see docs/prompts
+         /h3a-notebook-prompt.md)."""
+       2
+       3 from __future__ import annotations
+       4
+       5 from pathlib import Path
+       6
+       7 SEED = 20261102
+       8 MARGIN = 0.10
+       9 DATA_DIR = Path("data/processed")
+     … +35 lines (ctrl+o to expand)
+
+● Write(src/rentfriends/h3a/variables.py)
+  ⎿  Wrote 125 lines to src/rentfriends/h3a/variables.py
+       1 """Pure feature definitions for H3a (one profile snapshot -> num
+         bers; no I/O)."""
+       2
+       3 from __future__ import annotations
+       4
+       5 import json
+       6
+       7 import numpy as np
+       8 import pandas as pd
+       9
+     … +116 lines (ctrl+o to expand)
+
+● Write(src/rentfriends/h3a/data.py)
+  ⎿  Wrote 251 lines to src/rentfriends/h3a/data.py
+       1 """Loading, as-of profile assignment (D7) and the swipe-level H3
+         a analysis table.
+       2
+       3 The analysis table lives only in memory. User keys are replaced
+         by integer codes before
+       4 modelling; nothing row-level is written to disk.
+       5 """
+       6
+       7 from __future__ import annotations
+       8
+     … +243 lines (ctrl+o to expand)
+
+● Szybki test budowy tabeli na pełnych danych (tylko agregaty):
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Update(src/rentfriends/h3a/variables.py)
+  ⎿  Added 4 lines, removed 1 line
+      87  def completeness(df: pd.DataFrame, fields: list[str] | None = N
+          one) -> pd.Series:
+      88      """Share of non-missing lifestyle fields (empty strings cou
+          nt as missing)."""
+      89      fields = fields or LIFESTYLE_FIELDS
+      90 -    present = df[fields].notna() & (df[fields].astype("string")
+         -.fillna("").str.len() > 0)                                     
+      90 +    present = pd.DataFrame(                                    
+      91 +        {f: df[f].astype("string").fillna("").str.strip().str.l
+         +en() > 0 for f in fields},                                     
+      92 +        index=df.index,                                        
+      93 +    )                                                          
+      94      return present.mean(axis=1)
+      95  
+      96  
+  Ran 1 shell command (ctrl+o to expand)
+
+● Bash(sed -i 's/version = merged\["version"\].to_numpy(dtype=float)/version =
+      merged["version"].to_numpy(dtype=float, copy=True)/; s/first_v =
+      pd.Series(users_arr).ma…)
+  ⎿  95144 19495 20.49 1583
+     {'prior_version': 50932, 'first_version': 44086, 'users_current': 126}
+      {'prior_version': 88848, 'first_version': 5625, 'users_current': 671}
+     … +15 lines (ctrl+o to expand)
+  ⎿  Updated src/rentfriends/h3a/data.py (+2 -2)
+      88          direction="backward",
+      89      ).sort_values("_row")
+      90  
+      91 -    version = merged["version"].to_numpy(dtype=float)          
+      91 +    version = merged["version"].to_numpy(dtype=float, copy=True
+         +)                                                              
+      92      source = np.where(np.isnan(version), "first_version", "prio
+          r_version").astype(object)
+      93      users_arr = merged[user_col].to_numpy()
+      94 -    first_v = pd.Series(users_arr).map(first).to_numpy(dtype=fl
+         -oat)                                                           
+      94 +    first_v = pd.Series(users_arr).map(first).to_numpy(dtype=fl
+         +oat, copy=True)                                                
+      95      no_prior = np.isnan(version)
+      96      version[no_prior] = first_v[no_prior]
+      97      no_hist = np.isnan(version)
+
+● Zgodność z kartą: 95 144 / 19 495 (20,49%) / 1583 swipujących — identyczne;
+  578 braków age_band — identyczne. Teraz classify, tłumienie i modele.
+
+● Write(src/rentfriends/h3a/classify.py)
+  ⎿  Wrote 76 lines to src/rentfriends/h3a/classify.py
+       1 """Pre-registered verdict rule for H3a (prompt section 7). Do no
+         t change after seeing results."""
+       2
+       3 from __future__ import annotations
+       4
+       5 import math
+       6
+       7 from scipy.stats import norm
+       8
+       9 Z95 = norm.ppf(0.975)
+     … +67 lines (ctrl+o to expand)
+
+● Write(src/rentfriends/h3a/privacy.py)
+  ⎿  Wrote 30 lines to src/rentfriends/h3a/privacy.py
+      1 """Small-cell suppression for every table that leaves the analysi
+        s."""
+      2
+      3 from __future__ import annotations
+      4
+      5 import numpy as np
+      6 import pandas as pd
+      7
+      8 from rentfriends.h3a.config import MIN_CELL_USERS
+      9
+     … +21 lines (ctrl+o to expand)
+
+● Write(src/rentfriends/h3a/models.py)
+  ⎿  Wrote 386 lines to src/rentfriends/h3a/models.py
+       1 """Estimators for H3a: GLMM (GPBoost), pooled logit with two-way
+          clustering, sender-FE logit.
+       2
+       3 All fit functions take plain numpy arrays and return JSON-serial
+         isable dicts with aggregated
+       4 results only (coefficients, standard errors, variances, timings,
+          status).
+       5 """
+       6
+       7 from __future__ import annotations
+     … +379 lines (ctrl+o to expand)
+
+● Write(src/rentfriends/h3a/runner.py)
+  ⎿  Wrote 129 lines to src/rentfriends/h3a/runner.py
+       1 """Timeouts, on-disk cache of aggregated model results, and the
+         step timing log."""
+       2
+       3 from __future__ import annotations
+       4
+       5 import csv
+       6 import hashlib
+       7 import json
+       8 import multiprocessing as mp
+       9 import time
+     … +120 lines (ctrl+o to expand)
+
+● Write(src/rentfriends/h3a/figs.py)
+  ⎿  Wrote 126 lines to src/rentfriends/h3a/figs.py
+       1 """Slide-ready figure style and export helpers (PNG 300 dpi + SV
+         G + aggregated CSV)."""
+       2
+       3 from __future__ import annotations
+       4
+       5 import csv
+       6 from datetime import date
+       7 from pathlib import Path
+       8
+       9 import matplotlib as mpl
+     … +117 lines (ctrl+o to expand)
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src/rentfriends/h3a/data.py)
+  ⎿  Added 1 line
+      175          f.columns = [f"{side}_{c}" for c in f.columns]
+      176          out = pd.concat([out, f], axis=1)
+      177          out[f"{side}_asof_source"] = asof["asof_source"].to_nu
+           mpy()
+      178 +        out[f"{side}_version"] = asof["version"].to_numpy()   
+      179          out[f"{side}_key"] = prof[col].to_numpy()
+      180  
+      181      hyd = hyderabad_users(raw)
+
+● Write(src/rentfriends/h3a/m4.py)
+  ⎿  Wrote 121 lines to src/rentfriends/h3a/m4.py
+       1 """M4: within-receiver analysis of bio status changes, with a fe
+         asibility gate."""
+       2
+       3 from __future__ import annotations
+       4
+       5 import numpy as np
+       6 import pandas as pd
+       7
+       8 from rentfriends.h3a import variables as v
+       9 from rentfriends.h3a.data import PROFILE_COLS
+     … +112 lines (ctrl+o to expand)
+
+● Status: moduły danych, modeli, M4, wykresów i cache gotowe. Sprawdzam lejek M4
+  na pełnych danych i porównuję moje SE z statsmodels, zanim napiszę testy i
+  notebook.
+
+● Bash(uv add tabulate >/dev/null 2>&1; uv run python - <<'EOF'
+      import numpy as np, pandas as pd, statsmodels.api as sm, warnings…)
+  ⎿  main 93717 1538 1359
+     {'receivers_in_sample': 1359, 'with_bio_text_change': 291, 'with_statu
+     s_change': 128, 'swipes_on_status_changers': 11696, 'swipes_after_excl
+     … +12 lines (ctrl+o to expand)
+  ⎿  Updated pyproject.toml (+1 -0)
+      18      "scipy>=1.18.1",
+      19      "seaborn>=0.13.2",
+      20      "statsmodels>=0.15.0",
+      21 +    "tabulate>=0.10.0",                                        
+      22  ]
+      23  
+      24  [dependency-groups]
+  ⎿  Updated uv.lock (+11 -0)
+      1857      { name = "scipy" },
+      1858      { name = "seaborn" },
+      1859      { name = "statsmodels" },
+      1860 +    { name = "tabulate" },                                   
+      1861  ]
+      1862  
+      1863  [package.dev-dependencies]
+     ...
+      1882      { name = "scipy", specifier = ">=1.18.1" },
+      1883      { name = "seaborn", specifier = ">=0.13.2" },
+      1884      { name = "statsmodels", specifier = ">=0.15.0" },
+      1885 +    { name = "tabulate", specifier = ">=0.10.0" },           
+      1886  ]
+      1887  
+      1888  [package.metadata.requires-dev]
+     ...
+      2280  ]
+      2281  
+      2282  [[package]]
+      2283 +name = "tabulate"                                            
+      2284 +version = "0.10.0"                                           
+      2285 +source = { registry = "https://pypi.org/simple" }            
+      2286 +sdist = { url = "https://files.pythonhosted.org/packages/46/5
+           +8/8c37dea7bbf769b20d58e7ace7e5edfe65b849442b00ffcdd56be88697c
+           +6/tabulate-0.10.0.tar.gz", hash = "sha256:e2cfde8f79420f6deef
+           +fdeda9aaec3b6bc5abce947655d17ac662b126e48a60d", size = 91754,
+           + upload-time = "2026-03-04T18:55:34.402Z" }                  
+      2287 +wheels = [                                                   
+      2288 +    { url = "https://files.pythonhosted.org/packages/99/55/db
+           +07de81b5c630da5cbf5c7df646580ca26dfaefa593667fc6f2fe016d2e/ta
+           +bulate-0.10.0-py3-none-any.whl", hash = "sha256:f0b0622e56733
+           +5c8fabaaa659f1b33bcb6ddfe2e496071b743aa113f8774f2d3", size = 
+           +39814, upload-time = "2026-03-04T18:55:31.284Z" },           
+      2289 +]                                                            
+      2290 +                                                             
+      2291 +[[package]]                                                  
+      2292  name = "tenacity"
+      2293  version = "9.2.1"
+      2294  source = { registry = "https://pypi.org/simple" }
+
+● CGM dwukierunkowe i AME zgadzają się ze statsmodels co do ~1e-15. Bramka M4 na
+  pełnych danych: 17 odbiorców < 30 → M4 nie będzie estymowane. Poprawiam
+  drobiazg w lejku i piszę testy.
+
+● Bash(python3 - <<'EOF'
+      p="src/rentfriends/h3a/m4.py"; s=open(p).read()…)
+  ⎿  72:    n_after_excl = len(s)
+     84:        "swipes_after_exclusions": int(n_after_excl),
+     85:        "swipes_eligible_receivers": int(len(s)),
+  ⎿  Updated src/rentfriends/h3a/m4.py (+3 -1)
+      69          [(k, d) in change_days for k, d in zip(s["r_key"], s["d
+          ay"], strict=True)], dtype=bool
+      70      )
+      71      s = s[~on_change_day]
+      72 +    n_after_excl = len(s)                                      
+      73      per = s.groupby(["r_key", "has_bio"]).size().unstack(fill_v
+          alue=0)
+      74      for c in (0, 1):
+      75          if c not in per.columns:
+     ...
+      81          "with_bio_text_change": len(with_text),
+      82          "with_status_change": len(with_status),
+      83          "swipes_on_status_changers": n_before,
+      83 -        "swipes_after_exclusions": int(len(s)) if len(ok) else 
+         -0,                                                             
+      84 +        "swipes_after_exclusions": int(n_after_excl),          
+      85 +        "swipes_eligible_receivers": int(len(s)),              
+      86          "with_min_swipes_each_side": len(ok),
+      87          "gate_threshold": GATE_MIN_RECEIVERS,
+      88          "gate_passed": bool(len(ok) >= GATE_MIN_RECEIVERS),
+
+● Teraz testy (classify, bio_empty, as-of, tłumienie, FE-logit vs dummies):
+
+● Write(tests/test_h3a.py)
+  ⎿  Wrote 176 lines to tests/test_h3a.py
+       1 """Unit tests for the H3a module (synthetic data only, no access
+          to data/)."""
+       2
+       3 import math
+       4
+       5 import numpy as np
+       6 import pandas as pd
+       7 import pytest
+       8
+       9 from rentfriends.h3a import classify as C
+     … +167 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Update(src/rentfriends/h3a/variables.py)
+  ⎿  Added 2 lines, removed 1 line
+      123      s = sender_city.astype("string")
+      124      r = receiver_city.astype("string")
+      125      unknown = s.isna() | r.isna() | (s == CITY_UNKNOWN) | (r =
+           = CITY_UNKNOWN)
+      126 -    out = pd.Series(np.where(s == r, "same", "different"), ind
+          -ex=s.index, dtype="object")                                   
+      126 +    eq = (s == r).fillna(False).to_numpy(dtype=bool)          
+      127 +    out = pd.Series(np.where(eq, "same", "different"), index=s
+          +.index, dtype="object")                                       
+      128      out[unknown.fillna(True).to_numpy()] = "unknown"
+      129      return out
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● 17 testów przechodzi (w tym FE-logit = logit z dummies + SE klastrowane, rtol
+  1e-6). Teraz M6 (predykcja), symulacja sanity i główny pipeline.
+
+● Write(src/rentfriends/h3a/predictive.py)
+  ⎿  Wrote 77 lines to src/rentfriends/h3a/predictive.py
+       1 """M6: descriptive predictive increment of has_bio (GroupKFold b
+         y sender, sender bootstrap)."""
+       2
+       3 from __future__ import annotations
+       4
+       5 import numpy as np
+       6 from scipy.special import expit
+       7 from sklearn.metrics import roc_auc_score
+       8 from sklearn.model_selection import GroupKFold
+       9
+     … +68 lines (ctrl+o to expand)
+
+● Write(src/rentfriends/h3a/sim.py)
+  ⎿  Wrote 64 lines to src/rentfriends/h3a/sim.py
+      1 """GLMM sanity check: simulate y on the real design with known pa
+        rameters and refit."""
+      2
+      3 from __future__ import annotations
+      4
+      5 import numpy as np
+      6 from scipy.special import expit
+      7
+      8 from rentfriends.h3a.classify import Z95
+      9 from rentfriends.h3a.models import fit_glmm
+     … +55 lines (ctrl+o to expand)
+
+● Write(src/rentfriends/h3a/analysis.py)
+  ⎿  Wrote 805 lines to src/rentfriends/h3a/analysis.py
+       1 """H3a pipeline steps called from notebooks/H3a.ipynb. Outputs a
+         re aggregates only."""
+       2
+       3 from __future__ import annotations
+       4
+       5 import json
+       6 import math
+       7 import platform
+       8 import shutil
+       9 import subprocess
+     … +796 lines (ctrl+o to expand)
+
+● Bash(python3 - <<'EOF'
+      p="src/rentfriends/h3a/analysis.py"; s=open(p).read()…)  ⎿  Updated src/rentfriends/h3a/analysis.py (+31 -5)
+      748  
+      749  
+      750  def forest(ctx: Ctx) -> pd.DataFrame:
+      751 -    rows = [r for r in ctx.res.get("main_table", [])]         
+      752 -    for r in rows:                                            
+      753 -        r = r | {"spec": "main"}                              
+      751      main_rows = [dict(r, spec="main") for r in ctx.res.get("ma
+           in_table", [])]
+      752      sens = ctx.res.get("sensitivity_table", [])
+      753      allrows = pd.DataFrame(main_rows + sens)
+     ...
+      789  
+      790  
+      791  def lme4_crosscheck(ctx: Ctx) -> dict:
+      792 +    """glmer(nAGQ = 0) with crossed (1|sender) + (1|receiver) 
+          +on the main spec, if R is there.                              
+      793 +                                                              
+      794 +    Data go through a parquet file in a temporary directory th
+          +at is removed afterwards.                                     
+      795 +    Note: this branch could not be tested in the build environ
+          +ment (no R installed).                                        
+      796 +    """                                                       
+      797 +    import tempfile                                           
+      798 +                                                              
+      799      if not shutil.which("Rscript"):
+      800          res = {"status": "skipped", "reason": "Rscript not fou
+           nd"}
+      801      else:
+      802          chk = subprocess.run(["Rscript", "-e", "library(lme4);
+            library(arrow)"],
+      803                               capture_output=True, text=True)
+      800 -        res = ({"status": "skipped", "reason": "lme4/arrow mis
+          -sing"} if chk.returncode                                      
+      801 -               else {"status": "not_implemented_here"})       
+      804 +        if chk.returncode:                                    
+      805 +            res = {"status": "skipped", "reason": "R packages 
+          +lme4/arrow missing"}                                          
+      806 +        else:                                                 
+      807 +            X, y, s, r, names, _ = _arrays(ctx.main, M.Spec())
+      808 +            cols = [f"x{i}" for i in range(1, len(names))]    
+      809 +            df = pd.DataFrame(X[:, 1:], columns=cols).assign(y
+          +=y, sender=s, receiver=r)                                     
+      810 +            with tempfile.TemporaryDirectory() as td:         
+      811 +                pq = Path(td) / "d.parquet"                   
+      812 +                df.to_parquet(pq)                             
+      813 +                form = "y ~ " + " + ".join(cols) + " + (1|send
+          +er) + (1|receiver)"                                           
+      814 +                code = (f"library(lme4); library(arrow); d <- 
+          +read_parquet('{pq}'); "                                       
+      815 +                        "d$sender <- factor(d$sender); d$recei
+          +ver <- factor(d$receiver); "                                  
+      816 +                        f"m <- glmer({form}, data = d, family 
+          += binomial, nAGQ = 0); "                                      
+      817 +                        "s <- summary(m)$coefficients; "      
+     … 13 more lines (ctrl+o to expand)
+
+● Teraz generator summary.md:
+
+● Write(src/rentfriends/h3a/summary.py)
+  ⎿  Wrote 203 lines to src/rentfriends/h3a/summary.py
+       1 """Automatic `summary.md` for H3a (Polish, aggregates only)."""
+       2
+       3 from __future__ import annotations
+       4
+       5 import math
+       6 import re
+       7 from datetime import datetime
+       8 from pathlib import Path
+       9
+      10 import pandas as pd
+     … +193 lines (ctrl+o to expand)
+
+● Notebook (cienki) i skrypt uruchomieniowy:
+
+● Bash(mkdir -p scripts docs/h3a && cat > /tmp/claude-1000/-home-dominik-project
+      s-wust-sem2-umc/adc0b112-301d-4379-a5a2-8b3036330a91/scratchpad/make_nb.py
+      <<'PYEOF'
+      im…)
+  ⎿  ok
+  ⎿  Created notebooks/H3a.ipynb (+284 -0)
+        1 +{                                                             
+        2 + "cells": [                                                   
+        3 +  {                                                           
+        4 +   "cell_type": "markdown",                                   
+        5 +   "id": "fae64ede",                                          
+        6 +   "metadata": {},                                            
+        7 +   "source": [                                                
+        8 +    "# H3a: staranność bio odbiorcy a prawy swipe\n",         
+        9 +    "\n",                                                     
+       10 +    "Parametryzowany notebook (papermill). Logika: `src/rentfr
+          +iends/h3a/`. Specyfikacja:\n",                                
+       11 +    "`docs/prompts/h3a-notebook-prompt.md`; decyzje: `docs/h3a
+          +/decision-log.md`.\n",                                        
+       12 +    "\n",                                                     
+       13 +    "**Prywatność:** notebook wyświetla i zapisuje wyłącznie a
+          +gregaty (komórki < 5 użytkowników\n",                         
+       14 +    "wytłumione). Tekst bio, `user_key` ani wiersze tabel nie 
+          +są nigdzie pokazywane.\n",                                    
+       15 +    "\n",                                                     
+       16 +    "Wnioski dotyczą **związku**, nie przyczynowości; match ≠ 
+          +najem."                                                       
+       17 +   ]                                                          
+       18 +  },                                                          
+       19 +  {                                                           
+       20 +   "cell_type": "code",                                       
+       21 +   "execution_count": null,                                   
+       22 +   "id": "79a0c28a",                                          
+       23 +   "metadata": {                                              
+       24 +    "tags": [                                                 
+       25 +     "parameters"                                             
+       26 +    ]                                                         
+       27 +   },                                                         
+       28 +   "outputs": [],                                             
+       29 +   "source": [                                                
+       30 +    "# Parameters (papermill)\n",                             
+       31 +    "RUN_LEVEL = 1\n",                                        
+       32 +    "SAMPLE_FRAC = 1.0\n",                                    
+       33 +    "SAMPLE_BY = \"sender\"\n",                               
+       34 +    "SEED = 20261102\n",                                      
+       35 +    "MARGIN = 0.10\n",                                        
+       36 +    "FIT_TIMEOUT_MIN = 90\n",                                 
+       37 +    "REPORT_DIR = \"reports/h3a\""                            
+       38 +   ]                                                          
+       39 +  },                                                          
+       40 +  {                                                           
+     … 244 more lines (ctrl+o to expand)
+  ⎿  Created scripts/run_h3a.sh (+28 -0)
+       1 +#!/usr/bin/env bash                                            
+       2 +# Run the H3a notebook headless with papermill, in the backgrou
+         +nd (nohup).                                                    
+       3 +#                                                              
+       4 +#   scripts/run_h3a.sh [RUN_LEVEL] [SAMPLE_FRAC] [REPORT_DIR] [
+         +OUTPUT_NOTEBOOK]                                               
+       5 +#                                                              
+       6 +# Defaults: level 1, full data, reports/h3a, notebooks/H3a-rend
+         +ered.ipynb.                                                    
+       7 +# Smoke test: scripts/run_h3a.sh 1 0.1 reports/h3a_smoke report
+         +s/h3a_smoke/H3a-smoke.ipynb                                    
+       8 +# Follow progress: tail -f <REPORT_DIR>/run.log ; timings: <REP
+         +ORT_DIR>/timings.csv                                           
+       9 +set -euo pipefail                                              
+      10 +cd "$(dirname "$0")/.."                                        
+      11 +                                                               
+      12 +LEVEL="${1:-1}"                                                
+      13 +FRAC="${2:-1.0}"                                               
+      14 +REPORT_DIR="${3:-reports/h3a}"                                 
+      15 +OUT_NB="${4:-notebooks/H3a-rendered.ipynb}"                    
+      16 +FOREGROUND="${H3A_FOREGROUND:-0}"                              
+      17 +                                                               
+      18 +mkdir -p "$REPORT_DIR"                                         
+      19 +CMD=(uv run papermill notebooks/H3a.ipynb "$OUT_NB"            
+      20 +     -p RUN_LEVEL "$LEVEL" -p SAMPLE_FRAC "$FRAC" -p REPORT_DIR
+         + "$REPORT_DIR"                                                 
+      21 +     --cwd . --log-output --progress-bar)                      
+      22 +                                                               
+      23 +if [[ "$FOREGROUND" == "1" ]]; then                            
+      24 +  "${CMD[@]}" 2>&1 | tee -a "$REPORT_DIR/run.log"              
+      25 +else                                                           
+      26 +  nohup "${CMD[@]}" >>"$REPORT_DIR/run.log" 2>&1 &             
+      27 +  echo "started PID $! (log: $REPORT_DIR/run.log)"             
+      28 +fi                                                             
+
+● Pilot (smoke test) na SAMPLE_FRAC=0.1:
+
+● Bash(printf '\n# H3a smoke-test outputs (pilot runs, not
+      results)\nreports/h3a_smoke/\n' >> .gitignore && rm -rf reports/h3a_smoke
+      && time H3A_FOREGROUND=1 scripts/r…)
+  ⎿  Input Notebook:  notebooks/H3a.ipynb
+     Output Notebook: reports/h3a_smoke/H3a-smoke.ipynb
+     Executing:   0%|          | 0/24 [00:00<?, ?cell/s][IPKernelApp] WARNI
+     … +48 lines (ctrl+o to expand)
+  ⎿  Updated .gitignore (+3 -0)
+      26  
+      27  
+      28  .idea/
+      29 +                                                               
+      30 +# H3a smoke-test outputs (pilot runs, not results)             
+      31 +reports/h3a_smoke/                                             
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Test na próbie 10% wykrył idealną separację rzadkiej kategorii sex_pair, co
+  powoduje osobliwy Hessian w M2/M3. Dodaję regułę usuwającą takie binarne
+  kolumny z designu dla wszystkich modeli i loguję to działanie.
+
+● Update(src/rentfriends/h3a/models.py)
+  ⎿  Added 16 lines, removed 1 line
+      111      # Drop constant non-intercept columns (absent levels in su
+           bsamples).
+      112      keep = [c for c in X.columns if c == "const" or X[c].std()
+            > 0]
+      113      meta["dropped_constant"] = [c for c in X.columns if c not 
+           in keep]
+      114 -    return X[keep], meta                                      
+      114 +    X = X[keep]                                               
+      115 +    # Drop binary indicators with complete separation (outcome
+          + constant where the indicator                                 
+      116 +    # is 1): their MLE does not exist and they make the logit 
+          +Hessian singular. The bio                                     
+      117 +    # variable itself is never dropped silently.              
+      118 +    y = t["y_right"].to_numpy()                               
+      119 +    sep = []                                                  
+      120 +    for c in X.columns:                                       
+      121 +        if c in ("const", "has_bio"):                         
+      122 +            continue                                          
+      123 +        x = X[c].to_numpy()                                   
+      124 +        if set(np.unique(x)) <= {0.0, 1.0}:                   
+      125 +            yy = y[x == 1]                                    
+      126 +            if len(yy) and (yy.min() == yy.max()):            
+      127 +                sep.append(c)                                 
+      128 +    meta["dropped_separated"] = sep                           
+      129 +    return X.drop(columns=sep), meta                          
+      130  
+      131  
+      132  def codes(s: pd.Series) -> np.ndarray:
+
+● Update(src/rentfriends/h3a/models.py)
+  ⎿  Added 2 lines, removed 1 line
+      398      if not res or "names" not in res or name not in res["names
+           "]:
+      399          return float("nan"), float("nan")
+      400      i = res["names"].index(name)
+      401 -    return float(res["coef"][i]), float(res["se"][i])         
+      401 +    b, se = res["coef"][i], res["se"][i]                      
+      402 +    return (float("nan") if b is None else float(b)), (float("
+          +nan") if se is None else float(se))                           
+
+● Bash(python3 - <<'EOF'
+      p="src/rentfriends/h3a/analysis.py"; s=open(p).read()…)
+  ⎿        2    1098 except pa.ArrowNotImplementedError as err:
+           1 -> 1099     raise TypeError(self._op_method_error_message(othe
+     r_original, op)) from err
+     … +23 lines (ctrl+o to expand)
+  ⎿  Updated src/rentfriends/h3a/analysis.py (+1 -0)
+      343      out["n_senders"] = int(s.max() + 1)
+      344      out["n_receivers"] = int(r.max() + 1)
+      345      out["dropped_constant"] = meta["dropped_constant"]
+      346 +    out["dropped_separated"] = meta.get("dropped_separated", [
+          +])                                                            
+      347      bio = "has_bio" if spec.bio_terms == "binary" and not spec
+           .drop_bio else None
+      348      if "M1" in which:
+      349          out["M1"] = ctx.runner.fit(f"{key}__M1", M.fit_glmm, X
+           , y, s, r, names, fp=fp)
+  ⎿  Updated src/rentfriends/h3a/models.py (+2 -1)
+      375      bread = np.linalg.inv((Xt * w[:, None]).T @ Xt)
+      376      U = Xt * (y - p)[:, None]
+      377      V = sandwich(bread, U, receiver, k + G)
+      378 +    finite = bool(np.all(np.isfinite(beta)) and np.all(np.isfi
+          +nite(np.diag(V))))                                            
+      379      return {
+      379 -        "status": "ok" if conv else "not_converged",          
+      380 +        "status": ("ok" if conv else "not_converged") if finit
+          +e else "failed_nonfinite",                                    
+      381          "n_iter": it + 1,
+      382          "names": nm,
+      383          "coef": beta.tolist(),
+
+● Bash(sed -i 's/{f"has_bio:sender_sex={lev}": t\["has_bio"\] \*
+      (t\["sender_sex"\] == lev)},/{f"has_bio:sender_sex={lev}":
+      t["has_bio"].to_numpy(float)\n…)
+  ⎿  106:                    {f"has_bio:sender_sex={lev}": t["has_bio"].to_
+     numpy(float)
+     107-                     * (t["sender_sex"] == lev).to_numpy(dtype=flo
+     … +21 lines (ctrl+o to expand)
+  ⎿  Updated src/rentfriends/h3a/models.py (+2 -1)
+      103                  continue
+      104              parts.append(
+      105                  pd.DataFrame(
+      106 -                    {f"has_bio:sender_sex={lev}": t["has_bio"]
+          - * (t["sender_sex"] == lev)},                                 
+      106 +                    {f"has_bio:sender_sex={lev}": t["has_bio"]
+          +.to_numpy(float)                                              
+      107 +                     * (t["sender_sex"] == lev).to_numpy(dtype
+          +=float, na_value=0.0)},                                       
+      108                      index=t.index,
+      109                  ).astype(float)
+      110              )
+
+● M3 zawodzi przez współliniowość — kolumny sex_pair dla danej płci nadawcy
+  sumują się do 1 w obrębie efektów stałych. Dodaję do M3 sekwencyjne usuwanie
+  kolumn liniowo zależnych od FE, z has_bio zawsze na pierwszym miejscu.
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src/rentfriends/h3a/models.py)
+  ⎿  Added 22 lines, removed 2 lines
+      333      ns = np.bincount(g, minlength=G)
+      334      # remove intercept and columns with no within-sender varia
+           tion
+      335      means = np.vstack([np.bincount(g, weights=X[:, j], minleng
+           th=G) / ns for j in range(X.shape[1])]).T
+      336 -    within_sd = np.sqrt(((X - means[g]) ** 2).mean(axis=0))   
+      337 -    cols = [j for j, nm in enumerate(names) if nm != "const" a
+          -nd within_sd[j] > 1e-10]                                      
+      336 +    Xd = X - means[g]                                         
+      337 +    # Keep columns in order (bio variable first) while they ad
+          +d within-sender variation that                                
+      338 +    # is not a linear combination of already kept columns (e.g
+          +. sex_pair levels of one                                      
+      339 +    # sender sex sum to 1 within a sender and are collinear wi
+          +th the FE).                                                   
+      340 +    order = sorted(range(len(names)), key=lambda j: (not names
+          +[j].startswith("has_bio"), j))                                
+      341 +    cols: list[int] = []                                      
+      342 +    for j in order:                                           
+      343 +        if names[j] == "const":                               
+      344 +            continue                                          
+      345 +        xj = Xd[:, j]                                         
+      346 +        nrm = np.linalg.norm(xj)                              
+      347 +        if nrm < 1e-8:                                        
+      348 +            continue                                          
+      349 +        if cols:                                              
+      350 +            Q = Xd[:, cols]                                   
+      351 +            coef, *_ = np.linalg.lstsq(Q, xj, rcond=None)     
+      352 +            resid = np.linalg.norm(xj - Q @ coef)             
+      353 +        else:                                                 
+      354 +            resid = nrm                                       
+      355 +        if resid > 1e-6 * nrm:                                
+      356 +            cols.append(j)                                    
+      357 +    cols.sort()                                               
+      358      X = X[:, cols]
+      359      nm = [names[j] for j in cols]
+      360      k = X.shape[1]
+
+● Bash(sed -i 's/            ha = np.bincount(g, weights=p \* (1 - p),
+      minlength=G)/            ha = np.maximum(np.bincount(g, weights=p * (1 -
+      p), minlength=G), 1e-30…)
+  ⎿  372:            ha = np.maximum(np.bincount(g, weights=p * (1 - p), mi
+     nlength=G), 1e-300)
+     .................
+     … +22 lines (ctrl+o to expand)
+  ⎿  Updated src/rentfriends/h3a/models.py (+1 -1)
+      369          for _ in range(50):
+      370              p = expit(xb + alpha[g])
+      371              ga = np.bincount(g, weights=y - p, minlength=G)
+      372 -            ha = np.bincount(g, weights=p * (1 - p), minlength
+          -=G)                                                           
+      372 +            ha = np.maximum(np.bincount(g, weights=p * (1 - p)
+          +, minlength=G), 1e-300)                                       
+      373              da = ga / ha
+      374              alpha += da
+      375              if np.max(np.abs(da)) < 1e-12:
+
+● M3 nadal nie zbiega. Debuguję bezpośrednio na tej samej próbie:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Znalazłem problem: sex_pair wchłania efekt główny płci nadawcy poprzez FE, co
+  dla nadawców O powoduje rozbieżność (kolumny O→F + O→M ≈ 1, identyfikowane
+  tylko przez kilku zmieniających płeć). Poprawię to w M3, kodując sex_pair jako
+  płeć odbiorcy w obrębie płci nadawcy, z referencją X→F dla każdej płci
+  nadawcy.
+
+● Bash(python3 - <<'EOF'
+      p="src/rentfriends/h3a/models.py"; s=open(p).read()…)
+  ⎿  ok 6
+     {'has_bio': np.float64(0.307), 'age_band_diff': np.float64(-0.365), 's
+     ame_band': np.float64(0.43), 'profile_completeness': np.float64(0.027)
+     … +6 lines (ctrl+o to expand)
+  ⎿  Updated src/rentfriends/h3a/models.py (+7 -1)
+      30      bio_terms: str = "binary"  # "binary" | "log_len" | "spline
+          " (M5, on has_bio == 1)
+      31      interaction_sender_sex: bool = False  # S8 interaction test
+      32      drop_bio: bool = False  # M6 baseline
+      33 +    fe_sender: bool = False  # M3: sex_pair coded as receiver s
+         +ex within sender sex                                           
+      34      extra: dict = field(default_factory=dict)
+      35  
+      36  
+     ...
+       92      cols[tz] = t[tz].astype(float)
+       93      cols[tcap] = t[tcap].astype(float)
+       94      parts.append(cols)
+       94 -    parts.append(_dummies(t["sex_pair"], "sex_pair", SEX_PAIR_
+          -REF))                                                         
+       95 +    sp = _dummies(t["sex_pair"], "sex_pair", SEX_PAIR_REF)    
+       96 +    if spec.fe_sender:                                        
+       97 +        # Sender FE absorb the sender-sex main effect; keep on
+          +ly receiver-sex contrasts within                              
+       98 +        # each sender sex (reference: receiver F for every sen
+          +der sex).                                                     
+       99 +        sp = sp[[c for c in sp.columns if not c.endswith("→F")
+          +]]                                                            
+      100 +    parts.append(sp)                                          
+      101      parts.append(_dummies(t["same_city"], "same_city", SAME_CI
+           TY_REF))
+      102      if spec.extended:
+      103          parts.append(_dummies(t["receiver_age_band"], "receive
+           r_age_band", "18-20"))
+  ⎿  Updated src/rentfriends/h3a/analysis.py (+6 -2)
+       8  import shutil
+       9  import subprocess
+      10  import sys
+      11 -from dataclasses import dataclass, field                       
+      11 +from dataclasses import dataclass, field, replace              
+      12  from importlib import metadata
+      13  from pathlib import Path
+      14  
+     ...
+      351          out["M2"] = ctx.runner.fit(f"{key}__M2", M.fit_pooled_
+           logit, X, y, s, r, names, bio,
+      352                                     fp=fp, timeout=False)
+      353      if "M3" in which:
+      354 -        out["M3"] = ctx.runner.fit(f"{key}__M3", M.fit_fe_logi
+          -t, X, y, s, r, names, fp=fp,                                  
+      354 +        spec3 = replace(spec, fe_sender=True)                 
+      355 +        X3, _, _, _, names3, meta3 = _arrays(df, spec3)       
+      356 +        fp3 = fingerprint(X3, y, s, r, extra={"spec": spec3.__
+          +dict__, "names": names3})                                     
+      357 +        out["M3"] = ctx.runner.fit(f"{key}__M3", M.fit_fe_logi
+          +t, X3, y, s, r, names3, fp=fp3,                               
+      358                                     timeout=False)
+      359 +        out["M3"]["dropped_separated_design"] = meta3.get("dro
+          +pped_separated", [])                                          
+      360      persist(ctx)
+      361      return out
+      362  
+
+● M3 zbiega w 6 iteracjach. Ponowny pilot:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Backgrounding after the current tool finishes…
+
+● Backgrounding cancelled — you have unsent text in the input. Send it
+  or clear it, then press ← again.
+
+● Pilot przechodzi end-to-end (32 s). Sprawdzam jeszcze ścieżkę poziomu 2 na
+  próbie oraz S7/M2 na pełnych danych:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● S7 na pełnych danych daje macierz osobliwą, najpewniej przez identyczny
+  wzorzec braków w polach stylu życia. Dodam w build_design ogólny mechanizm
+  usuwania kolumn dokładnie współliniowych, z logowaniem.
+
+● Bash(python3 - <<'EOF'
+      p="src/rentfriends/h3a/models.py"; s=open(p).read()…)
+  ⎿  False ok 7 [] [] 18
+     True ok 7 ['ls_smoking=Y'] ['ls_noise_level=R'] 43
+  ⎿  Updated src/rentfriends/h3a/models.py (+30 -1)
+      133              if len(yy) and (yy.min() == yy.max()):
+      134                  sep.append(c)
+      135      meta["dropped_separated"] = sep
+      136 -    return X.drop(columns=sep), meta                          
+      136 +    X = X.drop(columns=sep)                                   
+      137 +    collinear = collinear_columns(X)                          
+      138 +    meta["dropped_collinear"] = collinear                     
+      139 +    return X.drop(columns=collinear), meta                    
+      140  
+      141  
+      142 +def collinear_columns(X: pd.DataFrame, tol: float = 1e-9) -> l
+          +ist[str]:                                                     
+      143 +    """Columns that are exact linear combinations of earlier c
+          +olumns (in column order).                                     
+      144 +                                                              
+      145 +    Uses the Gram matrix: the residual sum of squares of colum
+          +n j on the kept columns is                                    
+      146 +    XtX[j, j] - XtX[j, S] XtX[S, S]^-1 XtX[S, j]. `const` and 
+          +`has_bio` come first, so they are                             
+      147 +    never dropped in favour of a control.                     
+      148 +    """                                                       
+      149 +    A = X.to_numpy(float)                                     
+      150 +    XtX = A.T @ A                                             
+      151 +    kept: list[int] = []                                      
+      152 +    drop = []                                                 
+      153 +    for j in range(A.shape[1]):                               
+      154 +        d = XtX[j, j]                                         
+      155 +        if kept:                                              
+      156 +            S = np.array(kept)                                
+      157 +            b = np.linalg.lstsq(XtX[np.ix_(S, S)], XtX[S, j], 
+          +rcond=None)[0]                                                
+      158 +            rss = d - XtX[j, S] @ b                           
+      159 +        else:                                                 
+      160 +            rss = d                                           
+      161 +        if d > 0 and rss > tol * d:                           
+      162 +            kept.append(j)                                    
+      163 +        else:                                                 
+      164 +            drop.append(X.columns[j])                         
+      165 +    return drop                                               
+      166 +                                                              
+      167 +                                                              
+      168  def codes(s: pd.Series) -> np.ndarray:
+      169      """Integer codes for a key column (keys never leave memory
+           )."""
+      170      return pd.factorize(s, sort=True)[0].astype(np.int64)
+  ⎿  Updated src/rentfriends/h3a/analysis.py (+1 -0)
+      344      out["n_receivers"] = int(r.max() + 1)
+      345      out["dropped_constant"] = meta["dropped_constant"]
+      346      out["dropped_separated"] = meta.get("dropped_separated", [
+           ])
+      347 +    out["dropped_collinear"] = meta.get("dropped_collinear", [
+          +])                                                            
+      348      bio = "has_bio" if spec.bio_terms == "binary" and not spec
+           .drop_bio else None
+      349      if "M1" in which:
+      350          out["M1"] = ctx.runner.fit(f"{key}__M1", M.fit_glmm, X
+           , y, s, r, names, fp=fp)
+● S7 działa (usunięte: ls_smoking=Y — separacja, ls_noise_level=R — dokładna
+  współliniowość). Summary będzie zapisywany też jako summary_level{N}.md.
+  Ponowny pilot poziomów 1 i 2:
+
+● Bash(python3 - <<'EOF'
+      p="src/rentfriends/h3a/summary.py"; s=open(p).read()…)
+  ⎿  L1 exit 0
+     L2 exit 0
+     … +108 lines (ctrl+o to expand)
+  ⎿  Updated src/rentfriends/h3a/summary.py (+3 -1)
+      198          L += [f"- {d}" for d in defs]
+      199      L.append("\n## Ograniczenia, które muszą towarzyszyć wynik
+           owi\n")
+      200      L += [f"- {x}" for x in LIMITATIONS]
+      201 +    text = "\n".join(L) + "\n"                                
+      202 +    (report_dir / f"summary_level{level}.md").write_text(text,
+          + encoding="utf-8")                                            
+      203      path = report_dir / "summary.md"
+      202 -    path.write_text("\n".join(L) + "\n", encoding="utf-8")    
+      204 +    path.write_text(text, encoding="utf-8")                   
+      205      return path
+
+● Wszystko przechodzi (L1: ~30 s, L2 z cache). Jedna replikacja symulacji nie
+  dała SE — sprawdzam dlaczego:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Obie próby zbiegły, ale numeryczny Hessian nie był PD (SE = NaN). Testuję
+  dodatkowe warianty optymalizatora na tej replikacji:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Zaostrzone kryterium zbieżności (delta_rel_conv=1e-8) daje SE; SE dla has_bio
+  jest stabilne między optymalizatorami (~0,074). Rozszerzam sekwencję prób w
+  fit_glmm.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Bash(uv run ruff format src tests notebooks >/dev/null; uv run ruff check src
+      tests --fix 2>&1 | grep -E "^\s*-->|^[A-Z]+[0-9]+" | paste - - )
+  ⎿  SIM108 Use ternary operator `d = d.drop(columns=col) if col in d.colum
+     ns else d.drop(columns=d.sum().idxmax())` instead of `if`-`else`-block
+               --> src/rentfriends/h3a/models.py:45:5
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated src/rentfriends/h3a/figs.py (+3 -2)
+       96          ]
+       97          with self.manifest.open("w", newline="") as f:
+       98              w = csv.writer(f)
+       99 -            w.writerow(["id", "file", "caption_pl", "model_spe
+          -c", "n_swipes", "n_receivers",                                
+      100 -                        "version"])                           
+       99 +            w.writerow(                                       
+      100 +                ["id", "file", "caption_pl", "model_spec", "n_
+          +swipes", "n_receivers", "version"]                            
+      101 +            )                                                 
+      102              for r in sorted(self._rows.values()):
+      103                  w.writerow(r)
+      104  
+  ⎿  Updated src/rentfriends/h3a/runner.py (+7 -1)
+      87      def log_time(self, step: str, seconds: float, status: str =
+           "ok", cached: bool = False):
+      88          with self.timings.open("a", newline="") as f:
+      89              csv.writer(f).writerow(
+      90 -                [datetime.now().isoformat(timespec="seconds"), 
+         -step, f"{seconds:.2f}", status, cached]                        
+      90 +                [                                              
+      91 +                    datetime.now().isoformat(timespec="seconds"
+         +),                                                             
+      92 +                    step,                                      
+      93 +                    f"{seconds:.2f}",                          
+      94 +                    status,                                    
+      95 +                    cached,                                    
+      96 +                ]                                              
+      97              )
+      98  
+      99      @contextmanager
+  ⎿  Updated notebooks/H3a.ipynb (+11 -3)
+      58      "pd.set_option(\"display.max_columns\", 30)\n",
+      59      "pd.set_option(\"display.width\", 160)\n",
+      60      "assert SAMPLE_BY == \"sender\", \"only sender-level sampli
+          ng is implemented\"\n",
+      61 -    "ctx = A.setup(A.Params(run_level=RUN_LEVEL, sample_frac=SA
+         -MPLE_FRAC, sample_by=SAMPLE_BY,\n",                            
+      62 -    "                       seed=SEED, margin=MARGIN, fit_timeo
+         -ut_min=FIT_TIMEOUT_MIN,\n",                                    
+      63 -    "                       report_dir=REPORT_DIR))"           
+      61 +    "ctx = A.setup(\n",                                        
+      62 +    "    A.Params(\n",                                         
+      63 +    "        run_level=RUN_LEVEL,\n",                          
+      64 +    "        sample_frac=SAMPLE_FRAC,\n",                      
+      65 +    "        sample_by=SAMPLE_BY,\n",                          
+      66 +    "        seed=SEED,\n",                                    
+      67 +    "        margin=MARGIN,\n",                                
+      68 +    "        fit_timeout_min=FIT_TIMEOUT_MIN,\n",              
+      69 +    "        report_dir=REPORT_DIR,\n",                        
+      70 +    "    )\n",                                                 
+      71 +    ")"                                                        
+      72     ]
+      73    },
+      74    {
+  ⎿  Updated src/rentfriends/h3a/variables.py (+3 -1)
+      59  
+      60  def build_tag_map(mapping: pd.DataFrame) -> dict[str, str]:
+      61      """Raw tag string -> canonical slug, from interests_mapping
+          .csv plus EXTRA_TAG_MAP."""
+      62 -    m = dict(zip(mapping["original"].astype(str), mapping["cano
+         -nical_tag"].astype(str), strict=True))                         
+      62 +    m = dict(                                                  
+      63 +        zip(mapping["original"].astype(str), mapping["canonical
+         +_tag"].astype(str), strict=True)                               
+      64 +    )                                                          
+      65      for k, v in EXTRA_TAG_MAP.items():
+      66          m.setdefault(k, v)
+      67      return m
+  ⎿  Updated src/rentfriends/h3a/data.py (+5 -7)
+      101              raise ValueError(f"{len(unknown)} users have neith
+           er history nor a users row")
+      102          version[no_hist] = -1
+      103          source[no_hist] = "users_current"
+      104 -    return pd.DataFrame(                                      
+      105 -        {"version": version.astype(int), "asof_source": source
+          -}, index=events.index                                         
+      106 -    )                                                         
+      104 +    return pd.DataFrame({"version": version.astype(int), "asof
+          +_source": source}, index=events.index)                        
+      105  
+      106  
+      107  def profile_features(snap: pd.DataFrame, tag_map: dict[str, st
+           r]) -> pd.DataFrame:
+     ...
+      154      Hyderabad accounts are flagged, not dropped (the filter is
+            applied in `analysis_sample`).
+      155      """
+      156      sw = raw.swipes
+      159 -    prof = sw.loc[sw["target_type"] == "profile", ["user_key",
+          - "target_user_key", "direction", "day"]]                      
+      157 +    prof = sw.loc[                                            
+      158 +        sw["target_type"] == "profile", ["user_key", "target_u
+          +ser_key", "direction", "day"]                                 
+      159 +    ]                                                         
+      160      prof = prof.reset_index(drop=True)
+      161      no_hist = set(raw.users["user_key"]) - set(raw.history["us
+           er_key"])
+      162      snaps = snapshot_table(raw).set_index(["user_key", "versio
+           n"])
+     ...
+      165      out["y_right"] = (prof["direction"] == "right").astype(int
+           ).to_numpy()
+      166      for side, col in (("s", "user_key"), ("r", "target_user_ke
+           y")):
+      167          if use_current_users:
+      168 -            asof = pd.DataFrame(                              
+      169 -                {"version": -1, "asof_source": "users_current"
+          -}, index=prof.index                                           
+      170 -            )                                                 
+      168 +            asof = pd.DataFrame({"version": -1, "asof_source":
+          + "users_current"}, index=prof.index)                          
+      169          else:
+      170              asof = assign_asof(prof, raw.history, col, no_hist
+           )
+      171          keys = pd.MultiIndex.from_arrays([prof[col].to_numpy()
+           , asof["version"].to_numpy()])
+  ⎿  … 4 more files changed
+
+● Bash(python3 - <<'EOF'
+      p="src/rentfriends/h3a/models.py"; s=open(p).read()…)
+  ⎿  All checks passed!
+     46 files already formatted
+     FAILED tests/test_eda.py::test_join_table_schemas - FileNotFoundError:
+     … +4 lines (ctrl+o to expand)
+  ⎿  Updated src/rentfriends/h3a/models.py (+6 -7)
+      42  def _dummies(s: pd.Series, prefix: str, ref: str) -> pd.DataFra
+          me:
+      43      d = pd.get_dummies(s.astype("string"), prefix=prefix, prefi
+          x_sep="=", dtype=float)
+      44      col = f"{prefix}={ref}"
+      45 -    if col in d.columns:                                       
+      46 -        d = d.drop(columns=col)                                
+      47 -    else:  # reference absent (e.g. a stratum): drop the most f
+         -requent level                                                  
+      48 -        d = d.drop(columns=d.sum().idxmax())                   
+      49 -    return d                                                   
+      45 +    # reference absent (e.g. a stratum): drop the most frequent
+         + level instead                                                 
+      46 +    return d.drop(columns=col if col in d.columns else d.sum().
+         +idxmax())                                                      
+      47  
+      48  
+      49  def _std(x: pd.Series) -> pd.Series:
+     ...
+      410      ybar = np.bincount(g, weights=y, minlength=G) / ns
+      411      alpha = np.log(ybar / (1 - ybar))
+      412      conv = False
+      416 -    for it in range(max_iter):                                
+      413 +    n_iter = 0                                                
+      414 +    for _ in range(max_iter):                                 
+      415 +        n_iter += 1                                           
+      416          # inner: Newton for every alpha_g given beta (vectoris
+           ed)
+      417          xb = X @ beta
+      418          for _ in range(50):
+     ...
+      450      finite = bool(np.all(np.isfinite(beta)) and np.all(np.isfi
+           nite(np.diag(V))))
+      451      return {
+      452          "status": ("ok" if conv else "not_converged") if finit
+           e else "failed_nonfinite",
+      454 -        "n_iter": it + 1,                                     
+      453 +        "n_iter": n_iter,                                     
+      454          "names": nm,
+      455          "coef": beta.tolist(),
+      456          "se": np.sqrt(np.diag(V)).tolist(),
+
+● 3 porażki w tests/test_eda.py są istniejące wcześniej (brak
+  data/processed/metadata.txt, niezwiązane z H3a). Ostatni pilot po zmianach i
+  przegląd wykresów:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Pilot OK (35 s, 3/3 replikacji symulacji z SE). Oglądam wykresy z pilota:
+
+  Read 3 files (ctrl+o to expand)
+
+● Poprawki wizualne: legenda F3 nachodzi na dane (przenoszę pod wykres), osie
+  F5/F7/F8 dostaną przecinek dziesiętny.
+
+● Bash(python3 - <<'EOF'
+      p="src/rentfriends/h3a/figs.py"; s=open(p).read()…)
+  ⎿  399:        F.pl_decimal(ax, "x")
+     737:        ax.ticklabel_format(axis="y", style="sci", scilimits=(-3,
+     3))
+  ⎿  Updated src/rentfriends/h3a/figs.py (+8 -0)
+      53      )
+      54  
+      55  
+      56 +def pl_decimal(ax, axis: str = "y") -> None:                   
+      57 +    """Polish decimal comma on a linear axis."""               
+      58 +    from matplotlib.ticker import FuncFormatter                
+      59 +                                                               
+      60 +    fmt = FuncFormatter(lambda x, _: f"{x:g}".replace(".", ",")
+         +)                                                              
+      61 +    (ax.yaxis if axis == "y" else ax.xaxis).set_major_formatter
+         +(fmt)                                                          
+      62 +                                                               
+      63 +                                                               
+      64  class FigureSaver:
+      65      """Writes figures, their aggregated source data and a manif
+          est row."""
+      66  
+  ⎿  Updated src/rentfriends/h3a/analysis.py (+2 -1)
+      396          ax.set_xlabel("Standaryzowana różnica średnich (z bio 
+           − bez bio)")
+      397          ax.set_title("Balans kontroli wg bio odbiorcy")
+      398          ax.grid(axis="y", visible=False)
+      399 +        F.pl_decimal(ax, "x")                                 
+      400          ctx.saver.save_fig(
+      401              fig,
+      402              "h3a_08_balans_kontroli",
+     ...
+      1042      _or_ticks(ax)
+      1043      ax.set_xlabel("OR prawego swipe'a: bio vs brak bio (skala
+             log)")
+      1044      ax.set_title("H3a: OR dla has_bio we wszystkich specyfika
+            cjach")
+      1044 -    ax.legend(loc="lower right", fontsize=11)                
+      1045 +    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.17)
+           +, ncol=4, fontsize=11)                                       
+      1046      ax.grid(axis="y", visible=False)
+      1047      out = allrows[["spec", "model", "or", "or_lo95", "or_hi95
+            ", "or_lo90", "or_hi90", "label"]]
+      1048      ctx.saver.save_fig(
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Bash(sed -i '664s/.*/    ax.legend(loc="lower right")\n    F.pl_decimal(ax,
+      "y")/' src/rentfriends/h3a/analysis.py && uv run ruff check . && uv run
+      ruff format --che…)
+  ⎿  All checks passed!
+     46 files already formatted
+  ⎿  Updated src/rentfriends/h3a/analysis.py (+1 -0)
+      662      ax.set_ylabel(f"OR prawego swipe'a vs {ref:.0f} znaków")
+      663      ax.set_title("Długość bio a prawy swipe (M2, spline, tylko
+            niepuste bio)")
+      664      ax.legend(loc="lower right")
+      665 +    F.pl_decimal(ax, "y")                                     
+      666      ctx.saver.save_fig(
+      667          fig,
+      668          "h3a_05_dose_response_dlugosc",
+
+● Teraz dokumentacja. Najpierw kilka liczb do decision-logu z pilota (liczone na
+  pełnym raw):
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Write(docs/h3a/decision-log.md)
+  ⎿  Wrote 181 lines to docs/h3a/decision-log.md
+       1 # H3a: dziennik decyzji
+       2
+       3 Decyzje podjęte przy budowie analizy H3a (`src/rentfriends/h3a/`
+         , `notebooks/H3a.ipynb`).
+       4 Źródło: `docs/prompts/h3a-notebook-prompt.md` (dalej „prompt”),
+         decyzje D1-D22
+       5 (`docs/prompts/m1-generation-plan.md`) albo **[default agenta]**
+          (agent Claude Code wybrał
+       6 opcję domyślną lub najbardziej zachowawczą; do akceptacji przez
+         Dominika).
+     … +175 lines (ctrl+o to expand)
+
+● Uruchamiam pełny przebieg (poziom 1, potem poziom 2 z cache) w tle; w tym
+  czasie dokończę dokumentację i commity.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Write(docs/h3a/README.md)
+  ⎿  Wrote 44 lines to docs/h3a/README.md
+       1 # H3a: jak uruchomić
+       2
+       3 Analiza hipotezy H3a (staranność bio odbiorcy a prawy swipe). Sp
+         ecyfikacja:
+       4 `docs/prompts/h3a-notebook-prompt.md`; decyzje: `docs/h3a/decisi
+         on-log.md`; nowe zmienne:
+       5 `docs/codebook_addendum_h3a.md`.
+       6
+       7 ## Kod
+       8
+     … +36 lines (ctrl+o to expand)
+
+● Write(docs/codebook_addendum_h3a.md)
+  ⎿  Wrote 33 lines to docs/codebook_addendum_h3a.md
+       1 # Codebook addendum: H3a
+       2
+       3 Propozycja dopisania do `docs/codebook.md`, część C (plik `codeb
+         ook.md` nie był edytowany).
+       4 Format jak w części C. Zmienne liczone dla swipe'a A→B z wersji
+         profilu as-of (D7,
+       5 `docs/h3a/decision-log.md` D-H3a-3/4). Implementacja: `src/rentf
+         riends/h3a/variables.py`.
+       6
+       7 | Variable | Block | Definition | Source | Missing handling | Us
+     … +27 lines (~2 KB) (ctrl+o to expand)
+
+● Commity w małych logicznych krokach (pełny przebieg działa w tle na tym samym
+  drzewie, commity go nie zmieniają):
+
+● Bash(T="Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" &&
+      H=src/rentfriends/h3a && \
+      git add pyproject.toml uv.lock && git commit -q -m "Add gpboost, stats…)
+  ⎿  [WARNING] Unstaged files detected.
+     [INFO] Stashing unstaged files to /home/dominik/.cache/pre-commit/patc
+     h1793650205-849609.
+     … +100 lines (ctrl+o to expand)
+  ⎿  Updated reports/h3a/run.log (+13 -0)
+      47  Executing:  33%|███▎      | 8/24 [00:03<00:07,  2.23cell/s]Exec
+          uting Cell 9---------------------------------------
+      48  Ending Cell 9------------------------------------------
+      49  Executing Cell 10--------------------------------------
+      50 +[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default f
+         +or parallel computations. Run gpboost.tune_num_threads() to ben
+         +chmark different numbers of threads and to select a tuned defau
+         +lt for this session. For the best performance, try different va
+         +lues of 'num_parallel_threads' on the 'GPModel' you are using. 
+      51 +[GPBoost] [Warning] Cannot calculate standard deviations for re
+         +gression coefficients since the approximated Hessian is not pos
+         +itive definite                                                 
+      52 +[GPBoost] [Warning] Cannot calculate standard deviations for re
+         +gression coefficients since the approximated Hessian is not pos
+         +itive definite                                                 
+      53 +[GPBoost] [Warning] Cannot calculate standard deviations for re
+         +gression coefficients since the approximated Hessian is not pos
+         +itive definite                                                 
+      54 +[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminat
+         +ed since its line search has not been successful. This can mean
+         + that no further progress is possible (the parameters are then 
+         +essentially a local optimum) or that the optimizer has stopped 
+         +prematurely. Consider restarting the optimizer by setting the p
+         +arameter 'max_num_restarts_lbfgs' to a value larger than 0 (see
+         + also 'cold_restart_lbfgs') to check this and to potentially fi
+         +nd a better optimum                                            
+      55 +[GPBoost] [Warning] Cannot calculate standard deviations for re
+         +gression coefficients since the approximated Hessian is not pos
+         +itive definite                                                 
+      56 +[GPBoost] [Info] GPBoost is using 8 OpenMP threads by default f
+         +or parallel computations. Run gpboost.tune_num_threads() to ben
+         +chmark different numbers of threads and to select a tuned defau
+         +lt for this session. For the best performance, try different va
+         +lues of 'num_parallel_threads' on the 'GPModel' you are using. 
+      57 +[GPBoost] [Warning] Cannot calculate standard deviations for re
+         +gression coefficients since the approximated Hessian is not pos
+         +itive definite                                                 
+      58 +[GPBoost] [Warning] Cannot calculate standard deviations for re
+         +gression coefficients since the approximated Hessian is not pos
+         +itive definite                                                 
+      59 +[GPBoost] [Warning] Cannot calculate standard deviations for re
+         +gression coefficients since the approximated Hessian is not pos
+         +itive definite                                                 
+      60 +[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has terminat
+         +ed since its line search has not been successful. This can mean
+         + that no further progress is possible (the parameters are then 
+         +essentially a local optimum) or that the optimizer has stopped 
+         +prematurely. Consider restarting the optimizer by setting the p
+         +arameter 'max_num_restarts_lbfgs' to a value larger than 0 (see
+         + also 'cold_restart_lbfgs') to check this and to potentially fi
+         +nd a better optimum                                            
+      61 +[GPBoost] [Warning] Cannot calculate standard deviations for re
+         +gression coefficients since the approximated Hessian is not pos
+         +itive definite                                                 
+      62 +                                                               
+  ⎿  Updated notebooks/H3a-rendered.ipynb (+19 -2)
+      508    },
+      509    {
+      510     "cell_type": "code",
+      511 -   "execution_count": null,                                   
+      511 +   "execution_count": 6,                                      
+      512     "id": "1b4df3fd",
+      513     "metadata": {
+      514 +    "execution": {                                            
+      515 +     "iopub.execute_input": "2026-11-02T20:09:22.607181Z",    
+      516 +     "iopub.status.busy": "2026-11-02T20:09:22.606987Z"       
+      517 +    },                                                        
+      518      "papermill": {
+      519       "duration": null,
+      520       "end_time": null,
+     ...
+      524      },
+      525      "tags": []
+      526     },
+      523 -   "outputs": [],                                             
+      527 +   "outputs": [                                               
+      528 +    {                                                         
+      529 +     "name": "stdout",                                        
+      530 +     "output_type": "stream",                                 
+      531 +     "text": [                                                
+      532 +      "[GPBoost] [Info] GPBoost is using 8 OpenMP threads by d
+          +efault for parallel computations. Run gpboost.tune_num_threads
+          +() to benchmark different numbers of threads and to select a t
+          +uned default for this session. For the best performance, try d
+          +ifferent values of 'num_parallel_threads' on the 'GPModel' you
+          + are using.\n",                                               
+      533 +      "[GPBoost] [Warning] Cannot calculate standard deviation
+          +s for regression coefficients since the approximated Hessian i
+          +s not positive definite \n",                                  
+      534 +      "[GPBoost] [Warning] Cannot calculate standard deviation
+          +s for regression coefficients since the approximated Hessian i
+          +s not positive definite \n",                                  
+      535 +      "[GPBoost] [Warning] Cannot calculate standard deviation
+          +s for regression coefficients since the approximated Hessian i
+          +s not positive definite \n",                                  
+      536 +      "[GPBoost] [Warning] GPModel: the optimizer 'lbfgs' has 
+          +terminated since its line search has not been successful. This
+          + can mean that no further progress is possible (the parameters
+          + are then essentially a local optimum) or that the optimizer h
+          +as stopped prematurely. Consider restarting the optimizer by s
+          +etting the parameter 'max_num_restarts_lbfgs' to a value large
+          +r than 0 (see also 'cold_restart_lbfgs') to check this and to 
+          +potentially find a better optimum \n",                        
+      537 +      "[GPBoost] [Warning] Cannot calculate standard deviation
+          +s for regression coefficients since the approximated Hessian i
+          +s not positive definite \n"                                   
+      538 +     ]                                                        
+      539 +    }                                                         
+      540 +   ],                                                         
+      541     "source": [
+      542      "A.sanity_check(ctx)"
+      543     ]
+  ⎿  Created reports/h3a/cache/sim__rep00.json (+96 -0)
+       1 +{                                                              
+       2 + "optimizer": "lbfgs {'delta_rel_conv': 1e-08}",               
+       3 + "convergence_status": 2,                                      
+       4 + "n_iter": 18,                                                 
+       5 + "time_s": 7.8716583251953125,                                 
+       6 + "names": [                                                    
+       7 +  "const",                                                     
+       8 +  "has_bio",                                                   
+       9 +  "age_band_diff",                                             
+      10 +  "same_band",                                                 
+      11 +  "profile_completeness",                                      
+      12 +  "tag_count_receiver",                                        
+      13 +  "tag_zero",                                                  
+      14 +  "tag_cap",                                                   
+      15 +  "sex_pair=F→M",                                              
+      16 +  "sex_pair=F→O",                                              
+      17 +  "sex_pair=M→F",                                              
+      18 +  "sex_pair=M→M",                                              
+      19 +  "sex_pair=M→O",                                              
+      20 +  "sex_pair=O→F",                                              
+      21 +  "sex_pair=O→M",                                              
+      22 +  "sex_pair=O→O",                                              
+      23 +  "same_city=different",                                       
+      24 +  "same_city=unknown"                                          
+      25 + ],                                                            
+      26 + "coef": [                                                     
+      27 +  -1.6947174916817034,                                         
+      28 +  0.052166911927748326,                                        
+      29 +  -0.06099955875299533,                                        
+      30 +  -0.017214886109386828,                                       
+      31 +  0.012558136821680294,                                        
+      32 +  0.03123458459786573,                                         
+      33 +  0.183440813791817,                                           
+      34 +  -0.0884634049399975,                                         
+      35 +  0.03684423310576405,                                         
+      36 +  0.10005437010933804,                                         
+      37 +  0.020801562052298564,                                        
+      38 +  0.003039046534293829,                                        
+      39 +  -0.06913601760461592,                                        
+      40 +  0.09853089064371498,                                         
+     … 57 more lines (ctrl+o to expand)
+  ⎿  Updated reports/h3a/timings.csv (+1 -0)
+      1  timestamp,step,seconds,status,cached
+      2  2026-11-02T21:09:21,load_and_asof,0.35,ok,False
+      3  2026-11-02T21:09:22,descriptives,1.00,ok,False
+      4 +2026-11-02T21:10:07,fit:sim__rep00,44.96,not_converged_or_no_se,
+        +False                                                           
+  ⎿  PostToolUse:Bash says: Tip: Run /ultrareview before you push to catch bugs
+     with a cloud-based multi-agent review — 3 free reviews left.
+
+❯ jeśli  notebook  jest już gotowy - uruchom go w  zewnętrznym procesie żeby
+  koniec sesji nie spowodował przerwania wywołania.
+
+● Użytkownik prosi o uruchomienie w procesie niezależnym od sesji. Sprawdzam
+  stan bieżącego przebiegu (jest podpięty pod sesję):
+
+  Ran 1 shell command (ctrl+o to expand)
+● Przebieg trwał dopiero ~1 min, więc go zatrzymuję i uruchamiam ponownie jako
+  proces odłączony od sesji (setsid nohup); dwa gotowe fity zostaną wzięte z
+  cache.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Background command "Run full level 1 then level 2 analysis in background"
+failed with exit code 144
+
+● Moje pkill -f dopasował też własną powłokę (exit 144). Sprawdzam stan i
+  uruchamiam ponownie:
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Write(scripts/run_h3a_full.sh)
+  ⎿  Wrote 25 lines to scripts/run_h3a_full.sh
+       1 #!/usr/bin/env bash
+       2 # Full H3a run: level 1, then level 2 (fits from level 1 come fr
+         om cache), detached from the
+       3 # terminal session (setsid + nohup), so closing the shell or the
+          agent session does not stop it.
+       4 #
+       5 #   scripts/run_h3a_full.sh [REPORT_DIR]
+       6 #
+       7 # Progress: tail -f <REPORT_DIR>/run.log ; timings: <REPORT_DIR>
+         /timings.csv
+     … +18 lines (ctrl+o to expand)
+
+● Bash(chmod +x scripts/run_h3a_full.sh && scripts/run_h3a_full.sh && ps -eo
+      pid,ppid,sid,etime,args | grep -E "[r]un_h3a|[p]apermill" | cut -c1-140)
+  ⎿  started detached PID 851470 (log: reports/h3a/run.log)
+      851465  800732  851465       00:00 /bin/bash -c source /home/dominik/
+     .claude/shell-snapshots/snapshot-bash-1793648696687-wofgc9.sh 2>/dev/n
+     … +4 lines (ctrl+o to expand)
+  ⎿  Updated reports/h3a/run.log (+1 -0)
+      63  [GPBoost] [Info] GPBoost is using 8 OpenMP threads by default f
+          or parallel computations. Run gpboost.tune_num_threads() to ben
+          chmark different numbers of threads and to select a tuned defau
+          lt for this session. For the best performance, try different va
+          lues of 'num_parallel_threads' on the 'GPModel' you are using.
+      64  [GPBoost] [Info] GPBoost is using 8 OpenMP threads by default f
+          or parallel computations. Run gpboost.tune_num_threads() to ben
+          chmark different numbers of threads and to select a tuned defau
+          lt for this session. For the best performance, try different va
+          lues of 'num_parallel_threads' on the 'GPModel' you are using.
+      65  
+      66 +H3A START 2026-11-02T21:10:45+01:00                            
+
+● Proces ma własną sesję (SID 851470) i rodzica systemd --user, więc koniec
+  sesji Claude go nie przerwie. Sprawdzam, czy postępuje:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Działa, cache wykorzystany. W międzyczasie: wpis w docs/ai-disclosure.md,
+  provenance w docs/RENTFRIENDS.md §9 i README dla nowego skryptu.
+
+● Bash(python3 - <<'EOF'
+      p="docs/h3a/README.md"; s=open(p).read()…)
+  ⎿  5:| Date       | Person           | Tool / model            | Purpose
+                                 | Output used? (how, after what verificati
+     on)
+     … +13 lines (ctrl+o to expand)
+  ⎿  Updated docs/h3a/README.md (+4 -1)
+      21  uv sync
+      22  # smoke test (10% nadawców, ok. 1 min; wyniki poza gitem)
+      23  scripts/run_h3a.sh 1 0.1 reports/h3a_smoke reports/h3a_smoke/H3
+          a-smoke.ipynb
+      24 -# poziom 1 na pełnych danych (w tle, log: reports/h3a/run.log) 
+      24 +# pełny przebieg: poziom 1, potem poziom 2, odłączony od termin
+         +ala (setsid + nohup);                                          
+      25 +# koniec sesji/terminala go nie przerywa; na końcu run.log: "H3
+         +A DONE" albo "H3A FAILED"                                      
+      26 +scripts/run_h3a_full.sh                                        
+      27 +# albo poziomy osobno; poziom 1 na pełnych danych (w tle, log: 
+         +reports/h3a/run.log)                                           
+      28  scripts/run_h3a.sh 1
+      29  # poziom 2 (refity GLMM S1, S3, S4, S7 + lme4, jeśli jest R); f
+          ity z poziomu 1 idą z cache
+      30  scripts/run_h3a.sh 2
+
+● Bash(python3 - <<'EOF'
+      p="docs/ai-disclosure.md"; lines=open(p).read().split("\n")…)
+  ⎿  161-- Literatura podana przez asystenta nie została zweryfikowana w źr
+     ódle.
+     162-- Zgodnie z wymaganiami kursu udział AI należy ujawnić w raporcie.
+     163-
+  ⎿  Updated docs/ai-disclosure.md (+1 -0)
+      14  | 2026-10-26 | Michał (michal) | Claude Code (Claude Sonnet 5.5
+          ) | Planning and drafting the codebook `docs/codebook.md` from 
+          the M1 card (`reports/m1/M1_Karta-eksploracji-danych_...pdf`), 
+          `docs/RENTFRIENDS.md`, `docs/rentfriends_hipotezy_karta_eksplor
+          acji.md`, `docs/prompts/m1-generation-plan.md`, `docs/data-stat
+          ement.md` and `docs/templates/codebook.md`: structure (raw fiel
+          d dictionary, tag variables, derived model variables, gold stan
+          dard and instrument validation), and an explanation of which ta
+          gs are borderline between lifestyle, status and hobby | The mod
+          el did not read `data/`; value sets, tag lists and counts in th
+          e draft are either copied from the M1 card (computed before the
+           Hyderabad filter and profile versioning) or marked `[INPUT NEE
+          DED]`. Decisions (D1–D22) and limitations (G1–G18) were carried
+           over, not re-derived. The tag categories named in the draft ar
+          e the proposals already in the card, not agent labels from this
+           session; no AI labelling of tags was done here. Not verified: 
+          field definitions and feature formulas against the data, the bo
+          rderline-case discussion (it covers only the 10 most frequent t
+          ags and guesses about the rest), and the draft's assumptions (f
+          ields as own traits, `hobby_jaccard` = 0 for two empty sets). T
+          he codebook is v0.1, not frozen. Reviewed by me, Michał. | `../
+          logs/ai/claude/michal/2026-10-26-codebook-plan.jsonl` |
+      15  | 2026-10-26 | Michał (michal) | Claude Code (Claude Sonnet 5.5
+          ) | AI proposal for `tag_category` and `linked_field` of the ca
+          nonical tags in `docs/interests_mapping.csv` (68 tags), followi
+          ng `docs/codebook.md` Part B; review of the mapping file | Outp
+          ut saved as `docs/tag_category_proposal.csv` (37 hobby, 25 life
+          style, 5 unclear, 1 status), kept apart from the human annotati
+          on so that annotators stay blind to it (codebook D.1). The mode
+          l saw tag names only, not `data/` or user profiles, and applied
+           the rules and examples from the codebook (D12). The proposed c
+          ategories and linked fields are agent labels and count as instr
+          ument output until compared with the human gold standard (codeb
+          ook D.2); the `linked_field` values beyond the card examples (`
+          daily_routine`, `work_from_home`, `lifestyle`) are guesses. Rev
+          iewed by me, Michał. | `logs/ai/claude/michal/2026-10-26-tag-ca
+          tegory-proposal.jsonl` |
+      16  | 2026-10-26 | Michał (michal) | Gemini Flash 3.6 | Second AI a
+          nnotator for `tag_category` (and `linked_field`) of the canonic
+          al tags, next to the Claude proposal, as an additional instrume
+          nt for the validation in codebook D.2 | Gemini saw only codeboo
+          k and tag_names | `logs/ai/claude/michal/2026-10-26-tag-categor
+          y-proposal.jsonl` |
+      17 +| 2026-11-02 | Dominik (banacchini) | Claude Code (Claude Opus 
+         +5.5) | H3a analysis from the prompt `docs/prompts/h3a-notebook-
+         +prompt.md`: module `src/rentfriends/h3a/` (as-of profile loader
+         +, variables, GLMM via GPBoost, pooled logit with two-way cluste
+         +ring, sender-FE logit, verdict rule, M4 gate, M5, M6, sensitivi
+         +ty S1-S8, figures, summary), thin notebook `notebooks/H3a.ipynb
+         +` (+ rendered copy), run scripts `scripts/run_h3a.sh`, `scripts
+         +/run_h3a_full.sh`, tests `tests/test_h3a.py`, decision log `doc
+         +s/h3a/decision-log.md`, codebook addendum `docs/codebook_addend
+         +um_h3a.md`, results in `reports/h3a/` | Code written and run by
+         + the model on the local `data/processed` tables; only aggregate
+         +s were printed or saved (no bio text, no user keys, cells < 5 u
+         +sers suppressed). Verified by the model: unit tests (verdict ru
+         +le edge cases, bio emptiness, as-of rule, suppression, FE logit
+         + = dummy logit with clustered SEs); two-way clustered SEs and t
+         +he AME match statsmodels to ~1e-15; sample counts match the M1 
+         +card (95,144 profile swipes, 19,495 right, 1,583 swipers, 578 m
+         +issing age band); GLMM recovery checked on data simulated on th
+         +e real design. After a passing 10% smoke test the full run (lev
+         +els 1 and 2) was started without a separate approval step, on m
+         +y instruction in the session. Agent defaults (estimator impleme
+         +ntation details, sample and variable definitions) are marked `[
+         +default agenta]` in the decision log and need my review; lme4 c
+         +ross-check skipped (no R). Interpretation of results not yet re
+         +viewed. Reviewer: Dominik Czech. | `logs/ai/claude/banacchini/2
+         +026-11-02-h3a-notebook.jsonl` |                                
+      18  
+      19  ## Statement for the report (draft)
+      20  
+
+● Bash(python3 - <<'EOF'
+      p="docs/RENTFRIENDS.md"; s=open(p).read()…)
+  ⎿  H3A START 2026-11-02T21:10:45+01:00
+     descriptives,1.06,ok,False
+     fit:sim__rep00,0.00,not_converged_or_no_se,True
+     fit:sim__rep01,0.00,ok,True
+  ⎿  Updated docs/RENTFRIENDS.md (+1 -0)
+      160  - Wszystkie sugestie metodologiczne, cytowania literatury i us
+           talenia prawne wymagają weryfikacji przez zespół przed użyciem
+            w raporcie.
+      161  - Literatura podana przez asystenta nie została zweryfikowana 
+           w źródle.
+      162  - Zgodnie z wymaganiami kursu udział AI należy ujawnić w rapor
+           cie.
+      163 +- 2026-11-02: analiza H3a przygotowana i uruchomiona z agentem
+          + Claude Code (Claude Opus 5.5); wyniki narzędzia w `reports/h3
+          +a/`, decyzje w `docs/h3a/decision-log.md`, wpis w `docs/ai-dis
+          +closure.md`. Źródła techniczne użyte przez agenta: lokalna dok
+          +umentacja (docstringi i kod) pakietów GPBoost 1.8.0 (zmiana AP
+          +I: `std_dev` wycofane na rzecz `get_coef(std_err=True)`, wymóg
+          + jawnego interceptu) i statsmodels 0.15 (`cov_cluster_2groups`
+          +); paleta wykresów Okabe-Ito sprawdzona walidatorem palet dla 
+          +daltonistów. Bez źródeł internetowych.                        
+      164  
+      165  ### 9.3 Zmiany w ustaleniach (korekty)
+      166  
+
+● Czekam na zakończenie przebiegu (monitor na run.log):
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● W międzyczasie commit skryptu i dokumentacji:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Pełny przebieg działa w osobnym procesie (setsid nohup, własna sesja SID
+  851470, rodzic systemd --user), więc zakończenie tej sesji go nie przerwie.
+  Zatrzymałem wcześniejszy przebieg, który był podpięty pod sesję (działał ~1
+  min). Nowy przebieg bierze z cache dwa fity, które tamten zdążył policzyć.
+
+  Na razie:
+  - Pilot: smoke test na SAMPLE_FRAC=0.1 przechodzi end-to-end dla poziomów 1 i
+    2 w ok. 35 s.
+  - Testy: 17/17 testów H3a przechodzi; ruff czysty.
+  - Commity: 11 commitów na banacchini/h3-notebook, bez push.
+
+  Gdy przebieg się skończy, w reports/h3a/run.log pojawi się linia H3A DONE albo
+  H3A FAILED. Czekam na nią i wtedy przejrzę wyniki oraz dam pełny raport.
+  Postęp na żywo: tail -f reports/h3a/run.log.
+
+✻ Cooked for 26m 54s · done Monday 9:11 PM
+
+※ recap: Cel: pełna analiza H3a (bio odbiorcy a prawy swipe). Pilot przeszedł, a pełny przebieg poziomów 1 i 2 działa teraz w osobnym procesie niezależnym od sesji. Kiedy skończy się zapisem H3A DONE w `reports/h3a/run.log`, przejrzę wyniki i dam raport. (disable recaps in /config)
+
+❯ przejrzyj  wyniki i daj pełny raport
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Run zakończył się w 20 minut, ale wszystkie dopasowania GLMM na prawdziwych
+  danych (M1, M5 i refity S1/S3/S4/S7) zwróciły not_converged_or_no_se, a w
+  symulacji 9 z 20. Najpierw zajmę się diagnozą, potem przygotuję raport.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Optymalizacja GLMM zbiegła (β̂ dla has_bio = 0,130), ale GPBoost nie policzy
+  błędów standardowych w żadnym z 4 wariantów, więc jako model główny zostaje M2
+  zgodnie z fallbackiem z promptu.
+
+  Read 1 file (ctrl+o to expand)
+
+● Przeglądam wykresy z pełnego przebiegu:
+
+  Read 3 files (ctrl+o to expand)
+
+● Wykresy wyglądają dobrze. Zanim przygotuję raport, sprawdzę, czy w wynikach
+  nie ma kluczy ani tekstu, i poprawię summary.md, bo diagnostyka M1 pokazuje
+  kod ostatniej próby, a brakuje punktowego oszacowania.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Brak UUID w wynikach i notebooku; żadna komórka nie wymagała tłumienia
+  (wszystkie mają ≥ 5 użytkowników). Poprawiam opis M1 w summary (bez ponownych
+  fitów):
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Update(src/rentfriends/h3a/summary.py)
+  ⎿  Added 11 lines
+      117          )
+      118      d1 = res.get("m1_diag", {})
+      119      L.append("\n## Estymator M1: zbieżność i czasy\n")
+      120 +    att = d1.get("attempts") or []                            
+      121 +    n_conv = sum(1 for a in att if a.get("convergence_status")
+          + == 0)                                                        
+      122 +    m1 = res.get("fits", {}).get("main", {}).get("M1", {})    
+      123 +    if d1.get("status") != "ok" and "has_bio" in m1.get("names
+          +", []):                                                       
+      124 +        b = m1["coef"][m1["names"].index("has_bio")]          
+      125 +        L.append(                                             
+      126 +            f"- **Optymalizacja zbieżna w {n_conv}/{len(att)} 
+          +próbach, ale GPBoost nie policzył "                           
+      127 +            "SE (numeryczny Hessian nie jest dodatnio określon
+          +y), więc M1 nie ma CI ani etykiety; "                         
+      128 +            f"zadziałał fallback z §6 promptu.** Oszacowanie p
+          +unktowe z ostatniej próby: "                                  
+      129 +            f"β = {_f(b, 4)}, OR = {_f(math.exp(b))} (bez SE, 
+          +nie do wnioskowania)."                                        
+      130 +        )                                                     
+      131      L.append(
+      132          f"- status: {d1.get('status')}; optymalizator: {d1.get
+           ('optimizer')}; "
+      133          f"kod zbieżności GPBoost: {d1.get('convergence_status'
+           )} (0 = zbieżny); "
+
+● Bash(uv run python -c "
+      import json; from rentfriends.h3a.summary import write_summary…)  ⎿  ## Estymator M1: zbieżność i czasy
+
+     - **Optymalizacja zbieżna w 3/4 próbach, ale GPBoost nie policzył SE (
+     … +14 lines (ctrl+o to expand)
+  ⎿  Updated reports/h3a/summary_level2.md (+8 -7)
+      1  # H3a: wyniki (generowane automatycznie)
+      2  
+      3 -Wygenerowano: 2026-11-02T21:31; poziom przebiegu: 2; SAMPLE_FRAC
+        - = 1.0; SEED = 20261102; margines praktycznego zera |log OR| ≤ 0
+        -,10.                                                            
+      3 +Wygenerowano: 2026-11-03T01:17; poziom przebiegu: 2; SAMPLE_FRAC
+        + = 1.0; SEED = 20261102; margines praktycznego zera |log OR| ≤ 0
+        +,10.                                                            
+      4  
+      5  ## Werdykt
+      6  
+     ...
+      15  
+      16  | Model | OR (95% CI; 90% CI) | β | SE | p | MDE OR | Etykieta 
+          |
+      17  |---|---|---|---|---|---|---|
+      18 -| M1 | – (95% CI –––; 90% CI –––) | – | – | – | – | brak oszaco
+         -wania |                                                        
+      18 +| M1 | brak oszacowania | – | – | – | – | brak oszacowania |   
+      19  | M2 | 1,130 (95% CI 1,044–1,222; 90% CI 1,058–1,207) | 0,1221 
+          | 0,0402 | 0,0024 | 1,119 | potwierdzony |
+      20  | M3 | 1,189 (95% CI 1,070–1,320; 90% CI 1,088–1,298) | 0,1727 
+          | 0,0536 | 0,0013 | 1,162 | potwierdzony |
+      21  
+     ...
+      23  
+      24  ## Estymator M1: zbieżność i czasy
+      25  
+      26 +- **Optymalizacja zbieżna w 3/4 próbach, ale GPBoost nie policz
+         +ył SE (numeryczny Hessian nie jest dodatnio określony), więc M1
+         + nie ma CI ani etykiety; zadziałał fallback z §6 promptu.** Osz
+         +acowanie punktowe z ostatniej próby: β = 0,1304, OR = 1,139 (be
+         +z SE, nie do wnioskowania).                                    
+      27  - status: not_converged_or_no_se; optymalizator: lbfgs {'delta_
+          rel_conv': 1e-08}; kod zbieżności GPBoost: 2 (0 = zbieżny); ite
+          racje: 27; czas fitu: 8,5 s
+      28  - wariancja efektu losowego nadawcy: 7,770 (SE 0,402); odbiorcy
+          : 0,559 (SE 0,033); log-likelihood (Laplace): -27845,5
+      29  - próby optymalizatorów: [{'optimizer': 'lbfgs', 'convergence_s
+          tatus': 0, 'time_s': 6.481233358383179}, {'optimizer': 'gradien
+          t_descent', 'convergence_status': 0, 'time_s': 31.4478452205657
+          96}, {'optimizer': "gradient_descent {'delta_rel_conv': 1e-08}"
+          , 'convergence_status': 0, 'time_s': 52.702144622802734}, {'opt
+          imizer': "lbfgs {'delta_rel_conv': 1e-08}", 'convergence_status
+          ': 2, 'time_s': 8.462459087371826}]
+     ...
+      57  
+      58  | spec   | model   |   n_obs | OR (95% CI)                     
+                         | label             |
+      59  |:-------|:--------|--------:|:--------------------------------
+          ---------------|:------------------|
+      59 -| S1     | M1      |   76187 | – (95% CI –––; 90% CI –––)      
+         -               | brak oszacowania  |                           
+      60 +| S1     | M1      |   76187 | brak oszacowania                
+         +               | brak oszacowania  |                           
+      61  | S1     | M2      |   76187 | 1,138 (95% CI 1,047–1,238; 90% C
+          I 1,061–1,222) | potwierdzony      |
+      62  | S1     | M3      |   76187 | 1,190 (95% CI 1,071–1,322; 90% C
+          I 1,089–1,300) | potwierdzony      |
+      63  | S2a    | M2      |   47373 | 1,064 (95% CI 0,972–1,165; 90% C
+          I 0,986–1,148) | nierozstrzygający |
+      64  | S2a    | M3      |   47373 | 1,174 (95% CI 1,042–1,322; 90% C
+          I 1,062–1,297) | potwierdzony      |
+      65  | S2b    | M2      |   93717 | 1,127 (95% CI 1,042–1,218; 90% C
+          I 1,055–1,203) | potwierdzony      |
+      66  | S2b    | M3      |   93717 | 1,172 (95% CI 1,051–1,306; 90% C
+          I 1,070–1,284) | potwierdzony      |
+      66 -| S3     | M1      |   94566 | – (95% CI –––; 90% CI –––)      
+         -               | brak oszacowania  |                           
+      67 +| S3     | M1      |   94566 | brak oszacowania                
+         +               | brak oszacowania  |                           
+      68  | S3     | M2      |   94566 | 1,128 (95% CI 1,043–1,220; 90% C
+          I 1,056–1,204) | potwierdzony      |
+      69  | S3     | M3      |   94566 | 1,187 (95% CI 1,069–1,318; 90% C
+          I 1,087–1,296) | potwierdzony      |
+      69 -| S4     | M1      |   93717 | – (95% CI –––; 90% CI –––)      
+         -               | brak oszacowania  |                           
+      70 +| S4     | M1      |   93717 | brak oszacowania                
+         +               | brak oszacowania  |                           
+      71  | S4     | M2      |   93717 | 1,130 (95% CI 1,044–1,223; 90% C
+          I 1,058–1,208) | potwierdzony      |
+     … 13 more lines (ctrl+o to expand)
+  ⎿  Updated reports/h3a/summary.md (+8 -7)
+      1  # H3a: wyniki (generowane automatycznie)
+      2  
+      3 -Wygenerowano: 2026-11-02T21:31; poziom przebiegu: 2; SAMPLE_FRAC
+        - = 1.0; SEED = 20261102; margines praktycznego zera |log OR| ≤ 0
+        -,10.                                                            
+      3 +Wygenerowano: 2026-11-03T01:17; poziom przebiegu: 2; SAMPLE_FRAC
+        + = 1.0; SEED = 20261102; margines praktycznego zera |log OR| ≤ 0
+        +,10.                                                            
+      4  
+      5  ## Werdykt
+      6  
+     ...
+      15  
+      16  | Model | OR (95% CI; 90% CI) | β | SE | p | MDE OR | Etykieta 
+          |
+      17  |---|---|---|---|---|---|---|
+      18 -| M1 | – (95% CI –––; 90% CI –––) | – | – | – | – | brak oszaco
+         -wania |                                                        
+      18 +| M1 | brak oszacowania | – | – | – | – | brak oszacowania |   
+      19  | M2 | 1,130 (95% CI 1,044–1,222; 90% CI 1,058–1,207) | 0,1221 
+          | 0,0402 | 0,0024 | 1,119 | potwierdzony |
+      20  | M3 | 1,189 (95% CI 1,070–1,320; 90% CI 1,088–1,298) | 0,1727 
+          | 0,0536 | 0,0013 | 1,162 | potwierdzony |
+      21  
+     ...
+      23  
+      24  ## Estymator M1: zbieżność i czasy
+      25  
+      26 +- **Optymalizacja zbieżna w 3/4 próbach, ale GPBoost nie policz
+         +ył SE (numeryczny Hessian nie jest dodatnio określony), więc M1
+         + nie ma CI ani etykiety; zadziałał fallback z §6 promptu.** Osz
+         +acowanie punktowe z ostatniej próby: β = 0,1304, OR = 1,139 (be
+         +z SE, nie do wnioskowania).                                    
+      27  - status: not_converged_or_no_se; optymalizator: lbfgs {'delta_
+          rel_conv': 1e-08}; kod zbieżności GPBoost: 2 (0 = zbieżny); ite
+          racje: 27; czas fitu: 8,5 s
+      28  - wariancja efektu losowego nadawcy: 7,770 (SE 0,402); odbiorcy
+          : 0,559 (SE 0,033); log-likelihood (Laplace): -27845,5
+      29  - próby optymalizatorów: [{'optimizer': 'lbfgs', 'convergence_s
+          tatus': 0, 'time_s': 6.481233358383179}, {'optimizer': 'gradien
+          t_descent', 'convergence_status': 0, 'time_s': 31.4478452205657
+          96}, {'optimizer': "gradient_descent {'delta_rel_conv': 1e-08}"
+          , 'convergence_status': 0, 'time_s': 52.702144622802734}, {'opt
+          imizer': "lbfgs {'delta_rel_conv': 1e-08}", 'convergence_status
+          ': 2, 'time_s': 8.462459087371826}]
+     ...
+      57  
+      58  | spec   | model   |   n_obs | OR (95% CI)                     
+                         | label             |
+      59  |:-------|:--------|--------:|:--------------------------------
+          ---------------|:------------------|
+      59 -| S1     | M1      |   76187 | – (95% CI –––; 90% CI –––)      
+         -               | brak oszacowania  |                           
+      60 +| S1     | M1      |   76187 | brak oszacowania                
+         +               | brak oszacowania  |                           
+      61  | S1     | M2      |   76187 | 1,138 (95% CI 1,047–1,238; 90% C
+          I 1,061–1,222) | potwierdzony      |
+      62  | S1     | M3      |   76187 | 1,190 (95% CI 1,071–1,322; 90% C
+          I 1,089–1,300) | potwierdzony      |
+      63  | S2a    | M2      |   47373 | 1,064 (95% CI 0,972–1,165; 90% C
+          I 0,986–1,148) | nierozstrzygający |
+      64  | S2a    | M3      |   47373 | 1,174 (95% CI 1,042–1,322; 90% C
+          I 1,062–1,297) | potwierdzony      |
+      65  | S2b    | M2      |   93717 | 1,127 (95% CI 1,042–1,218; 90% C
+          I 1,055–1,203) | potwierdzony      |
+      66  | S2b    | M3      |   93717 | 1,172 (95% CI 1,051–1,306; 90% C
+          I 1,070–1,284) | potwierdzony      |
+      66 -| S3     | M1      |   94566 | – (95% CI –––; 90% CI –––)      
+         -               | brak oszacowania  |                           
+      67 +| S3     | M1      |   94566 | brak oszacowania                
+         +               | brak oszacowania  |                           
+      68  | S3     | M2      |   94566 | 1,128 (95% CI 1,043–1,220; 90% C
+          I 1,056–1,204) | potwierdzony      |
+      69  | S3     | M3      |   94566 | 1,187 (95% CI 1,069–1,318; 90% C
+          I 1,087–1,296) | potwierdzony      |
+      69 -| S4     | M1      |   93717 | – (95% CI –––; 90% CI –––)      
+         -               | brak oszacowania  |                           
+      70 +| S4     | M1      |   93717 | brak oszacowania                
+         +               | brak oszacowania  |                           
+      71  | S4     | M2      |   93717 | 1,130 (95% CI 1,044–1,223; 90% C
+          I 1,058–1,208) | potwierdzony      |
+     … 13 more lines (ctrl+o to expand)
+
+● Dopisuję do decision-logu, co wyszło w pełnym przebiegu, i commituję wyniki:
+
+● Bash(python3 - <<'EOF'
+      p="docs/h3a/decision-log.md"; s=open(p).read()…)
+  ⎿  [WARNING] Unstaged files detected.
+     [INFO] Stashing unstaged files to /home/dominik/.cache/pre-commit/patc
+     h1793665075-905339.
+     … +212 lines (ctrl+o to expand)
+  ⎿  Updated docs/h3a/decision-log.md (+15 -0)
+      169    (tylko agregaty) w `reports/h3a/cache/*.json` z odciskiem da
+           nych (hash), więc wznowienie nie
+      170    powtarza fitów; wyniki smoke testów w `reports/h3a_smoke/` (
+           poza gitem).
+      171  
+      172 +## D-H3a-26 Pełny przebieg: M1 bez SE, fallback na M2         
+      173 +- Stan: na pełnych danych optymalizacja GLMM zbiega (status 0 
+          +w 3 z 4 prób), ale GPBoost nie                                
+      174 +  liczy SE współczynników (numeryczny Hessian nie PD) w żadnej
+          + próbie; to samo w M5 (M1) i w                                
+      175 +  refitach S1, S3, S4, S7 oraz w 8 z 20 replikacji symulacji. 
+          +Punktowo β_bio = 0,130 (M2: 0,122).                           
+      176 +- Decyzja: zgodnie z §6 promptu M2 przejmuje rolę modelu główn
+          +ego, bez twierdzenia o kontroli                               
+      177 +  popularności; etykieta końcowa ma adnotację „fallback”. Nic 
+          +nie zmieniono po zobaczeniu wyników.                          
+      178 +- Do decyzji Dominika: inny sposób uzyskania SE dla GLMM (np. 
+          +`lme4::glmer` w R albo parametryczny                          
+      179 +  bootstrap) wymaga jawnej zmiany planu.                      
+      180 +- Źródło: prompt §6.                                          
+      181 +                                                              
+      182 +## D-H3a-27 S7 w M3 bez oszacowania                           
+      183 +- Stan: logit z FE nadawcy w modelu rozszerzonym nie zbiega (w
+          +artości nieskończone po 200                                   
+      184 +  iteracjach), prawdopodobnie przez quasi-separację wskaźników
+          + pól stylu życia w obrębie nadawców.                          
+      185 +  S7 raportowane tylko z M2 (M3 nie wchodzi do reguły werdyktu
+          +).                                                            
+      186 +                                                              
+      187  ## Wybór estymatora do obrony ustnej
+      188  
+      189  Model główny to GLMM ze skrzyżowanymi losowymi wyrazami wolnym
+           i nadawcy i odbiorcy, bo ten sam
+  ⎿  Updated notebooks/H3a-rendered.ipynb (+2 -2)
+      86      "# Parameters\n",
+      87      "RUN_LEVEL = 2\n",
+      88      "SAMPLE_FRAC = 1.0\n",
+      89 -    "REPORT_DIR = \"reports/h3a\"\n"                           
+      89 +    "REPORT_DIR = \"reports/h3a\""                             
+      90     ]
+      91    },
+      92    {
+     ...
+      1861   },
+      1862   "nbformat": 4,
+      1863   "nbformat_minor": 5
+      1864 -}                                                            
+      1864   No newline at end of file
+      1865 +}                                                            
+  ⎿  Updated reports/h3a/cache/sim__rep13.json (+1 -1)
+      78   ],
+      79   "_fingerprint": "694985484d7d0d71",
+      80   "_wall_s": 6.9635796546936035
+      81 -}                                                              
+      81   No newline at end of file
+      82 +}                                                              
+  ⎿  Updated reports/h3a/cache/S6__M2.json (+1 -1)
+      495   "time_s": 0.1936490535736084,
+      496   "_fingerprint": "b73b3b74ac837862",
+      497   "_wall_s": 0.19382119178771973
+      498 -}                                                             
+      498   No newline at end of file
+      499 +}                                                             
+  ⎿  Updated reports/h3a/cache/S3__M2.json (+1 -1)
+      495   "time_s": 0.1934971809387207,
+      496   "_fingerprint": "bc73bc702dba6ca2",
+      497   "_wall_s": 0.19366717338562012
+      498 -}                                                             
+      498   No newline at end of file
+      499 +}                                                             
+  ⎿  … 60 more files changed
+
+● Hooki pre-commit poprawiły białe znaki i końcówki plików w wynikach; dodaję
+  ponownie i commituję:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Na koniec eksport logu sesji do logs/ai/ (zasada 3 z AGENTS.md). Najpierw
+  sprawdzam, czy w logu nie ma kluczy użytkowników ani tekstu bio:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Bash(cp /home/dominik/.claude/projects/-home-dominik-projects-wust-sem2-umc/ad
+      c0b112-301d-4379-a5a2-8b3036330a91.jsonl
+      logs/ai/claude/banacchini/2026-11-02-h3a-noteb…)
+  ⎿  check for added large files...........................................
+     ...Failed
+     fe1ee0d Add H3a full-run results (levels 1 and 2, aggregates only)
+     A  logs/ai/claude/banacchini/2026-11-02-h3a-notebook.jsonl
+  ⎿  (file diff unavailable for this command; 1 file changed)
+
+● Hook check-added-large-files blokuje 8 MB log. Nie obchodzę hooka bez Twojej
+  zgody: zdejmuję plik z indeksu i zostawiam go lokalnie.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Raport H3a: pełny przebieg
+
+  Przebieg zakończył się poprawnie (H3A DONE): poziom 1 i poziom 2 zajęły ok. 20
+  minut z budżetu 3 godzin. Model główny GLMM nie dał błędów standardowych,
+  więc werdykt opiera się na fallbacku przewidzianym w §6 promptu.
+
+  Werdykt
+
+  Etykieta: „potwierdzony (fallback: M2 jako model główny, bez kontroli
+  popularności)”
+
+  Model: M1 GLMM
+  OR dla has_bio: 1,139 (tylko punktowo)
+  95% CI: brak
+  90% CI: brak
+  p: brak
+  Etykieta: brak oszacowania
+  ────────────────────────────────────────
+  Model: M2 pooled logit, klastrowanie po nadawcy i odbiorcy
+  OR dla has_bio: 1,130
+  95% CI: 1,044–1,222
+  90% CI: 1,058–1,207
+  p: 0,002
+  Etykieta: potwierdzony
+  ────────────────────────────────────────
+  Model: M3 FE nadawcy (poza regułą)
+  OR dla has_bio: 1,189
+  95% CI: 1,070–1,320
+  90% CI: 1,088–1,298
+  p: 0,001
+  Etykieta: potwierdzony
+
+  - Średni efekt krańcowy (M2): +1,9 p.p. (95% CI 0,7–3,1) przy bazie ok. 20,6%
+    prawych swipe'ów.
+  - Minimalny wykrywalny OR (M2): 1,12.
+  - Jak czytać ten wynik: efekt jest istotnie dodatni i nie mieści się w
+    „praktycznym zerze”. Dolna granica 90% CI (1,058) leży jednak wewnątrz
+    marginesu [0,905; 1,105]. Dane nie wykluczają więc efektu praktycznie
+    małego. To związek, nie przyczynowość.
+  - Reguła zgodności M1 = M2 nie została sprawdzona, bo M1 nie ma SE.
+
+  Najważniejszy problem: GLMM bez błędów standardowych
+
+  - Na pełnych danych optymalizacja GPBoost zbiega w 3 z 4 prób, ale nie liczy
+    SE: numeryczny Hessian nie jest dodatnio określony.
+  - To samo dotyczy M5 (M1) i refitów GLMM dla S1, S3, S4, S7.
+  - Punktowe β = 0,130 jest bardzo bliskie M2 (0,122).
+  - Sanity check na danych symulowanych: SE uzyskano tylko w 12 z 20 powtórzeń.
+    - Obciążenie jest małe (+0,010).
+    - Wariancje efektów losowych są dobrze odtworzone.
+    - SE jest zaniżone o ok. 14% (SD empiryczne 0,052 vs średni SE 0,045).
+    - Pokrycie 95% CI: 0,92.
+  - Wariancja efektu losowego nadawcy wynosi 7,8. Jest zawyżona przez 359 kont,
+    które swipe'ują tylko w lewo (w S1, bez tych kont: 3,3).
+
+  Nic nie zmieniałem po zobaczeniu wyników. Opisałem to w
+  docs/h3a/decision-log.md (D-H3a-26).
+
+  Wrażliwość i wyniki drugorzędne
+
+  - S1–S7 w M2: wszystkie „potwierdzony”, z wyjątkiem S2a (tylko swipe'y z
+    prior_version po obu stronach). Tam OR = 1,064 (95% CI 0,972–1,165), czyli
+    „nierozstrzygający”, na połowie próby (47 tys. swipe'ów). M3 dla S2a daje
+    „potwierdzony”. To najważniejsza flaga: efekt jest słabszy, gdy wykluczy się
+    swipe'y z pierwszego dnia konta.
+  - S7 w M3: brak oszacowania. Logit z FE nie zbiega, prawdopodobnie przez
+    quasi-separację pól stylu życia.
+  - S8 (płeć nadawcy):
+    - kobiety: OR 1,26 (1,13–1,40);
+    - mężczyźni: OR 1,03 (0,94–1,13), „nierozstrzygający”;
+    - test interakcji: p = 0,020;
+    - płeć O pominięta (28 nadawców).
+    - Wynik eksploracyjny, poza regułą werdyktu.
+  - M5 (długość bio): w M2 OR na podwojenie długości wynosi 1,031 (1,004–1,059).
+    Sufit 250 znaków jest nieistotny.
+  - M6 (przyrost predykcyjny): ΔAUC +0,0034 (0,0019–0,0050) przy AUC baseline
+    0,633. Przyrost minimalny, wynik opisowy.
+  - M4: bramka nie przechodzi. Z 1359 odbiorców 291 zmieniło tekst bio, 128
+    zmieniło status pusty↔niepusty, a tylko 17 ma ≥ 5 swipe'ów po każdej stronie
+    (próg 30). Wynik: „niemożliwe do zmierzenia tym projektem”.
+  - Balans (F8): profile z bio są wyraźnie bardziej kompletne (SMD 0,67 dla
+    kompletności, 0,18 dla liczby tagów). Kontrole są w modelu, ale ryzyko
+    konfundowania przez ogólną staranność profilu zostaje.
+
+  Dane i zgodność z kartą
+
+  - 95 144 swipe'ów na profile, 19 495 prawych (20,49%), 1583 swipujących:
+    zgodne z kartą co do sztuki.
+  - Wszystkie odchylenia są poniżej 1%. Bio liczone as-of daje −0,14% swipe'ów z
+    bio, a na bieżącym users zgodność jest dokładna.
+  - Wykluczenie 45 kont z Hyderabad usuwa 849 swipe'ów. Complete-case usuwa
+    kolejne 578 (brak age_band). Próba główna: 93 717 swipe'ów.
+  - Audyt prywatności: w wynikach i w wyrenderowanym notebooku nie ma user_key
+    ani tekstu bio. Każda komórka miała ≥ 5 użytkowników, więc nic nie trzeba
+    było tłumić.
+
+  Niespójności w repo (do zgłoszenia)
+
+  - Codebook odwołuje się do „sekcji 0”, której nie ma; regułę wziąłem z D7.
+  - Mapowanie ma 67 kanonicznych tagów, a codebook mówi o 69.
+  - W tag_category_proposal.csv są slugi bussiness i often_outside, których nie
+    ma w mapowaniu.
+  - W danych są 4 polskie etykiety tagów spoza mapowania (D-H3a-6).
+  - params={"std_dev": True} z promptu jest w GPBoost 1.8 wycofane.
+  - Gałąź: pracowałem na banacchini/h3-notebook, a nie na h3a-notebook z
+    promptu.
+  - 3 testy w tests/test_eda.py nie przechodziły już wcześniej (brak
+    data/processed/metadata.txt). Testy H3a: 17/17.
+
+  Co zostało dla Ciebie
+
+  1. SE dla GLMM. Najczystsza opcja to zainstalować R z lme4 i arrow. Ścieżka
+     glmer(nAGQ = 0) jest już w kodzie, ale nie była testowana, i uruchomi się
+     na poziomie 2. Alternatywa to parametryczny bootstrap. Obie opcje to jawna
+     zmiana planu, więc wymagają Twojej decyzji.
+  2. Przegląd decyzji. Do przejrzenia jest 20 decyzji oznaczonych [default
+     agenta] w decision-logu.
+  3. Log sesji. Plik logs/ai/claude/banacchini/2026-11-02-h3a-notebook.jsonl (8
+     MB, migawka, bez danych osobowych) przekracza limit hooka 1000 KB, więc go
+     nie zacommitowałem. Do wyboru: kompresja albo podział pliku, podniesienie
+     limitu, albo pełny eksport po zakończeniu sesji.
+  4. Commity. Jest 15 commitów na gałęzi, bez push.
+
+  Wszystkie liczby są w reports/h3a/summary.md. Wykresy do prezentacji (PNG i
+  SVG) są w reports/h3a/figures/, z podpisami w figures_manifest.csv.
+
+✻ Brewed for 3m 7s · done Tuesday 1:19 AM
+
+※ recap: Analiza H3a jest gotowa i zacommitowana: wynik „potwierdzony” na M2 (OR 1,13), bo GLMM nie dał błędów standardowych. Następny krok to Twoja decyzja, jak policzyć SE dla GLMM: przez R z `lme4` albo parametryczny bootstrap. (disable recaps in /config)
+
+● Background shell command didn't finish before the previous session ended
