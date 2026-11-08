@@ -1,6 +1,7 @@
 """Unit tests for H1 hypothesis analysis module."""
 
 import numpy as np
+import pandas as pd
 
 from conftest import make_dummy_h1_df as _make_dummy_h1_df
 from rentfriends.h1 import (
@@ -147,3 +148,35 @@ def test_idf_jaccard_variant_extends_only_the_interest_block():
     n_idf = idf["summary"].set_index("model")["n_vars"]
     assert n_idf["interests"] == n_base["interests"] + 1
     assert n_idf["lifestyle"] == n_base["lifestyle"]
+
+
+def _sensitivity_df(n: int = 600) -> pd.DataFrame:
+    rng = np.random.default_rng(7)
+    df = _make_dummy_h1_df(n)
+    df["source_flag_receiver"] = rng.choice(["prior_version", "first_version"], size=n)
+    df["both_prior_version"] = rng.integers(0, 2, size=n)
+    df["is_extreme_user"] = rng.choice([0, 0, 0, 1], size=n)
+    df["is_low_activity"] = rng.choice([0, 0, 0, 1], size=n)
+    df["city_sender"] = rng.choice(["Wrocław", "Warszawa", "inne"], size=n)
+    df["city_receiver"] = rng.choice(["Wrocław", "Warszawa", "inne"], size=n)
+    df["interests_idf_jaccard"] = df["interests_jaccard"] ** 2
+    df["interests_at_cap"] = rng.integers(0, 2, size=n)
+    return df
+
+
+def test_sensitivity_has_all_scenarios_with_status_and_single_block_increments():
+    from rentfriends.h1 import sensitivity_analysis_h1
+
+    res = sensitivity_analysis_h1(_sensitivity_df())
+    names = list(res["scenariusz"])
+    assert any(n.startswith("main") for n in names)
+    assert any("inne" in n for n in names)  # G6: without city "inne"
+    assert any("spec_old" in n for n in names)  # Z2
+    assert set(res["status"]) <= {"pre-rejestrowana", "post hoc (audyt)"}
+    assert {"delta_ll_age_last", "delta_ll_hobby_last", "delta_ll_lifestyle"} <= set(res.columns)
+    main = res[res["scenariusz"].str.startswith("main")].iloc[0]
+    other = res[~res["scenariusz"].str.startswith("main")]
+    assert (other["n_swipe"] <= main["n_swipe"]).sum() >= 1
+    # the city-"inne" scenario really drops rows
+    inne = res[res["scenariusz"].str.contains("inne")].iloc[0]
+    assert inne["n_swipe"] < main["n_swipe"]

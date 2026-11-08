@@ -708,3 +708,35 @@ def per_field_analysis(
         "ll_base": ll_base,
         "ll_all_fields": ll_full,
     }
+
+
+def sample_funnel(df: pd.DataFrame, n_all_swipes: int, n_profile_swipes: int) -> pd.DataFrame:
+    """One sample funnel for H1 from all swipes down to the main-model sample (Z8).
+
+    `df` is the H1 analysis dataset (profile swipes after the Hyderabad exclusion, D10). The
+    last two steps are where H1 loses rows relative to H2/H3a: H2/H3a stop at the age-complete
+    sample; H1 additionally needs at least one lifestyle field known on both sides.
+    """
+    age_ok = df["age_band_diff"].notna()
+    both = age_ok & df["lifestyle_agree_ratio"].notna()
+    steps = [
+        ("wszystkie swipe'y", n_all_swipes, None),
+        ("swipe'y na profile", n_profile_swipes, None),
+        ("po wykluczeniu Hyderabadu (D10)", len(df), df),
+        ("+ znane pasma wieku obu stron (= H2/H3a)", int(age_ok.sum()), df[age_ok]),
+        ("+ >= 1 pole stylu zycia znane u obu (= H1, model glowny)", int(both.sum()), df[both]),
+    ]
+    rows, prev = [], None
+    for name, n, part in steps:
+        rows.append(
+            {
+                "step": name,
+                "swipes": n,
+                "dropped": None if prev is None else prev - n,
+                "right": None if part is None else int(part["y_right"].sum()),
+                "senders": None if part is None else int(part["user_key"].nunique()),
+                "receivers": None if part is None else int(part["target_user_key"].nunique()),
+            }
+        )
+        prev = n
+    return pd.DataFrame(rows)

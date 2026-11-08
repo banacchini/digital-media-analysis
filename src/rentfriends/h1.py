@@ -466,26 +466,47 @@ def sender_folds(d: pd.DataFrame, n_splits: int, seed: int) -> np.ndarray:
 
 
 def sensitivity_analysis_h1(df: pd.DataFrame) -> pd.DataFrame:
-    """Evaluate H1 block comparisons across robustness and sensitivity scenarios."""
-    scenarios = {
-        "main (as-of D7, brak Hyderabadu D10)": df,
-        "tylko prior_version (D7)": df[df["source_flag_receiver"] == "prior_version"],
-        "oba prior_version (D7)": df[df["both_prior_version"] == 1],
-        "bez kont skrajnych (D6)": df[df["is_extreme_user"] == 0],
-        "aktywni nadawcy >= 10 (D6)": df[df["is_low_activity"] == 0],
-    }
+    """Evaluate H1 block comparisons across robustness and sensitivity scenarios.
+
+    `status` marks whether a scenario was planned before the audit (D6, D7, G6, card 3.2) or
+    added after it (`post hoc (audyt)`). Increments are "as last block" log-likelihood gains:
+    `delta_ll_lifestyle` over age+interests, `delta_ll_interests` (age+interests) over
+    lifestyle, and the single blocks `delta_ll_age_last` / `delta_ll_hobby_last`.
+    """
+    pre, post = "pre-rejestrowana", "post hoc (audyt)"
+    known_city = (df["city_sender"] != "inne") & (df["city_receiver"] != "inne")
+    prior_receiver = df["source_flag_receiver"] == "prior_version"
+    main_spec = H1Spec()
+    scenarios: list[tuple[str, pd.DataFrame, H1Spec, str]] = [
+        ("main (as-of D7, brak Hyderabadu D10)", df, main_spec, pre),
+        ("tylko prior_version (D7)", df[prior_receiver], main_spec, pre),
+        ("oba prior_version (D7)", df[df["both_prior_version"] == 1], main_spec, pre),
+        ("bez kont skrajnych (D6)", df[df["is_extreme_user"] == 0], main_spec, pre),
+        ("aktywni nadawcy >= 10 (D6)", df[df["is_low_activity"] == 0], main_spec, pre),
+        ('bez miasta "inne" (G6)', df[known_city], main_spec, pre),
+        ("spec_old (same_sex w bloku wieku, bez kontroli plci)", df, LEGACY_SPEC, post),
+        ("same_sex zamiast sex_pair", df, SAME_SEX_SPEC, post),
+        ("+ |roznica pasm|^2 (karta 3.2)", df, H1Spec(name="age_sq", age_sq=True), pre),
+        ("+ efekty stale pasma nadawcy", df, H1Spec(name="fe", sender_band_fe=True), post),
+        ("+ IDF-Jaccard (karta 3.2)", df, IDF_SPEC, pre),
+        ("+ kontrola sufitu 9 tagow", df, H1Spec(name="cap", cap_control=True), post),
+    ]
 
     res_list = []
-    for name, sub_df in scenarios.items():
-        res = fit_h1_logit_models(sub_df)
+    for name, sub_df, spec, status in scenarios:
+        res = fit_h1_logit_models(sub_df, spec)
+        ll = {k: m.llf for k, m in res["models"].items()}
         res_list.append(
             {
                 "scenariusz": name,
+                "status": status,
                 "n_swipe": res["data_len"],
                 "delta_ll_lifestyle": res["delta_lifestyle_over_interests_ll"],
                 "delta_r2_lifestyle": res["r2_lifestyle_increment"],
                 "delta_ll_interests": res["delta_interests_over_lifestyle_ll"],
                 "delta_r2_interests": res["r2_interests_increment"],
+                "delta_ll_age_last": ll["full"] - ll["interests_lifestyle"],
+                "delta_ll_hobby_last": ll["full"] - ll["age_lifestyle"],
             }
         )
     return pd.DataFrame(res_list)

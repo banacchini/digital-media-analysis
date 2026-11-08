@@ -19,6 +19,7 @@ from rentfriends.h1_audit import (
     paired_cv_differences,
     per_field_analysis,
     permute_within_strata,
+    sample_funnel,
     summarise_block_differences,
 )
 
@@ -394,3 +395,19 @@ def test_lifestyle_agree_groups_have_explicit_missing_category_and_no_zero_fill(
     # tercile boundaries come from known rows only: the two NaN rows are not counted as zeros
     low = groups[known > 0].iloc[:2]
     assert (low == groups[known > 0].iloc[0]).all()
+
+
+def test_sample_funnel_counts_each_exclusion_step():
+    df = pd.DataFrame(
+        {
+            "user_key": ["a", "a", "b", "c", "d"],
+            "target_user_key": ["x", "y", "x", "z", "z"],
+            "y_right": [1, 0, 0, 1, 0],
+            "age_band_diff": [0.0, 1.0, np.nan, 2.0, 1.0],
+            "lifestyle_agree_ratio": [0.5, np.nan, 0.5, 1.0, 0.0],
+        }
+    )
+    funnel = sample_funnel(df, n_all_swipes=10, n_profile_swipes=7).set_index("step")
+    assert list(funnel["swipes"]) == [10, 7, 5, 4, 3]
+    assert funnel.iloc[-1]["swipes"] == 3  # age known AND >=1 lifestyle field known
+    assert list(funnel["dropped"])[1:] == [3, 2, 1, 1]
