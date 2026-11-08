@@ -4,7 +4,11 @@ import numpy as np
 import pandas as pd
 
 from rentfriends.h1 import (
+    LEGACY_SPEC,
+    SAME_SEX_SPEC,
+    H1Spec,
     cluster_bootstrap_rate_table,
+    control_frame,
     fit_h1_logit_models,
     grouped_cv_h1,
     wilson_interval,
@@ -23,6 +27,7 @@ def _make_dummy_h1_df(n: int = 200, seed: int = 42) -> pd.DataFrame:
             "same_band": rng.integers(0, 2, size=n).astype(float),
             "age_band_diff": rng.normal(0, 1, size=n),
             "same_sex": rng.integers(0, 2, size=n).astype(float),
+            "sex_pair": rng.choice(["F_F", "F_M", "M_F", "M_M", "F_O"], size=n),
             "interests_jaccard": rng.uniform(0, 1, size=n),
             "interests_shared_n": rng.integers(0, 5, size=n),
             "interests_count_diff_abs": rng.integers(0, 4, size=n),
@@ -96,3 +101,31 @@ def test_grouped_cv_h1():
     assert len(cv) == 3 * 9
     assert "logloss" in cv.columns
     assert "auc" in cv.columns
+
+
+def test_sex_pair_control_is_default_and_has_reference_level():
+    """Z2: the main specification controls for the ordered sex pair, not for same_sex."""
+    df = _make_dummy_h1_df(400)
+    ctrl = control_frame(df, H1Spec())
+    sex_cols = [c for c in ctrl.columns if c.startswith("sex_")]
+    assert "sex_F_F" not in sex_cols  # reference level
+    assert {"sex_F_M", "sex_M_F", "sex_M_M", "sex_F_O"} == set(sex_cols)
+    assert "same_sex" not in ctrl.columns
+
+
+def test_legacy_spec_reproduces_old_variable_counts():
+    """spec_old keeps the pre-audit design: same_sex inside the age block, only city controls."""
+    df = _make_dummy_h1_df(400)
+    res = fit_h1_logit_models(df, LEGACY_SPEC)
+    n_vars = res["summary"].set_index("model")["n_vars"]
+    assert res["control_names"] == ["city_same", "city_diff"]
+    assert n_vars["age"] == 5  # old "demog"
+    assert n_vars["lifestyle"] == 5
+    assert n_vars["age_interests"] == 8
+    assert n_vars["full"] == 11
+
+
+def test_same_sex_spec_is_a_sensitivity_variant():
+    df = _make_dummy_h1_df(400)
+    res = fit_h1_logit_models(df, SAME_SEX_SPEC)
+    assert "same_sex" in res["control_names"]

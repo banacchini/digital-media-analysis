@@ -53,11 +53,22 @@ class H1Spec:
     """
 
     name: str = "main"
-    sex_control: str = "same_sex"
+    sex_control: str = "sex_pair"
     age_cols: tuple[str, ...] = tuple(AGE_COLS)
     interest_cols: tuple[str, ...] = tuple(INTERESTS_COLS)
     lifestyle_cols: tuple[str, ...] = tuple(LIFESTYLE_COLS)
     city_control: bool = True
+
+
+# Pre-audit design (anchor for reproducing the published numbers): same_sex sits inside the age
+# block and the only controls are the city dummies.
+LEGACY_SPEC = H1Spec(
+    name="spec_old",
+    sex_control="none",
+    age_cols=("same_band", "age_band_diff", "same_sex"),
+)
+# Controls unified (Z1) but sex coded as same_sex instead of the ordered sex_pair.
+SAME_SEX_SPEC = H1Spec(name="same_sex", sex_control="same_sex")
 
 
 def _spec_block_cols(spec: H1Spec) -> dict[str, list[str]]:
