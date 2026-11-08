@@ -25,7 +25,9 @@ def _make_dummy_h1_df(n: int = 200, seed: int = 42) -> pd.DataFrame:
             "target_user_key": receivers,
             "y_right": rng.integers(0, 2, size=n),
             "same_band": rng.integers(0, 2, size=n).astype(float),
-            "age_band_diff": rng.normal(0, 1, size=n),
+            "age_band_diff": rng.integers(-2, 3, size=n).astype(float),
+            "age_band_diff_abs": rng.integers(0, 3, size=n).astype(float),
+            "age_band_sender": rng.choice(["18-20", "21-23", "24-26"], size=n),
             "same_sex": rng.integers(0, 2, size=n).astype(float),
             "sex_pair": rng.choice(["F_F", "F_M", "M_F", "M_M", "F_O"], size=n),
             "interests_jaccard": rng.uniform(0, 1, size=n),
@@ -129,3 +131,21 @@ def test_same_sex_spec_is_a_sensitivity_variant():
     df = _make_dummy_h1_df(400)
     res = fit_h1_logit_models(df, SAME_SEX_SPEC)
     assert "same_sex" in res["control_names"]
+
+
+def test_main_age_spec_has_abs_and_signed_difference_without_square():
+    """Z3: same_band + |diff| + signed diff; the square is only a sensitivity variant."""
+    spec = H1Spec()
+    assert spec.age_cols == ("same_band", "age_band_diff_abs", "age_band_diff")
+    df = _make_dummy_h1_df(300)
+    sq = fit_h1_logit_models(df, H1Spec(name="sq", age_sq=True))
+    base = fit_h1_logit_models(df)
+    n_base = base["summary"].set_index("model")["n_vars"]["age"]
+    assert sq["summary"].set_index("model")["n_vars"]["age"] == n_base + 1
+
+
+def test_sender_band_fixed_effects_add_controls():
+    df = _make_dummy_h1_df(300)
+    ctrl = control_frame(df, H1Spec(name="fe", sender_band_fe=True))
+    fe_cols = [c for c in ctrl.columns if c.startswith("sband_")]
+    assert set(fe_cols) == {"sband_21-23", "sband_24-26"}  # 18-20 is the reference

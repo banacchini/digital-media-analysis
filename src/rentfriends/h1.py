@@ -38,7 +38,7 @@ CORAL = "#D9534F"
 
 # Feature definitions for H1 blocks
 DEMOG_COLS = ["same_band", "age_band_diff", "same_sex"]  # legacy demographic block
-AGE_COLS = ["same_band", "age_band_diff"]
+AGE_COLS = ["same_band", "age_band_diff_abs", "age_band_diff"]
 INTERESTS_COLS = ["interests_jaccard", "interests_shared_n", "interests_count_diff_abs"]
 LIFESTYLE_COLS = ["lifestyle_agree_ratio", "lifestyle_tag_conflict", "lifestyle_shared_tags_n"]
 CONTROL_COLS = ["city_same", "city_diff"]
@@ -55,6 +55,8 @@ class H1Spec:
     name: str = "main"
     sex_control: str = "sex_pair"
     age_cols: tuple[str, ...] = tuple(AGE_COLS)
+    age_sq: bool = False  # add |diff|^2 (card 3.2) as a sensitivity variant
+    sender_band_fe: bool = False  # sender age-band dummies (reference 18-20)
     interest_cols: tuple[str, ...] = tuple(INTERESTS_COLS)
     lifestyle_cols: tuple[str, ...] = tuple(LIFESTYLE_COLS)
     city_control: bool = True
@@ -72,8 +74,9 @@ SAME_SEX_SPEC = H1Spec(name="same_sex", sex_control="same_sex")
 
 
 def _spec_block_cols(spec: H1Spec) -> dict[str, list[str]]:
+    age = list(spec.age_cols) + (["age_band_diff_abs_sq"] if spec.age_sq else [])
     return {
-        "age": list(spec.age_cols),
+        "age": age,
         "interests": list(spec.interest_cols),
         "lifestyle": list(spec.lifestyle_cols),
     }
@@ -87,12 +90,16 @@ def _spec_required_cols(spec: H1Spec) -> list[str]:
         cols.append(spec.sex_control)
     if spec.city_control:
         cols += CONTROL_COLS
+    if spec.sender_band_fe:
+        cols.append("age_band_sender")
     return list(dict.fromkeys(cols))
 
 
 def prepare_h1_sample(df: pd.DataFrame, spec: H1Spec | None = None) -> pd.DataFrame:
     """Complete-case sample shared by every model of one specification."""
     spec = spec or H1Spec()
+    if spec.age_sq and "age_band_diff_abs_sq" not in df.columns:
+        df = df.assign(age_band_diff_abs_sq=df["age_band_diff_abs"] ** 2)
     return df.dropna(subset=_spec_required_cols(spec)).copy().reset_index(drop=True)
 
 
@@ -107,6 +114,9 @@ def control_frame(d: pd.DataFrame, spec: H1Spec) -> pd.DataFrame:
         parts.append(d[[spec.sex_control]].astype(float))
     if spec.city_control:
         parts.append(d[CONTROL_COLS].astype(float))
+    if spec.sender_band_fe:
+        sband = pd.get_dummies(d["age_band_sender"], prefix="sband", dtype=float)
+        parts.append(sband.drop(columns=["sband_18-20"], errors="ignore"))
     if not parts:
         return pd.DataFrame(index=d.index)
     return pd.concat(parts, axis=1)
