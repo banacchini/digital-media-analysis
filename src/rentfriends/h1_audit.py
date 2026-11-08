@@ -12,11 +12,15 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from sklearn.metrics import average_precision_score
+from statsmodels.stats.multitest import multipletests
 
+from rentfriends.dataset_h1 import LIFESTYLE_STRUCTURED_FIELDS
 from rentfriends.h1 import (
     H1Spec,
     _auc,
     _logloss,
+    block_frames,
+    control_frame,
     design_matrix,
     model_subsets,
     prepare_h1_sample,
@@ -566,4 +570,141 @@ def interests_permutation_baseline(
         "perm_left": perm_left,
         "perm_diff": perm_diff,
         "n_swipes": len(d),
+    }
+
+
+POSSIBLE_DEFAULT_FIELDS = ("cleanliness", "noise_level")  # P6: ~1% missing, may be defaults
+
+
+def holm_adjust(p_values: np.ndarray) -> np.ndarray:
+    """Holm-Bonferroni adjusted p-values (monotone, capped at 1)."""
+    return multipletests(np.asarray(p_values, dtype=float), method="holm")[1]
+
+
+def field_dummies(status: pd.Series, prefix: str, min_n: int = 50) -> pd.DataFrame:
+    """Dummies for a pair-status column (reference `agree`); levels with < min_n rows are merged.
+
+    Sparse levels (e.g. `both_missing` for fields that are almost always filled) are folded into
+    `one_missing` so a handful of rows cannot drive a coefficient.
+    """
+    status = status.copy()
+    counts = status.value_counts()
+    sparse = [lvl for lvl in counts.index if counts[lvl] < min_n and lvl != "agree"]
+    status = status.replace(dict.fromkeys(sparse, "one_missing"))
+    dummies = pd.get_dummies(status, prefix=prefix, dtype=float)
+    return dummies.drop(columns=[f"{prefix}_agree"], errors="ignore")
+
+
+def _clustered_logit(X: pd.DataFrame, y: np.ndarray, groups: np.ndarray):
+    model = sm.Logit(y, X)
+    try:
+        return model.fit(disp=0, cov_type="cluster", cov_kwds={"groups": groups})
+    except Exception:
+        return model.fit(disp=0, cov_type="cluster", cov_kwds={"groups": groups[:, 0]})
+
+
+def _wald_p(fit, names: list[str], contrast: np.ndarray | None = None) -> tuple[float, float]:
+    cols = list(fit.params.index)
+    if contrast is None:
+        R = np.zeros((len(names), len(cols)))
+        for i, n in enumerate(names):
+            R[i, cols.index(n)] = 1.0
+    else:
+        R = contrast.reshape(1, -1)
+    w = fit.wald_test(R, scalar=True)
+    return float(w.statistic), float(w.pvalue)
+
+
+def per_field_analysis(
+    df: pd.DataFrame, spec: H1Spec | None = None, min_n: int = 50
+) -> dict[str, object]:
+    """Which lifestyle field carries the signal? Per-field dummies, LR increments, Holm (Z7).
+
+    One logit holds controls, age, interests and the pair-status dummies of all 7 structured
+    fields (reference `agree`). Per field we report the joint Wald test (two-way clustered SE;
+    Holm over 7 tests), the log-likelihood increment as last field and as first field. For
+    `smoking` a directional model replaces the status with `smoking_direction`.
+    """
+    spec = spec or H1Spec()
+    d = prepare_h1_sample(df, spec)
+    y = d["y_right"].to_numpy(dtype=float)
+    groups = np.column_stack(
+        [pd.factorize(d["user_key"])[0], pd.factorize(d["target_user_key"])[0]]
+    )
+    base = pd.concat(
+        [control_frame(d, spec), block_frames(d, spec)["age"], block_frames(d, spec)["interests"]],
+        axis=1,
+    )
+    dummies = {f: field_dummies(d[f"lsf_{f}"], f, min_n) for f in LIFESTYLE_STRUCTURED_FIELDS}
+
+    def design(*parts: pd.DataFrame) -> pd.DataFrame:
+        return sm.add_constant(pd.concat(parts, axis=1), has_constant="add")
+
+    X_full = design(base, *dummies.values())
+    fit = _clustered_logit(X_full, y, groups)
+    ll_full = float(fit.llf)
+    ll_base = fit_logit_fast(design(base).to_numpy(float), y)[1]
+
+    rows = []
+    for f, dm in dummies.items():
+        others = [v for k, v in dummies.items() if k != f]
+        ll_wo = fit_logit_fast(design(base, *others).to_numpy(float), y)[1]
+        ll_only = fit_logit_fast(design(base, dm).to_numpy(float), y)[1]
+        chi2, p = _wald_p(fit, list(dm.columns))
+        rows.append(
+            {
+                "field": f,
+                "df": dm.shape[1],
+                "dll_last": ll_full - ll_wo,
+                "dll_first": ll_only - ll_base,
+                "wald_chi2": chi2,
+                "p_raw": p,
+                "possible_default": f in POSSIBLE_DEFAULT_FIELDS,
+            }
+        )
+    fields = pd.DataFrame(rows)
+    fields["p_holm"] = holm_adjust(fields["p_raw"].to_numpy())
+
+    coefs = pd.DataFrame(
+        {
+            "term": fit.params.index,
+            "or": np.exp(fit.params.values),
+            "ci_low": np.exp(fit.params.values - 1.96 * fit.bse.values),
+            "ci_high": np.exp(fit.params.values + 1.96 * fit.bse.values),
+            "p_value": fit.pvalues.values,
+        }
+    )
+    coefs = coefs[coefs["term"].str.contains("_one_missing|_disagree|_both_missing")]
+
+    # directional smoking model: other fields as status, smoking as direction
+    sd = field_dummies(d["smoking_direction"], "smk", min_n)
+    other = [v for k, v in dummies.items() if k != "smoking"]
+    fit_s = _clustered_logit(design(base, *other, sd), y, groups)
+    cols = list(fit_s.params.index)
+    smk_cols = list(sd.columns)
+    beta, se = fit_s.params[smk_cols].to_numpy(), fit_s.bse[smk_cols].to_numpy()
+    levels = [c.removeprefix("smk_") for c in smk_cols]
+    smoking = pd.DataFrame(
+        {
+            "level": levels,
+            "or": np.exp(beta),
+            "ci_low": np.exp(beta - 1.96 * se),
+            "ci_high": np.exp(beta + 1.96 * se),
+            "p_value": fit_s.pvalues[smk_cols].to_numpy(),
+            "n": [int((d["smoking_direction"] == lvl).sum()) for lvl in levels],
+        }
+    )
+    contrast = np.zeros(len(cols))
+    contrast[cols.index("smk_nonsmoker_to_user")] = 1.0
+    contrast[cols.index("smk_user_to_nonsmoker")] = -1.0
+    _, p_asym = _wald_p(fit_s, [], contrast)
+
+    return {
+        "fields": fields,
+        "coefficients": coefs.reset_index(drop=True),
+        "smoking_direction": smoking,
+        "smoking_asymmetry_p": p_asym,
+        "n": len(d),
+        "ll_base": ll_base,
+        "ll_all_fields": ll_full,
     }

@@ -188,6 +188,26 @@ def load_h1_data(
     return df
 
 
+def lifestyle_agree_groups(df: pd.DataFrame) -> pd.Series:
+    """Terciles of the lifestyle agreement ratio among rows with a known field (Z7).
+
+    Rows where no lifestyle field is known on both sides (`lifestyle_known_count == 0`) form
+    their own category `brak danych`; they are *not* filled with 0 and do not shift the terciles.
+    """
+    known = df["lifestyle_known_count"] > 0
+    ratio = df["lifestyle_agree_ratio"].where(known)
+    binned, edges = pd.qcut(ratio[known], q=3, retbins=True, duplicates="drop")
+    names = ["Niski", "Średni", "Wysoki"] if len(edges) == 4 else ["Niski", "Wysoki"]
+    labels = {
+        iv: f"{name} ({iv.left:.2f}-{iv.right:.2f}]"
+        for name, iv in zip(names, binned.cat.categories, strict=True)
+    }
+    out = pd.Series("brak danych", index=df.index, dtype=object)
+    out[known] = binned.map(labels).astype(object)
+    order = [*labels.values(), "brak danych"]
+    return pd.Series(pd.Categorical(out, categories=order, ordered=True), index=df.index)
+
+
 def wilson_interval(k: float, n: float, level: float = 0.95) -> tuple[float, float]:
     """Wilson CI for proportion (reference only, ignores clustering)."""
     if n == 0:

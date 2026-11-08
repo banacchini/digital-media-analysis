@@ -11,10 +11,13 @@ from rentfriends.h1_audit import (
     block_increments_from_fit,
     bootstrap_model_loglik,
     combine_cluster_cis,
+    field_dummies,
     fit_logit_fast,
+    holm_adjust,
     interests_permutation_baseline,
     oof_predictions,
     paired_cv_differences,
+    per_field_analysis,
     permute_within_strata,
     summarise_block_differences,
 )
@@ -302,3 +305,92 @@ def test_interest_permutation_baseline_supports_idf_weights():
     weights = idf_weights(docs)
     res = interests_permutation_baseline(df, n_perm=20, seed=1, weights=weights)
     assert res["summary"].set_index("group").loc["right", "observed"] > 0
+
+
+FIELDS = [
+    "daily_routine",
+    "lifestyle",
+    "work_from_home",
+    "cleanliness",
+    "noise_level",
+    "smoking",
+    "alcohol",
+]
+
+
+def _field_df(n: int = 12000, seed: int = 4) -> pd.DataFrame:
+    """Only `smoking` matters: non-smoker -> user is rejected, user -> non-smoker is not."""
+    rng = np.random.default_rng(seed)
+    df = _synthetic_effect_df("lifestyle", n=n, seed=seed).drop(columns=["y_right"])
+    for f in FIELDS:
+        df[f"lsf_{f}"] = rng.choice(
+            ["agree", "disagree", "one_missing", "both_missing"], size=n, p=[0.3, 0.3, 0.3, 0.1]
+        )
+    df["smoking_direction"] = rng.choice(
+        ["agree", "nonsmoker_to_user", "user_to_nonsmoker", "one_missing", "both_missing"],
+        size=n,
+        p=[0.3, 0.2, 0.2, 0.2, 0.1],
+    )
+    logit = -1.2 - 1.2 * (df["smoking_direction"] == "nonsmoker_to_user")
+    df["y_right"] = (rng.random(n) < 1 / (1 + np.exp(-logit))).astype(int)
+    return df
+
+
+def test_holm_adjust_matches_hand_computation():
+    adj = holm_adjust(np.array([0.01, 0.04, 0.03]))
+    # sorted p: .01*3, .03*2, .04*1 -> .03, .06, .06 (monotone)
+    assert np.allclose(adj, [0.03, 0.06, 0.06])
+
+
+def test_per_field_analysis_finds_the_one_informative_field_with_holm():
+    df = _field_df()
+    # make the smoking *status* informative too (it is derived from the same direction)
+    df["lsf_smoking"] = np.where(
+        df["smoking_direction"].isin(["nonsmoker_to_user", "user_to_nonsmoker"]),
+        "disagree",
+        np.where(df["smoking_direction"] == "agree", "agree", df["smoking_direction"]),
+    )
+    res = per_field_analysis(df)
+    tbl = res["fields"].set_index("field")
+    assert set(tbl.index) == set(FIELDS)
+    assert tbl.loc["smoking", "p_holm"] < 0.01
+    assert (tbl.drop(index="smoking")["p_holm"] > 0.05).all()
+    assert (tbl["p_holm"] >= tbl["p_raw"] - 1e-12).all()
+    assert tbl.loc["smoking", "dll_last"] > tbl.drop(index="smoking")["dll_last"].max()
+    # possible default-value fields are flagged (P6)
+    assert bool(tbl.loc["cleanliness", "possible_default"]) and not bool(
+        tbl.loc["smoking", "possible_default"]
+    )
+
+
+def test_per_field_analysis_smoking_direction_is_asymmetric():
+    res = per_field_analysis(_field_df())
+    sm_tbl = res["smoking_direction"].set_index("level")
+    assert sm_tbl.loc["nonsmoker_to_user", "or"] < 0.5
+    assert 0.8 < sm_tbl.loc["user_to_nonsmoker", "or"] < 1.25
+    assert res["smoking_asymmetry_p"] < 0.001
+
+
+def test_sparse_field_levels_are_merged_into_one_missing():
+    df = _field_df()
+    status = df["lsf_cleanliness"].replace("both_missing", "agree")
+    status.iloc[:3] = "both_missing"  # only 3 rows: far below min_n
+    n_one = int((status == "one_missing").sum())
+    d = field_dummies(status, "cleanliness", min_n=50)
+    assert not any(c.endswith("both_missing") for c in d.columns)
+    assert d["cleanliness_one_missing"].sum() == n_one + 3
+
+
+def test_lifestyle_agree_groups_have_explicit_missing_category_and_no_zero_fill():
+    from rentfriends.h1 import lifestyle_agree_groups
+
+    ratio = pd.Series([0.0, 0.0, 0.5, 0.5, 1.0, 1.0, np.nan, np.nan, 0.25, 0.75])
+    known = pd.Series([2, 2, 2, 2, 2, 2, 0, 0, 4, 4])
+    groups = lifestyle_agree_groups(
+        pd.DataFrame({"lifestyle_agree_ratio": ratio, "lifestyle_known_count": known})
+    )
+    assert (groups[known == 0] == "brak danych").all()
+    assert (groups[known > 0] != "brak danych").all()
+    # tercile boundaries come from known rows only: the two NaN rows are not counted as zeros
+    low = groups[known > 0].iloc[:2]
+    assert (low == groups[known > 0].iloc[0]).all()
