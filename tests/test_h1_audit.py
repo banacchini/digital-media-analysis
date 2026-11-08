@@ -15,11 +15,13 @@ from rentfriends.h1_audit import (
     fit_logit_fast,
     holm_adjust,
     interests_permutation_baseline,
+    mask_small_cells,
     oof_predictions,
     paired_cv_differences,
     per_field_analysis,
     permute_within_strata,
     sample_funnel,
+    sex_pair_user_counts,
     summarise_block_differences,
 )
 
@@ -411,3 +413,28 @@ def test_sample_funnel_counts_each_exclusion_step():
     assert list(funnel["swipes"]) == [10, 7, 5, 4, 3]
     assert funnel.iloc[-1]["swipes"] == 3  # age known AND >=1 lifestyle field known
     assert list(funnel["dropped"])[1:] == [3, 2, 1, 1]
+
+
+def test_small_sex_pair_cells_are_suppressed_in_the_odds_ratio_table():
+    """G12: cells with fewer than 5 distinct users must not appear with estimates."""
+    rows = []
+    for i in range(40):  # F_F: plenty of users
+        rows.append(("F_F", f"s{i}", f"r{i}"))
+    for i in range(3):  # O_O: only 3 senders and 3 receivers
+        rows.append(("O_O", f"o{i}", f"p{i}"))
+    df = pd.DataFrame(rows, columns=["sex_pair", "user_key", "target_user_key"])
+    counts = sex_pair_user_counts(df)
+    assert counts.set_index("level").loc["O_O", "n_users"] == 6
+    assert counts.set_index("level").loc["F_F", "n_users"] == 80
+    or_df = pd.DataFrame(
+        {
+            "zmienna": ["const", "sex_O_O", "sex_F_M"],
+            "or": [0.4, 3.1, 0.5],
+            "ci_low": [0.2, 1.0, 0.3],
+        }
+    )
+    counts2 = pd.concat([counts, pd.DataFrame({"level": ["F_M"], "n_swipes": [9], "n_users": [4]})])
+    out = mask_small_cells(or_df, counts2, min_users=5).set_index("zmienna")
+    assert out.loc["sex_F_M", "suppressed"] and np.isnan(out.loc["sex_F_M", "or"])
+    assert not out.loc["sex_O_O", "suppressed"]  # 6 users >= 5
+    assert not out.loc["const", "suppressed"] and out.loc["const", "or"] == 0.4

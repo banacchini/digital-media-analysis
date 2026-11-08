@@ -740,3 +740,26 @@ def sample_funnel(df: pd.DataFrame, n_all_swipes: int, n_profile_swipes: int) ->
         )
         prev = n
     return pd.DataFrame(rows)
+
+
+def sex_pair_user_counts(df: pd.DataFrame) -> pd.DataFrame:
+    """Swipes and distinct users (as sender or receiver) per ordered sex pair."""
+    rows = []
+    for level, part in df.groupby("sex_pair"):
+        users = pd.concat([part["user_key"], part["target_user_key"]]).nunique()
+        rows.append({"level": level, "n_swipes": len(part), "n_users": int(users)})
+    return pd.DataFrame(rows)
+
+
+def mask_small_cells(table: pd.DataFrame, counts: pd.DataFrame, min_users: int = 5) -> pd.DataFrame:
+    """Blank estimates of `sex_<level>` rows whose cell has fewer than `min_users` users (G12)."""
+    out = table.copy()
+    out["suppressed"] = False
+    n_users = counts.set_index("level")["n_users"]
+    numeric = [c for c in out.columns if c not in ("zmienna", "suppressed")]
+    for i, name in enumerate(out["zmienna"]):
+        level = name.removeprefix("sex_")
+        if name.startswith("sex_") and level in n_users.index and n_users[level] < min_users:
+            out.loc[out.index[i], numeric] = np.nan
+            out.loc[out.index[i], "suppressed"] = True
+    return out
