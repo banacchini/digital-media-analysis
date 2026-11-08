@@ -3,7 +3,12 @@
 import numpy as np
 import pandas as pd
 
-from rentfriends.h1_audit import age_direction_check
+from conftest import make_dummy_h1_df
+from rentfriends.h1_audit import (
+    age_direction_check,
+    block_increment_table,
+    block_increments_from_fit,
+)
 
 
 def _make_age_df(n_senders: int = 150, per_sender: int = 60, seed: int = 0) -> pd.DataFrame:
@@ -55,3 +60,46 @@ def test_age_direction_suppresses_small_cells():
     rare = cells[cells["age_band_diff"] == -2]
     assert rare["rate"].isna().all()
     assert (rare["n_users"] < 5).all()
+
+
+def test_block_increment_table_matches_hand_computation():
+    """Z4: first / last / mean-over-6-orderings increments and their efficiency property."""
+    ll = {
+        "controls": 0.0,
+        "age": 10.0,
+        "interests": 4.0,
+        "lifestyle": 2.0,
+        "age_interests": 12.0,
+        "age_lifestyle": 11.0,
+        "interests_lifestyle": 7.0,
+        "full": 14.0,
+    }
+    k = {"age": 3, "interests": 3, "lifestyle": 4}
+    tbl = block_increment_table(ll, k).set_index("block")
+    assert tbl.loc["age", "dll_first"] == 10.0
+    assert tbl.loc["age", "dll_last"] == 7.0
+    assert np.isclose(tbl.loc["age", "dll_mean"], 8.5)
+    assert np.isclose(tbl.loc["interests", "dll_mean"], 3.5)
+    assert np.isclose(tbl.loc["lifestyle", "dll_mean"], 2.0)
+    # efficiency: mean increments of the three blocks add up to the total gain
+    singles = tbl.loc[["age", "interests", "lifestyle"], "dll_mean"].sum()
+    assert np.isclose(singles, 14.0)
+    # per-df and AIC (-2*dLL + 2*df)
+    assert np.isclose(tbl.loc["lifestyle", "dll_last_per_df"], 2.0 / 4)
+    assert np.isclose(tbl.loc["lifestyle", "daic_last"], -2 * 2.0 + 2 * 4)
+    # composite row used by the card's criterion: lifestyle vs age+interests
+    comp = tbl.loc["age+interests"]
+    assert comp["df"] == 6
+    assert comp["dll_first"] == 12.0
+    assert comp["dll_last"] == 14.0 - 2.0
+    assert np.isclose(comp["dll_mean"], (12.0 + 12.0) / 2)
+
+
+def test_block_increments_from_fit_uses_model_loglik_and_block_df():
+    from rentfriends.h1 import fit_h1_logit_models
+
+    res = fit_h1_logit_models(make_dummy_h1_df(400))
+    tbl = block_increments_from_fit(res).set_index("block")
+    assert tbl.loc["lifestyle", "df"] == 3
+    total = res["models"]["full"].llf - res["models"]["controls"].llf
+    assert np.isclose(tbl.loc[["age", "interests", "lifestyle"], "dll_mean"].sum(), total)
