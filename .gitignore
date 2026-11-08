@@ -29,3 +29,6 @@ data/**
 
 # H3a smoke-test outputs (pilot runs, not results)
 reports/h3a_smoke/
+
+# Private gold-standard annotation sets (bio text; never committed)
+data/private/

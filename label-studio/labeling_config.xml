@@ -1,0 +1,35 @@
+<!-- Label Studio labeling interface for the H3b-ii gold set.
+     Paste into: Project > Settings > Labeling Interface > Code.
+     Stored values are "1"/"0" (aliases), which scripts/gold_import.py expects.
+     The 'name' of each Choices must equal the signal name. -->
+<View>
+  <Header value="$item_id"/>
+  <Text name="text" value="$text"/>
+
+  <Header value="towarzyskie"/>
+  <Choices name="towarzyskie" toName="text" choice="single-radio" showInline="true" required="true">
+    <Choice value="1 - tak" alias="1"/>
+    <Choice value="0 - nie" alias="0"/>
+  </Choices>
+
+  <Header value="spokoj"/>
+  <Choices name="spokoj" toName="text" choice="single-radio" showInline="true" required="true">
+    <Choice value="1 - tak" alias="1"/>
+    <Choice value="0 - nie" alias="0"/>
+  </Choices>
+
+  <Header value="rytm"/>
+  <Choices name="rytm" toName="text" choice="single-radio" showInline="true" required="true">
+    <Choice value="1 - tak" alias="1"/>
+    <Choice value="0 - nie" alias="0"/>
+  </Choices>
+
+  <Header value="intencja"/>
+  <Choices name="intencja" toName="text" choice="single-radio" showInline="true" required="true">
+    <Choice value="1 - tak" alias="1"/>
+    <Choice value="0 - nie" alias="0"/>
+  </Choices>
+
+  <Header value="uwagi (optional)"/>
+  <TextArea name="uwagi" toName="text" rows="2" placeholder="Doubts, unclear cases"/>
+</View>
