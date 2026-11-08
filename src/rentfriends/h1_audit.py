@@ -481,6 +481,7 @@ def interests_permutation_baseline(
     n_perm: int = 200,
     seed: int = 0,
     weights: dict[str, float] | None = None,
+    default_weight: float = 0.0,
     n_boot: int = 500,
     level: float = 0.95,
 ) -> dict[str, object]:
@@ -502,7 +503,7 @@ def interests_permutation_baseline(
         }
     )
     vocab = {t: i for i, t in enumerate(vocab_list)}
-    w = np.array([1.0 if weights is None else weights.get(t, 0.0) for t in vocab_list])
+    w = np.array([1.0 if weights is None else weights.get(t, default_weight) for t in vocab_list])
     S = _set_matrix(d["interests_set_sender"], vocab, w)
     R = _set_matrix(d["interests_set_receiver"], vocab, w)
     s_tot = S.sum(axis=1)

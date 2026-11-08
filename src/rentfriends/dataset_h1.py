@@ -313,6 +313,30 @@ def idf_weights(tag_sets: Iterable[Iterable[str]], n_docs: int | None = None) ->
     return {tag: float(np.log(n / df)) for tag, df in counts.items()}
 
 
+def user_tag_idf(users: pd.DataFrame, hyderabad_users: set[str]) -> tuple[dict[str, float], float]:
+    """IDF weights over current user profiles (excluding D10 accounts) and the unseen-tag weight."""
+    docs = users.loc[~users["user_key"].isin(hyderabad_users), "pure_interests"]
+    weights = idf_weights(docs, n_docs=len(docs))
+    return weights, float(np.log(max(len(docs), 1)))
+
+
+def load_user_idf(
+    data_dir: str | Path = "data/processed", docs_dir: str | Path = "docs"
+) -> tuple[dict[str, float], float]:
+    """Recompute the IDF weights used by `interests_idf_jaccard` (users table only)."""
+    users = pd.read_parquet(Path(data_dir) / "users.parquet")
+    mapping_dict, category_dict, _ = load_tag_mappings(
+        Path(docs_dir) / "interests_mapping.csv", Path(docs_dir) / "tag_category_proposal.csv"
+    )
+    infrequent = get_infrequent_canonical_tags(users["interests"], mapping_dict, min_samples=50)
+    users["pure_interests"] = [
+        transform_and_disentangle_tags(raw, mapping_dict, category_dict, infrequent)[0]
+        for raw in users["interests"]
+    ]
+    hyderabad = set(users.loc[users["city"] == "Hyderabad", "user_key"])
+    return user_tag_idf(users, hyderabad)
+
+
 def weighted_jaccard(
     a: set[str] | Iterable[str],
     b: set[str] | Iterable[str],
@@ -428,9 +452,7 @@ def build_h1_dataset(
     ]
 
     # IDF over the current profiles of non-excluded users (Z6a)
-    idf_docs = users.loc[~users["user_key"].isin(hyderabad_users), "pure_interests"]
-    tag_weights = idf_weights(idf_docs, n_docs=len(idf_docs))
-    unseen_weight = float(np.log(max(len(idf_docs), 1)))  # rarest possible tag
+    tag_weights, unseen_weight = user_tag_idf(users, hyderabad_users)
 
     sender_prof = resolve_as_of_profiles(
         df_swipes,

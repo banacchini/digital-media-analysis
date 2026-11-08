@@ -16,6 +16,7 @@ from rentfriends.dataset_h1 import (
     resolve_as_of_profiles,
     smoking_direction,
     transform_and_disentangle_tags,
+    user_tag_idf,
     weighted_jaccard,
 )
 
@@ -168,3 +169,17 @@ def test_smoking_direction_is_asymmetric():
         "one_missing",
         "both_missing",
     ]
+
+
+def test_user_tag_idf_excludes_hyderabad_and_returns_unseen_weight():
+    users = pd.DataFrame(
+        {
+            "user_key": ["a", "b", "c", "h"],
+            "pure_interests": [["x", "y"], ["x"], ["x", "z"], ["only_hyd"]],
+        }
+    )
+    weights, unseen = user_tag_idf(users, hyderabad_users={"h"})
+    assert "only_hyd" not in weights  # excluded accounts do not define the document set
+    assert weights["x"] == 0.0  # all 3 remaining users have it
+    assert np.isclose(weights["y"], np.log(3))
+    assert np.isclose(unseen, np.log(3))  # rarest possible tag
