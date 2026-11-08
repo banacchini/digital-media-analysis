@@ -58,6 +58,7 @@ class H1Spec:
     age_cols: tuple[str, ...] = tuple(AGE_COLS)
     age_sq: bool = False  # add |diff|^2 (card 3.2) as a sensitivity variant
     sender_band_fe: bool = False  # sender age-band dummies (reference 18-20)
+    cap_control: bool = False  # indicator: a profile has the maximum of 9 raw tags (Z6c)
     interest_cols: tuple[str, ...] = tuple(INTERESTS_COLS)
     lifestyle_cols: tuple[str, ...] = tuple(LIFESTYLE_COLS)
     city_control: bool = True
@@ -72,6 +73,8 @@ LEGACY_SPEC = H1Spec(
 )
 # Controls unified (Z1) but sex coded as same_sex instead of the ordered sex_pair.
 SAME_SEX_SPEC = H1Spec(name="same_sex", sex_control="same_sex")
+# Interest block extended with the IDF-weighted Jaccard (rare shared hobbies count more; Z6a).
+IDF_SPEC = H1Spec(name="idf_jaccard", interest_cols=(*INTERESTS_COLS, "interests_idf_jaccard"))
 
 
 def _spec_block_cols(spec: H1Spec) -> dict[str, list[str]]:
@@ -93,6 +96,8 @@ def _spec_required_cols(spec: H1Spec) -> list[str]:
         cols += CONTROL_COLS
     if spec.sender_band_fe:
         cols.append("age_band_sender")
+    if spec.cap_control:
+        cols.append("interests_at_cap")
     return list(dict.fromkeys(cols))
 
 
@@ -115,6 +120,8 @@ def control_frame(d: pd.DataFrame, spec: H1Spec) -> pd.DataFrame:
         parts.append(d[[spec.sex_control]].astype(float))
     if spec.city_control:
         parts.append(d[CONTROL_COLS].astype(float))
+    if spec.cap_control:
+        parts.append(d[["interests_at_cap"]].astype(float))
     if spec.sender_band_fe:
         sband = pd.get_dummies(d["age_band_sender"], prefix="sband", dtype=float)
         parts.append(sband.drop(columns=["sband_18-20"], errors="ignore"))
@@ -152,14 +159,27 @@ def design_matrix(
     return sm.add_constant(X, has_constant="add")
 
 
-def load_h1_data(data_dir: Path | str = "data/processed") -> pd.DataFrame:
-    """Load or generate the clean H1 dataset."""
+# Columns added after the 2026-11-08 audit; a cached parquet without them is rebuilt.
+REQUIRED_DATASET_COLS = (
+    "interests_idf_jaccard",
+    "interests_at_cap",
+    "interests_set_sender",
+    "interests_set_receiver",
+    "smoking_direction",
+    "lsf_smoking",
+)
+
+
+def load_h1_data(
+    data_dir: Path | str = "data/processed", docs_dir: Path | str | None = None
+) -> pd.DataFrame:
+    """Load or generate the clean H1 dataset (docs are looked up next to `data/` by default)."""
     data_path = Path(data_dir)
+    docs_path = Path(docs_dir) if docs_dir else data_path.resolve().parents[1] / "docs"
     file_path = data_path / "h1_analysis_dataset.parquet"
-    if file_path.exists():
-        df = pd.read_parquet(file_path)
-    else:
-        df = build_h1_dataset(data_dir=data_path, docs_dir="docs")
+    df = pd.read_parquet(file_path) if file_path.exists() else None
+    if df is None or not set(REQUIRED_DATASET_COLS) <= set(df.columns):  # missing or stale cache
+        df = build_h1_dataset(data_dir=data_path, docs_dir=docs_path)
         df.to_parquet(file_path, index=False)
 
     # Prepare city dummy columns

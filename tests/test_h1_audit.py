@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from conftest import make_dummy_h1_df
+from rentfriends.dataset_h1 import idf_weights
 from rentfriends.h1_audit import (
     age_direction_check,
     block_increment_table,
@@ -11,8 +12,10 @@ from rentfriends.h1_audit import (
     bootstrap_model_loglik,
     combine_cluster_cis,
     fit_logit_fast,
+    interests_permutation_baseline,
     oof_predictions,
     paired_cv_differences,
+    permute_within_strata,
     summarise_block_differences,
 )
 
@@ -238,3 +241,64 @@ def test_paired_cv_differences_sign_matches_the_true_effect():
     )
     row = tbl.loc[("auc", "last", "lifestyle - age+interests")]
     assert row["estimate"] < 0 and row["ci_high"] < 0
+
+
+def _interest_df(signal: bool, n: int = 4000, seed: int = 11) -> pd.DataFrame:
+    """Sender/receiver hobby sets; with `signal`, right swipes always share one tag."""
+    rng = np.random.default_rng(seed)
+    vocab = [f"t{i}" for i in range(30)]
+    rows = []
+    for _ in range(n):
+        s = set(rng.choice(vocab, size=int(rng.integers(2, 6)), replace=False))
+        r = set(rng.choice(vocab, size=int(rng.integers(2, 6)), replace=False))
+        y = int(rng.random() < 0.3)
+        if signal and y == 1:
+            r = (r - s) | {sorted(s)[0]}
+        if signal and y == 0:
+            r = r - s
+            if not r:
+                r = {"t_other"}
+        rows.append(
+            {
+                "user_key": f"s{int(rng.integers(0, 150))}",
+                "target_user_key": f"r{int(rng.integers(0, 150))}",
+                "y_right": y,
+                "interests_set_sender": sorted(s),
+                "interests_set_receiver": sorted(r),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def test_permute_within_strata_keeps_tag_counts():
+    rng = np.random.default_rng(0)
+    counts = np.array([2, 3, 3, 2, 5, 3, 2, 5, 5, 2])
+    perm = permute_within_strata(counts, rng)
+    assert sorted(perm) == list(range(len(counts)))  # a true permutation
+    assert (counts[perm] == counts).all()  # receiver tag count is preserved per swipe
+
+
+def test_interest_permutation_baseline_detects_overlap_beyond_chance():
+    res = interests_permutation_baseline(_interest_df(signal=True), n_perm=60, seed=1)
+    tbl = res["summary"].set_index("group")
+    assert tbl.loc["right", "observed"] > tbl.loc["right", "perm_hi"]
+    assert tbl.loc["left", "observed"] < tbl.loc["left", "perm_lo"]
+    assert tbl.loc["right_minus_left", "p_two_sided"] < 0.05
+
+
+def test_interest_permutation_baseline_is_quiet_without_signal():
+    res = interests_permutation_baseline(_interest_df(signal=False), n_perm=60, seed=1)
+    tbl = res["summary"].set_index("group")
+    # with no signal the observed gap is a typical draw from the permutation distribution
+    diff = tbl.loc["right_minus_left"]
+    assert abs(diff["observed"] - diff["perm_mean"]) < 3 * res["perm_diff"].std()
+    right = tbl.loc["right"]
+    assert right["perm_lo"] <= right["observed"] <= right["perm_hi"]
+
+
+def test_interest_permutation_baseline_supports_idf_weights():
+    df = _interest_df(signal=True, n=1500)
+    docs = list(df["interests_set_receiver"])
+    weights = idf_weights(docs)
+    res = interests_permutation_baseline(df, n_perm=20, seed=1, weights=weights)
+    assert res["summary"].set_index("group").loc["right", "observed"] > 0

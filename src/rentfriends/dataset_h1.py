@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import ast
 import json
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
@@ -40,6 +41,8 @@ AGE_BAND_ORDER: dict[str, int] = {
     "24-26": 2,
     "27+": 3,
 }
+
+RAW_TAG_CAP = 9  # maximum number of interest tags a profile can hold in the app
 
 LIFESTYLE_STRUCTURED_FIELDS: list[str] = [
     "daily_routine",
@@ -299,6 +302,62 @@ def resolve_as_of_profiles(
     return out
 
 
+def idf_weights(tag_sets: Iterable[Iterable[str]], n_docs: int | None = None) -> dict[str, float]:
+    """Inverse document frequency log(N / df) of every tag; a tag in all documents weighs 0."""
+    docs = [set(t) for t in tag_sets]
+    n = len(docs) if n_docs is None else n_docs
+    counts: dict[str, int] = {}
+    for doc in docs:
+        for tag in doc:
+            counts[tag] = counts.get(tag, 0) + 1
+    return {tag: float(np.log(n / df)) for tag, df in counts.items()}
+
+
+def weighted_jaccard(
+    a: set[str] | Iterable[str],
+    b: set[str] | Iterable[str],
+    weights: dict[str, float],
+    default_weight: float = 0.0,
+) -> float:
+    """IDF-weighted Jaccard: weight of shared tags over weight of all tags (0 if empty)."""
+    sa, sb = set(a), set(b)
+    union_w = sum(weights.get(t, default_weight) for t in sa | sb)
+    if union_w <= 0:
+        return 0.0
+    inter_w = sum(weights.get(t, default_weight) for t in sa & sb)
+    return float(inter_w / union_w)
+
+
+def field_agreement_status(sender: pd.Series, receiver: pd.Series) -> pd.Series:
+    """Per-field pair status: agree / disagree / one_missing / both_missing (Z7)."""
+    s_na, r_na = sender.isna().to_numpy(), receiver.isna().to_numpy()
+    out = np.where(
+        s_na & r_na,
+        "both_missing",
+        np.where(
+            s_na | r_na,
+            "one_missing",
+            np.where(sender.to_numpy() == receiver.to_numpy(), "agree", "disagree"),
+        ),
+    )
+    return pd.Series(out, index=sender.index)
+
+
+def smoking_direction(sender: pd.Series, receiver: pd.Series) -> pd.Series:
+    """Directional smoking status. Code `N` is read as non-smoker, any other code as a user.
+
+    There is no codebook for the field (D14), so this reading of `V`, `O`, `Y` is an assumption.
+    """
+    status = field_agreement_status(sender, receiver)
+    s_n, r_n = (sender == "N").to_numpy(), (receiver == "N").to_numpy()
+    out = status.to_numpy().astype(object)
+    both = status.isin(["agree", "disagree"]).to_numpy()
+    out[both & s_n & ~r_n] = "nonsmoker_to_user"
+    out[both & ~s_n & r_n] = "user_to_nonsmoker"
+    out[both & ~s_n & ~r_n & (status == "disagree").to_numpy()] = "user_vs_other_user"
+    return pd.Series(out, index=sender.index)
+
+
 def compute_lifestyle_tag_conflict(tags_a: list[str], tags_b: list[str]) -> int:
     """Check if pair has conflicting directional lifestyle preferences (D15)."""
     set_a = set(tags_a)
@@ -351,6 +410,7 @@ def build_h1_dataset(
         )
         df["pure_interests"] = [s[0] for s in split_res]
         df["lifestyle_tags"] = [s[1] for s in split_res]
+        df["raw_tags_n"] = df["interests"].apply(lambda raw: len(parse_raw_interests(raw)))
         # Apply D13: structured field priority, tag fills missing values
         df_imputed = apply_d13_tag_imputation(df, lifestyle_tags_col="lifestyle_tags")
         for field in LIFESTYLE_STRUCTURED_FIELDS:
@@ -364,7 +424,13 @@ def build_h1_dataset(
         *LIFESTYLE_STRUCTURED_FIELDS,
         "pure_interests",
         "lifestyle_tags",
+        "raw_tags_n",
     ]
+
+    # IDF over the current profiles of non-excluded users (Z6a)
+    idf_docs = users.loc[~users["user_key"].isin(hyderabad_users), "pure_interests"]
+    tag_weights = idf_weights(idf_docs, n_docs=len(idf_docs))
+    unseen_weight = float(np.log(max(len(idf_docs), 1)))  # rarest possible tag
 
     sender_prof = resolve_as_of_profiles(
         df_swipes,
@@ -491,6 +557,30 @@ def build_h1_dataset(
     res["interests_count_receiver"] = [len(r) for r in r_pure]
     res["interests_count_diff"] = interests_count_diffs
     res["interests_count_diff_abs"] = np.abs(interests_count_diffs)
+
+    # Z6a: IDF-weighted Jaccard (rare shared tags count more)
+    res["interests_idf_jaccard"] = [
+        weighted_jaccard(s, r, tag_weights, default_weight=unseen_weight)
+        for s, r in zip(s_pure, r_pure, strict=False)
+    ]
+    # Z6c: raw tag count hits the app's cap of 9 tags before de-duplication / category split
+    res["raw_tags_n_sender"] = sender_prof["sender_raw_tags_n"].astype(float)
+    res["raw_tags_n_receiver"] = receiver_prof["receiver_raw_tags_n"].astype(float)
+    res["interests_at_cap"] = (
+        (res["raw_tags_n_sender"] >= RAW_TAG_CAP) | (res["raw_tags_n_receiver"] >= RAW_TAG_CAP)
+    ).astype(int)
+    # Z6b: canonical hobby tag sets per swipe side (aggregate-level categories, never bio text)
+    res["interests_set_sender"] = [sorted(set(x)) for x in s_pure]
+    res["interests_set_receiver"] = [sorted(set(x)) for x in r_pure]
+
+    # Z7: per-field pair status and smoking direction
+    for field in LIFESTYLE_STRUCTURED_FIELDS:
+        res[f"lsf_{field}"] = field_agreement_status(
+            sender_prof[f"sender_{field}"], receiver_prof[f"receiver_{field}"]
+        )
+    res["smoking_direction"] = smoking_direction(
+        sender_prof["sender_smoking"], receiver_prof["receiver_smoking"]
+    )
 
     # Sensitivity analysis flags (D6)
     user_swipe_counts = res.groupby("user_key")["y_right"].agg(["count", "mean"])

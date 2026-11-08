@@ -1,7 +1,10 @@
 """Unit tests for H1 hypothesis analysis module."""
 
+import numpy as np
+
 from conftest import make_dummy_h1_df as _make_dummy_h1_df
 from rentfriends.h1 import (
+    IDF_SPEC,
     LEGACY_SPEC,
     SAME_SEX_SPEC,
     H1Spec,
@@ -121,3 +124,26 @@ def test_sender_band_fixed_effects_add_controls():
     ctrl = control_frame(df, H1Spec(name="fe", sender_band_fe=True))
     fe_cols = [c for c in ctrl.columns if c.startswith("sband_")]
     assert set(fe_cols) == {"sband_21-23", "sband_24-26"}  # 18-20 is the reference
+
+
+def test_cap_control_adds_indicator_to_every_model():
+    """Z6c: the 9-tag ceiling indicator is a control (identical across models), not a block."""
+    df = _make_dummy_h1_df(400)
+    df["interests_at_cap"] = (np.arange(len(df)) % 3 == 0).astype(int)
+    spec = H1Spec(name="cap", cap_control=True)
+    assert "interests_at_cap" in control_frame(df, spec).columns
+    res = fit_h1_logit_models(df, spec)
+    for name, fit in res["models"].items():
+        if name != "null":
+            assert "interests_at_cap" in fit.params.index, name
+
+
+def test_idf_jaccard_variant_extends_only_the_interest_block():
+    df = _make_dummy_h1_df(400)
+    df["interests_idf_jaccard"] = df["interests_jaccard"] ** 2
+    base = fit_h1_logit_models(df)
+    idf = fit_h1_logit_models(df, IDF_SPEC)
+    n_base = base["summary"].set_index("model")["n_vars"]
+    n_idf = idf["summary"].set_index("model")["n_vars"]
+    assert n_idf["interests"] == n_base["interests"] + 1
+    assert n_idf["lifestyle"] == n_base["lifestyle"]

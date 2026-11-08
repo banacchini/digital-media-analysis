@@ -451,3 +451,119 @@ def paired_cv_differences(
                 }
             )
     return pd.DataFrame(rows)
+
+
+def permute_within_strata(strata: np.ndarray, rng: np.random.Generator) -> np.ndarray:
+    """Index permutation that only moves items inside their own stratum (equal tag count)."""
+    strata = np.asarray(strata)
+    perm = np.arange(len(strata))
+    for value in np.unique(strata):
+        members = np.flatnonzero(strata == value)
+        perm[members] = rng.permutation(members)
+    return perm
+
+
+def _set_matrix(sets: pd.Series, vocab: dict[str, int], weights: np.ndarray) -> np.ndarray:
+    """Weighted indicator matrix (n x V): entry = tag weight if the swipe side has the tag."""
+    m = np.zeros((len(sets), len(vocab)), dtype=np.float32)
+    for i, tags in enumerate(sets):
+        for t in tags:
+            m[i, vocab[t]] = weights[vocab[t]]
+    return m
+
+
+def interests_permutation_baseline(
+    df: pd.DataFrame,
+    n_perm: int = 200,
+    seed: int = 0,
+    weights: dict[str, float] | None = None,
+    n_boot: int = 500,
+    level: float = 0.95,
+) -> dict[str, object]:
+    """Hobby overlap (Jaccard) of right vs left swipes against a permutation baseline (Z6b).
+
+    The baseline reassigns receivers' hobby sets between swipes *within groups of equal tag
+    count*, so the number of tags per receiver and the marginal tag distribution are preserved
+    while the sender-receiver match is destroyed. With `weights` the IDF-weighted Jaccard is used.
+    Reports observed means (sender-clustered bootstrap CI), the permutation distribution
+    (mean and central `level` band) and a two-sided permutation p-value for right minus left.
+    """
+    d = df.dropna(subset=["y_right"]).reset_index(drop=True)
+    vocab_list = sorted(
+        {
+            t
+            for col in ("interests_set_sender", "interests_set_receiver")
+            for tags in d[col]
+            for t in tags
+        }
+    )
+    vocab = {t: i for i, t in enumerate(vocab_list)}
+    w = np.array([1.0 if weights is None else weights.get(t, 0.0) for t in vocab_list])
+    S = _set_matrix(d["interests_set_sender"], vocab, w)
+    R = _set_matrix(d["interests_set_receiver"], vocab, w)
+    s_tot = S.sum(axis=1)
+    r_tot = R.sum(axis=1)
+    counts = d["interests_set_receiver"].map(len).to_numpy()
+    y = d["y_right"].to_numpy().astype(bool)
+
+    def jaccard(R_mat: np.ndarray, r_total: np.ndarray) -> np.ndarray:
+        shared = np.minimum(S, R_mat).sum(axis=1)
+        union = s_tot + r_total - shared
+        return np.divide(shared, union, out=np.zeros_like(shared), where=union > 0)
+
+    obs_j = jaccard(R, r_tot).astype(float)
+
+    def group_means(j: np.ndarray) -> tuple[float, float]:
+        return float(j[y].mean()), float(j[~y].mean())
+
+    rng = np.random.default_rng(seed)
+    perm_right, perm_left = np.empty(n_perm), np.empty(n_perm)
+    for b in range(n_perm):
+        p = permute_within_strata(counts, rng)
+        perm_right[b], perm_left[b] = group_means(jaccard(R[p], r_tot[p]).astype(float))
+    perm_diff = perm_right - perm_left
+
+    obs_right, obs_left = group_means(obs_j)
+    obs_diff = obs_right - obs_left
+    lo_q, hi_q = (1 - level) / 2, 1 - (1 - level) / 2
+
+    # sender-clustered bootstrap CI of the observed means
+    codes, uniques = pd.factorize(d["user_key"])
+    n_s = len(uniques)
+    n_r = np.bincount(codes[y], minlength=n_s).astype(float)
+    n_l = np.bincount(codes[~y], minlength=n_s).astype(float)
+    sum_r = np.bincount(codes[y], weights=obs_j[y], minlength=n_s)
+    sum_l = np.bincount(codes[~y], weights=obs_j[~y], minlength=n_s)
+    idx = _sender_boot_index(n_s, n_boot, seed)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        b_right = sum_r[idx].sum(1) / n_r[idx].sum(1)
+        b_left = sum_l[idx].sum(1) / n_l[idx].sum(1)
+    boots = {"right": b_right, "left": b_left, "right_minus_left": b_right - b_left}
+
+    centre = perm_diff.mean()
+    p_two = float((np.sum(np.abs(perm_diff - centre) >= abs(obs_diff - centre)) + 1) / (n_perm + 1))
+    rows = []
+    for group, obs, perm in (
+        ("right", obs_right, perm_right),
+        ("left", obs_left, perm_left),
+        ("right_minus_left", obs_diff, perm_diff),
+    ):
+        rows.append(
+            {
+                "group": group,
+                "observed": obs,
+                "obs_ci_low": float(np.nanquantile(boots[group], lo_q)),
+                "obs_ci_high": float(np.nanquantile(boots[group], hi_q)),
+                "perm_mean": float(perm.mean()),
+                "perm_lo": float(np.quantile(perm, lo_q)),
+                "perm_hi": float(np.quantile(perm, hi_q)),
+                "p_two_sided": p_two if group == "right_minus_left" else np.nan,
+            }
+        )
+    return {
+        "summary": pd.DataFrame(rows),
+        "perm_right": perm_right,
+        "perm_left": perm_left,
+        "perm_diff": perm_diff,
+        "n_swipes": len(d),
+    }
