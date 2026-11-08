@@ -1,0 +1,6 @@
+{
+ "status": "failed",
+ "error": "LinAlgError('Singular matrix')",
+ "_fingerprint": "b9c7bd43166de3fb",
+ "_wall_s": 0.11650872230529785
+}
