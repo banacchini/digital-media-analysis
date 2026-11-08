@@ -321,12 +321,17 @@ def user_tag_idf(users: pd.DataFrame, hyderabad_users: set[str]) -> tuple[dict[s
 
 
 def load_user_idf(
-    data_dir: str | Path = "data/processed", docs_dir: str | Path = "docs"
+    data_dir: str | Path = "data/processed", docs_dir: str | Path | None = None
 ) -> tuple[dict[str, float], float]:
-    """Recompute the IDF weights used by `interests_idf_jaccard` (users table only)."""
-    users = pd.read_parquet(Path(data_dir) / "users.parquet")
+    """Recompute the IDF weights used by `interests_idf_jaccard` (users table only).
+
+    `docs/` is looked up next to `data/` unless given, so this works from any directory.
+    """
+    data_path = Path(data_dir)
+    docs_path = Path(docs_dir) if docs_dir else data_path.resolve().parents[1] / "docs"
+    users = pd.read_parquet(data_path / "users.parquet")
     mapping_dict, category_dict, _ = load_tag_mappings(
-        Path(docs_dir) / "interests_mapping.csv", Path(docs_dir) / "tag_category_proposal.csv"
+        docs_path / "interests_mapping.csv", docs_path / "tag_category_proposal.csv"
     )
     infrequent = get_infrequent_canonical_tags(users["interests"], mapping_dict, min_samples=50)
     users["pure_interests"] = [

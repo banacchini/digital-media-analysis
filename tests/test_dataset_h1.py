@@ -12,6 +12,7 @@ from rentfriends.dataset_h1 import (
     get_infrequent_canonical_tags,
     idf_weights,
     load_tag_mappings,
+    load_user_idf,
     parse_raw_interests,
     resolve_as_of_profiles,
     smoking_direction,
@@ -183,3 +184,31 @@ def test_user_tag_idf_excludes_hyderabad_and_returns_unseen_weight():
     assert weights["x"] == 0.0  # all 3 remaining users have it
     assert np.isclose(weights["y"], np.log(3))
     assert np.isclose(unseen, np.log(3))  # rarest possible tag
+
+
+def test_load_user_idf_finds_docs_next_to_data_when_run_from_another_directory(
+    tmp_path, monkeypatch
+):
+    """Notebooks run from notebooks/, so the docs/ folder must be resolved from data_dir."""
+    import shutil
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[1]
+    (tmp_path / "docs").mkdir()
+    for name in ("interests_mapping.csv", "tag_category_proposal.csv"):
+        shutil.copy(repo / "docs" / name, tmp_path / "docs" / name)
+    proc = tmp_path / "data" / "processed"
+    proc.mkdir(parents=True)
+    users = pd.DataFrame(
+        {
+            "user_key": ["a", "b", "h"],
+            "city": ["Wrocław", "Warszawa", "Hyderabad"],
+            "interests": ["['running']", "['running', 'camping']", "['camping']"],
+        }
+    )
+    users.to_parquet(proc / "users.parquet")
+    (tmp_path / "notebooks").mkdir()
+    monkeypatch.chdir(tmp_path / "notebooks")
+
+    weights, unseen = load_user_idf(proc)
+    assert isinstance(weights, dict) and unseen > 0
