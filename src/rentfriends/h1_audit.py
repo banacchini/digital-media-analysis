@@ -12,6 +12,8 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 
+from rentfriends.h1 import H1Spec, design_matrix, model_subsets, prepare_h1_sample
+
 AGE_BAND_LABELS = ("18-20", "21-23", "24-26", "27+")
 
 
@@ -186,3 +188,151 @@ def block_increments_from_fit(res: dict) -> pd.DataFrame:
         "lifestyle": int(n_vars["lifestyle"] - n_vars["controls"]),
     }
     return block_increment_table(ll, block_df)
+
+
+def fit_logit_fast(
+    X: np.ndarray,
+    y: np.ndarray,
+    w: np.ndarray | None = None,
+    beta0: np.ndarray | None = None,
+    max_iter: int = 40,
+    tol: float = 1e-9,
+) -> tuple[np.ndarray, float]:
+    """Weighted logistic regression by Newton-Raphson; returns (coefficients, weighted loglik).
+
+    Integer weights equal row duplication, which is what a cluster bootstrap needs. A tiny ridge
+    keeps the Hessian invertible when a resample empties a sparse dummy.
+    """
+    X = np.asarray(X, dtype=float)
+    y = np.asarray(y, dtype=float)
+    w = np.ones(len(y)) if w is None else np.asarray(w, dtype=float)
+    beta = np.zeros(X.shape[1]) if beta0 is None else np.array(beta0, dtype=float)
+    ridge = 1e-8 * np.eye(X.shape[1])
+
+    def loglik(b: np.ndarray) -> float:
+        eta = X @ b
+        return float(np.sum(w * (y * eta - np.logaddexp(0.0, eta))))
+
+    ll = loglik(beta)
+    for _ in range(max_iter):
+        p = 1.0 / (1.0 + np.exp(-(X @ beta)))
+        grad = X.T @ (w * (y - p))
+        hess = (X * (w * p * (1 - p))[:, None]).T @ X + ridge
+        step = np.linalg.solve(hess, grad)
+        t = 1.0
+        while True:  # step halving keeps the likelihood monotone
+            new_ll = loglik(beta + t * step)
+            if new_ll >= ll - 1e-12 or t < 1e-6:
+                break
+            t /= 2
+        beta = beta + t * step
+        converged = abs(new_ll - ll) < tol
+        ll = new_ll
+        if converged:
+            break
+    return beta, ll
+
+
+def bootstrap_model_loglik(
+    df: pd.DataFrame,
+    cluster_col: str = "user_key",
+    n_boot: int = 500,
+    seed: int = 0,
+    spec: H1Spec | None = None,
+) -> tuple[pd.Series, pd.DataFrame]:
+    """Log-likelihood of the 8 block models on cluster-bootstrap resamples (Z5).
+
+    Clusters (senders or receivers) are drawn with replacement; a resample is represented by
+    integer row weights, so every replicate refits all models on the same design matrices.
+    Returns the observed log-likelihoods and an (n_boot x 8) frame of resampled ones.
+    """
+    spec = spec or H1Spec()
+    d = prepare_h1_sample(df, spec)
+    y = d["y_right"].to_numpy(dtype=float)
+    designs = {
+        name: design_matrix(d, spec, combo).to_numpy(dtype=float)
+        for name, combo in model_subsets().items()
+    }
+    codes, uniques = pd.factorize(d[cluster_col])
+    n_c = len(uniques)
+
+    obs, betas = {}, {}
+    for name, X in designs.items():
+        betas[name], obs[name] = fit_logit_fast(X, y)
+
+    idx = _sender_boot_index(n_c, n_boot, seed)
+    out = np.empty((n_boot, len(designs)))
+    for b in range(n_boot):
+        mult = np.bincount(idx[b], minlength=n_c).astype(float)
+        w = mult[codes]
+        for j, (name, X) in enumerate(designs.items()):
+            out[b, j] = fit_logit_fast(X, y, w, beta0=betas[name])[1]
+    return pd.Series(obs), pd.DataFrame(out, columns=list(designs))
+
+
+_CONTRASTS = {
+    "lifestyle - age+interests": ("lifestyle", "age+interests"),
+    "lifestyle - interests": ("lifestyle", "interests"),
+    "lifestyle - age": ("lifestyle", "age"),
+}
+
+
+def summarise_block_differences(
+    obs: pd.Series,
+    boot: pd.DataFrame,
+    block_df: dict[str, int],
+    level: float = 0.95,
+) -> pd.DataFrame:
+    """Percentile CIs for differences of block increments (the card's H1 criterion).
+
+    For each definition of the increment (`first`, `last`, `mean`) and each contrast
+    (lifestyle minus age+interests / interests / age) report the observed difference in dLL,
+    the bootstrap percentile CI and the share of resamples with a positive difference.
+    """
+    lo_q, hi_q = (1 - level) / 2, 1 - (1 - level) / 2
+
+    def increments(ll: pd.Series) -> pd.DataFrame:
+        return block_increment_table(ll.to_dict(), block_df).set_index("block")
+
+    obs_tbl = increments(obs)
+    boot_tbls = [increments(boot.iloc[i]) for i in range(len(boot))]
+    rows = []
+    for definition in ("first", "last", "mean"):
+        col = f"dll_{definition}"
+        for contrast, (lhs, rhs) in _CONTRASTS.items():
+            est = obs_tbl.loc[lhs, col] - obs_tbl.loc[rhs, col]
+            reps = np.array([t.loc[lhs, col] - t.loc[rhs, col] for t in boot_tbls])
+            rows.append(
+                {
+                    "definition": definition,
+                    "contrast": contrast,
+                    "estimate": est,
+                    "ci_low": float(np.quantile(reps, lo_q)),
+                    "ci_high": float(np.quantile(reps, hi_q)),
+                    "boot_se": float(reps.std(ddof=1)),
+                    "share_positive": float((reps > 0).mean()),
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def combine_cluster_cis(by_sender: pd.DataFrame, by_receiver: pd.DataFrame) -> pd.DataFrame:
+    """Merge sender- and receiver-clustered bootstrap tables; the wider CI is conservative."""
+    keys = ["definition", "contrast"]
+    s = by_sender.set_index(keys)
+    r = by_receiver.set_index(keys)
+    out = pd.DataFrame(index=s.index)
+    out["estimate"] = s["estimate"]
+    for tag, tbl in (("sender", s), ("receiver", r)):
+        out[f"ci_low_{tag}"] = tbl["ci_low"]
+        out[f"ci_high_{tag}"] = tbl["ci_high"]
+    width_s = s["ci_high"] - s["ci_low"]
+    width_r = r["ci_high"] - r["ci_low"]
+    receiver_wider = width_r > width_s
+    out["ci_low_conservative"] = np.where(receiver_wider, r["ci_low"], s["ci_low"])
+    out["ci_high_conservative"] = np.where(receiver_wider, r["ci_high"], s["ci_high"])
+    out["wider_is"] = np.where(receiver_wider, "receiver", "sender")
+    out["excludes_zero_conservative"] = (out["ci_low_conservative"] > 0) | (
+        out["ci_high_conservative"] < 0
+    )
+    return out.reset_index()

@@ -8,6 +8,10 @@ from rentfriends.h1_audit import (
     age_direction_check,
     block_increment_table,
     block_increments_from_fit,
+    bootstrap_model_loglik,
+    combine_cluster_cis,
+    fit_logit_fast,
+    summarise_block_differences,
 )
 
 
@@ -103,3 +107,105 @@ def test_block_increments_from_fit_uses_model_loglik_and_block_df():
     assert tbl.loc["lifestyle", "df"] == 3
     total = res["models"]["full"].llf - res["models"]["controls"].llf
     assert np.isclose(tbl.loc[["age", "interests", "lifestyle"], "dll_mean"].sum(), total)
+
+
+def _synthetic_effect_df(effect: str, n: int = 6000, seed: int = 3) -> pd.DataFrame:
+    """Strong effect in exactly one block; the other blocks are noise."""
+    rng = np.random.default_rng(seed)
+    senders = rng.integers(0, 120, size=n)
+    receivers = rng.integers(0, 120, size=n)
+    city = rng.integers(0, 3, size=n)  # 0 same, 1 different, 2 unknown
+    df = pd.DataFrame(
+        {
+            "user_key": [f"s{i}" for i in senders],
+            "target_user_key": [f"r{i}" for i in receivers],
+            "same_band": rng.integers(0, 2, size=n).astype(float),
+            "age_band_diff_abs": rng.integers(0, 3, size=n).astype(float),
+            "age_band_diff": rng.integers(-2, 3, size=n).astype(float),
+            "same_sex": rng.integers(0, 2, size=n).astype(float),
+            "sex_pair": rng.choice(["F_F", "F_M", "M_F", "M_M"], size=n),
+            "interests_jaccard": rng.uniform(0, 1, size=n),
+            "interests_shared_n": rng.integers(0, 5, size=n),
+            "interests_count_diff_abs": rng.integers(0, 4, size=n),
+            "lifestyle_agree_ratio": rng.uniform(0, 1, size=n),
+            "lifestyle_tag_conflict": rng.integers(0, 2, size=n),
+            "lifestyle_shared_tags_n": rng.integers(0, 3, size=n),
+            "city_same": (city == 0).astype(float),
+            "city_diff": (city == 1).astype(float),
+        }
+    )
+    logit = -1.0
+    if effect == "lifestyle":
+        logit = logit + 2.5 * (df["lifestyle_agree_ratio"] - 0.5)
+    else:
+        logit = logit - 0.9 * df["age_band_diff_abs"]
+    df["y_right"] = (rng.random(n) < 1 / (1 + np.exp(-logit))).astype(int)
+    return df
+
+
+def test_fit_logit_fast_matches_statsmodels_and_row_duplication():
+    import statsmodels.api as sm
+
+    rng = np.random.default_rng(0)
+    X = sm.add_constant(rng.normal(size=(500, 3)))
+    y = (rng.random(500) < 1 / (1 + np.exp(-(X @ [0.3, 0.8, -0.5, 0.0])))).astype(float)
+    beta, ll = fit_logit_fast(X, y)
+    ref = sm.Logit(y, X).fit(disp=0)
+    assert np.allclose(beta, ref.params, atol=1e-6)
+    assert np.isclose(ll, ref.llf, atol=1e-6)
+    # integer weights are equivalent to duplicating rows
+    w = rng.integers(0, 3, size=500).astype(float)
+    beta_w, ll_w = fit_logit_fast(X, y, w)
+    rows = np.repeat(np.arange(500), w.astype(int))
+    ref_w = sm.Logit(y[rows], X[rows]).fit(disp=0)
+    assert np.allclose(beta_w, ref_w.params, atol=1e-6)
+    assert np.isclose(ll_w, ref_w.llf, atol=1e-6)
+
+
+def test_bootstrap_loglik_reproducible_and_observed_matches_fit():
+    from rentfriends.h1 import fit_h1_logit_models
+
+    df = _synthetic_effect_df("lifestyle", n=2000)
+    obs, boot = bootstrap_model_loglik(df, cluster_col="user_key", n_boot=8, seed=5)
+    res = fit_h1_logit_models(df)
+    for name in obs.index:
+        assert np.isclose(obs[name], res["models"][name].llf, atol=1e-5)
+    assert boot.shape == (8, 8)
+    _, boot2 = bootstrap_model_loglik(df, cluster_col="user_key", n_boot=8, seed=5)
+    assert np.allclose(boot.to_numpy(), boot2.to_numpy())
+
+
+def test_difference_ci_separates_lifestyle_effect_from_age_effect():
+    life = _synthetic_effect_df("lifestyle")
+    obs, boot = bootstrap_model_loglik(life, cluster_col="user_key", n_boot=60, seed=1)
+    tbl = summarise_block_differences(obs, boot, block_df=_SYN_DF).set_index(
+        ["definition", "contrast"]
+    )
+    row = tbl.loc[("last", "lifestyle - age+interests")]
+    assert row["estimate"] > 0 and row["ci_low"] > 0
+
+    age = _synthetic_effect_df("age")
+    obs, boot = bootstrap_model_loglik(age, cluster_col="user_key", n_boot=60, seed=1)
+    tbl = summarise_block_differences(obs, boot, block_df=_SYN_DF).set_index(
+        ["definition", "contrast"]
+    )
+    row = tbl.loc[("last", "lifestyle - age+interests")]
+    assert row["estimate"] < 0 and row["ci_high"] < 0
+    assert {"first", "last", "mean"} == {k[0] for k in tbl.index}
+    assert {"lifestyle - age+interests", "lifestyle - interests", "lifestyle - age"} == {
+        k[1] for k in tbl.index
+    }
+
+
+_SYN_DF = {"age": 3, "interests": 3, "lifestyle": 3}
+
+
+def test_combine_cluster_cis_picks_the_wider_interval():
+    cols = ["definition", "contrast", "estimate", "ci_low", "ci_high", "boot_se", "share_positive"]
+    by_sender = pd.DataFrame([["last", "c", 1.0, 0.5, 1.5, 0.25, 1.0]], columns=cols)
+    by_receiver = pd.DataFrame([["last", "c", 1.0, -0.5, 2.5, 0.75, 0.9]], columns=cols)
+    out = combine_cluster_cis(by_sender, by_receiver).iloc[0]
+    assert out["ci_low_sender"] == 0.5 and out["ci_high_receiver"] == 2.5
+    assert out["ci_low_conservative"] == -0.5 and out["ci_high_conservative"] == 2.5
+    assert out["wider_is"] == "receiver"
+    assert bool(out["excludes_zero_conservative"]) is False
