@@ -11,8 +11,17 @@ from itertools import permutations
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
+from sklearn.metrics import average_precision_score
 
-from rentfriends.h1 import H1Spec, design_matrix, model_subsets, prepare_h1_sample
+from rentfriends.h1 import (
+    H1Spec,
+    _auc,
+    _logloss,
+    design_matrix,
+    model_subsets,
+    prepare_h1_sample,
+    sender_folds,
+)
 
 AGE_BAND_LABELS = ("18-20", "21-23", "24-26", "27+")
 
@@ -336,3 +345,109 @@ def combine_cluster_cis(by_sender: pd.DataFrame, by_receiver: pd.DataFrame) -> p
         out["ci_high_conservative"] < 0
     )
     return out.reset_index()
+
+
+def oof_predictions(
+    df: pd.DataFrame, n_splits: int = 5, seed: int = 0, spec: H1Spec | None = None
+) -> pd.DataFrame:
+    """Out-of-fold predicted probabilities of all block models, folds grouped by sender (Z5)."""
+    spec = spec or H1Spec()
+    d = prepare_h1_sample(df, spec)
+    folds = sender_folds(d, n_splits, seed)
+    y = d["y_right"].to_numpy(dtype=float)
+    out = pd.DataFrame(
+        {"y": y, "sender": pd.factorize(d["user_key"])[0], "fold": folds}, index=d.index
+    )
+    for name, combo in model_subsets().items():
+        X = design_matrix(d, spec, combo).to_numpy(dtype=float)
+        p = np.empty(len(d))
+        for k in range(n_splits):
+            tr, te = folds != k, folds == k
+            beta, _ = fit_logit_fast(X[tr], y[tr])
+            p[te] = 1.0 / (1.0 + np.exp(-(X[te] @ beta)))
+        out[name] = p
+    return out
+
+
+def _cv_metrics(y: np.ndarray, p: np.ndarray) -> dict[str, float]:
+    return {
+        "logloss": _logloss(y, p),
+        "auc": _auc(y, p),
+        "auc_pr": float(average_precision_score(y, p)),
+    }
+
+
+def _gain_contrasts(m: dict[str, dict[str, float]], metric: str) -> dict[tuple[str, str], float]:
+    """Gains (positive = better) by definition and block, plus lifestyle-minus-X differences."""
+    sign = -1.0 if metric == "logloss" else 1.0
+
+    def g(model: str, ref: str) -> float:
+        return sign * (m[model][metric] - m[ref][metric])
+
+    first = {
+        "lifestyle": g("lifestyle", "controls"),
+        "age+interests": g("age_interests", "controls"),
+        "interests": g("interests", "controls"),
+        "age": g("age", "controls"),
+    }
+    last = {
+        "lifestyle": g("full", "age_interests"),
+        "age+interests": g("full", "lifestyle"),
+        "interests": g("full", "age_lifestyle"),
+        "age": g("full", "interests_lifestyle"),
+    }
+    out: dict[tuple[str, str], float] = {}
+    for definition, gains in (("first", first), ("last", last)):
+        for block, val in gains.items():
+            out[(definition, f"gain: {block}")] = val
+        for contrast, (lhs, rhs) in _CONTRASTS.items():
+            out[(definition, contrast)] = gains[lhs] - gains[rhs]
+    return out
+
+
+def paired_cv_differences(
+    oof: pd.DataFrame, n_boot: int = 500, seed: int = 0, level: float = 0.95
+) -> pd.DataFrame:
+    """Paired out-of-fold differences in logloss / AUC / AUC-PR with sender-bootstrap CIs (Z5).
+
+    Positive values mean an improvement (for logloss: loss decreases). The bootstrap resamples
+    senders and recomputes every model's pooled out-of-fold metric on the same resample, so the
+    differences are paired. It is conditional on the fitted fold models (no refit).
+    """
+    models = list(model_subsets())
+    y = oof["y"].to_numpy()
+    P = {name: oof[name].to_numpy() for name in models}
+    order = np.argsort(oof["sender"].to_numpy(), kind="stable")
+    sender_sorted = oof["sender"].to_numpy()[order]
+    cuts = np.flatnonzero(np.diff(sender_sorted)) + 1
+    groups = np.split(order, cuts)
+
+    def all_metrics(idx: np.ndarray | slice) -> dict[str, dict[str, float]]:
+        return {name: _cv_metrics(y[idx], P[name][idx]) for name in models}
+
+    obs = all_metrics(slice(None))
+    rng = np.random.default_rng(seed)
+    draws = rng.integers(0, len(groups), size=(n_boot, len(groups)))
+    boot = []
+    for b in range(n_boot):
+        idx = np.concatenate([groups[i] for i in draws[b]])
+        boot.append(all_metrics(idx))
+
+    lo_q, hi_q = (1 - level) / 2, 1 - (1 - level) / 2
+    rows = []
+    for metric in ("logloss", "auc", "auc_pr"):
+        est = _gain_contrasts(obs, metric)
+        reps = [_gain_contrasts(m, metric) for m in boot]
+        for key, value in est.items():
+            vals = np.array([r[key] for r in reps])
+            rows.append(
+                {
+                    "metric": metric,
+                    "definition": key[0],
+                    "contrast": key[1],
+                    "estimate": value,
+                    "ci_low": float(np.quantile(vals, lo_q)),
+                    "ci_high": float(np.quantile(vals, hi_q)),
+                }
+            )
+    return pd.DataFrame(rows)

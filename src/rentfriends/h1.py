@@ -25,6 +25,7 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from scipy.stats import norm, rankdata
+from sklearn.metrics import average_precision_score
 
 from rentfriends.dataset_h1 import build_h1_dataset
 
@@ -404,7 +405,13 @@ def grouped_cv_h1(
                 m = sm.Logit(y[tr], X_mat[tr]).fit(disp=0, maxiter=100)
             p = m.predict(X_mat[te])
             rows.append(
-                {"fold": k, "block": b_name, "logloss": _logloss(y[te], p), "auc": _auc(y[te], p)}
+                {
+                    "fold": k,
+                    "block": b_name,
+                    "logloss": _logloss(y[te], p),
+                    "auc": _auc(y[te], p),
+                    "auc_pr": float(average_precision_score(y[te], p)),
+                }
             )
 
     return pd.DataFrame(rows)

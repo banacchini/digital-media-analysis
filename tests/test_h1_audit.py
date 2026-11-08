@@ -11,6 +11,8 @@ from rentfriends.h1_audit import (
     bootstrap_model_loglik,
     combine_cluster_cis,
     fit_logit_fast,
+    oof_predictions,
+    paired_cv_differences,
     summarise_block_differences,
 )
 
@@ -209,3 +211,30 @@ def test_combine_cluster_cis_picks_the_wider_interval():
     assert out["ci_low_conservative"] == -0.5 and out["ci_high_conservative"] == 2.5
     assert out["wider_is"] == "receiver"
     assert bool(out["excludes_zero_conservative"]) is False
+
+
+def test_oof_predictions_never_train_on_the_senders_they_predict():
+    df = _synthetic_effect_df("lifestyle", n=2000)
+    oof = oof_predictions(df, n_splits=4, seed=2)
+    assert {"y", "sender", "fold"} <= set(oof.columns)
+    assert {"controls", "age", "interests", "lifestyle", "full"} <= set(oof.columns)
+    assert oof.groupby("sender")["fold"].nunique().max() == 1  # each sender in exactly one fold
+    assert oof["full"].between(0, 1).all()
+
+
+def test_paired_cv_differences_sign_matches_the_true_effect():
+    life = oof_predictions(_synthetic_effect_df("lifestyle"), n_splits=5, seed=2)
+    tbl = paired_cv_differences(life, n_boot=40, seed=1).set_index(
+        ["metric", "definition", "contrast"]
+    )
+    for metric in ("logloss", "auc", "auc_pr"):
+        row = tbl.loc[(metric, "last", "lifestyle - age+interests")]
+        assert row["estimate"] > 0, metric  # positive = lifestyle improves more
+    assert tbl.loc[("logloss", "last", "lifestyle - age+interests"), "ci_low"] > 0
+
+    age = oof_predictions(_synthetic_effect_df("age"), n_splits=5, seed=2)
+    tbl = paired_cv_differences(age, n_boot=40, seed=1).set_index(
+        ["metric", "definition", "contrast"]
+    )
+    row = tbl.loc[("auc", "last", "lifestyle - age+interests")]
+    assert row["estimate"] < 0 and row["ci_high"] < 0

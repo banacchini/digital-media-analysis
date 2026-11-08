@@ -74,6 +74,7 @@ def test_grouped_cv_h1():
     assert len(cv) == 3 * 9
     assert "logloss" in cv.columns
     assert "auc" in cv.columns
+    assert "auc_pr" in cv.columns
 
 
 def test_sex_pair_control_is_default_and_has_reference_level():
