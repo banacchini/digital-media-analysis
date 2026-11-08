@@ -53,12 +53,46 @@ def test_fit_h1_logit_models():
     res = fit_h1_logit_models(df)
     assert "models" in res
     assert "delta_lifestyle_over_interests_ll" in res
-    assert len(res["summary"]) == 5
+    assert set(res["models"]) == {
+        "null",
+        "controls",
+        "age",
+        "interests",
+        "lifestyle",
+        "age_interests",
+        "age_lifestyle",
+        "interests_lifestyle",
+        "full",
+    }
+
+
+def test_all_models_share_identical_controls():
+    """Z1: every non-null model contains the same control columns and the same sample."""
+    df = _make_dummy_h1_df(400)
+    res = fit_h1_logit_models(df)
+    controls = set(res["control_names"])
+    assert controls  # at least city + sex control
+    for name, fit in res["models"].items():
+        if name == "null":
+            continue
+        assert controls <= set(fit.params.index), name
+    assert len({int(fit.nobs) for fit in res["models"].values()}) == 1
+
+
+def test_block_models_add_only_their_block():
+    df = _make_dummy_h1_df(400)
+    res = fit_h1_logit_models(df)
+    n_ctrl = len(res["control_names"])
+    n_vars = res["summary"].set_index("model")["n_vars"]
+    assert n_vars["controls"] == n_ctrl
+    assert n_vars["lifestyle"] == n_ctrl + 3
+    assert n_vars["age_interests"] == n_vars["age"] + n_vars["interests"] - n_ctrl
+    assert n_vars["full"] == n_ctrl + (n_vars["age"] - n_ctrl) + 3 + 3
 
 
 def test_grouped_cv_h1():
     df = _make_dummy_h1_df(300)
     cv = grouped_cv_h1(df, n_splits=3, seed=42)
-    assert len(cv) == 3 * 4
+    assert len(cv) == 3 * 9
     assert "logloss" in cv.columns
     assert "auc" in cv.columns

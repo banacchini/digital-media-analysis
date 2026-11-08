@@ -16,6 +16,8 @@ Implements the empirical test of Hypothesis H1:
 from __future__ import annotations
 
 import warnings
+from dataclasses import dataclass
+from itertools import combinations
 from pathlib import Path
 from typing import Any
 
@@ -35,10 +37,97 @@ HAIR = "#D5D2CB"
 CORAL = "#D9534F"
 
 # Feature definitions for H1 blocks
-DEMOG_COLS = ["same_band", "age_band_diff", "same_sex"]
+DEMOG_COLS = ["same_band", "age_band_diff", "same_sex"]  # legacy demographic block
+AGE_COLS = ["same_band", "age_band_diff"]
 INTERESTS_COLS = ["interests_jaccard", "interests_shared_n", "interests_count_diff_abs"]
 LIFESTYLE_COLS = ["lifestyle_agree_ratio", "lifestyle_tag_conflict", "lifestyle_shared_tags_n"]
 CONTROL_COLS = ["city_same", "city_diff"]
+BLOCK_NAMES = ("age", "interests", "lifestyle")
+
+
+@dataclass(frozen=True)
+class H1Spec:
+    """Model specification: which controls and which columns form each block.
+
+    Controls are identical in every model (Z1); blocks are added on top of them.
+    """
+
+    name: str = "main"
+    sex_control: str = "same_sex"
+    age_cols: tuple[str, ...] = tuple(AGE_COLS)
+    interest_cols: tuple[str, ...] = tuple(INTERESTS_COLS)
+    lifestyle_cols: tuple[str, ...] = tuple(LIFESTYLE_COLS)
+    city_control: bool = True
+
+
+def _spec_block_cols(spec: H1Spec) -> dict[str, list[str]]:
+    return {
+        "age": list(spec.age_cols),
+        "interests": list(spec.interest_cols),
+        "lifestyle": list(spec.lifestyle_cols),
+    }
+
+
+def _spec_required_cols(spec: H1Spec) -> list[str]:
+    cols: list[str] = ["y_right", "user_key", "target_user_key"]
+    for block_cols in _spec_block_cols(spec).values():
+        cols += block_cols
+    if spec.sex_control != "none":
+        cols.append(spec.sex_control)
+    if spec.city_control:
+        cols += CONTROL_COLS
+    return list(dict.fromkeys(cols))
+
+
+def prepare_h1_sample(df: pd.DataFrame, spec: H1Spec | None = None) -> pd.DataFrame:
+    """Complete-case sample shared by every model of one specification."""
+    spec = spec or H1Spec()
+    return df.dropna(subset=_spec_required_cols(spec)).copy().reset_index(drop=True)
+
+
+def control_frame(d: pd.DataFrame, spec: H1Spec) -> pd.DataFrame:
+    """Control columns, identical for all models of a specification."""
+    parts: list[pd.DataFrame] = []
+    if spec.sex_control == "sex_pair":
+        dummies = pd.get_dummies(d["sex_pair"], prefix="sex", dtype=float)
+        dummies = dummies.drop(columns=["sex_F_F"], errors="ignore")
+        parts.append(dummies)
+    elif spec.sex_control != "none":
+        parts.append(d[[spec.sex_control]].astype(float))
+    if spec.city_control:
+        parts.append(d[CONTROL_COLS].astype(float))
+    if not parts:
+        return pd.DataFrame(index=d.index)
+    return pd.concat(parts, axis=1)
+
+
+def block_frames(d: pd.DataFrame, spec: H1Spec) -> dict[str, pd.DataFrame]:
+    """One frame of predictors per block (age, interests, lifestyle)."""
+    return {k: d[cols].astype(float) for k, cols in _spec_block_cols(spec).items()}
+
+
+def model_subsets() -> dict[str, tuple[str, ...]]:
+    """All 8 block subsets; model names follow the block names joined by '_'."""
+    subsets: dict[str, tuple[str, ...]] = {"controls": ()}
+    for r in (1, 2, 3):
+        for combo in combinations(BLOCK_NAMES, r):
+            name = "full" if r == 3 else "_".join(combo)
+            subsets[name] = combo
+    return subsets
+
+
+def design_matrix(
+    d: pd.DataFrame,
+    spec: H1Spec,
+    blocks: tuple[str, ...],
+    ctrl: pd.DataFrame | None = None,
+    bf: dict[str, pd.DataFrame] | None = None,
+) -> pd.DataFrame:
+    """Constant + controls + selected blocks."""
+    ctrl = control_frame(d, spec) if ctrl is None else ctrl
+    bf = block_frames(d, spec) if bf is None else bf
+    X = pd.concat([ctrl, *[bf[b] for b in blocks]], axis=1)
+    return sm.add_constant(X, has_constant="add")
 
 
 def load_h1_data(data_dir: Path | str = "data/processed") -> pd.DataFrame:
@@ -129,56 +218,47 @@ def _cluster_groups(d: pd.DataFrame) -> np.ndarray:
     )
 
 
-def fit_h1_logit_models(df: pd.DataFrame) -> dict[str, Any]:
-    """Fit nested logit models and calculate incremental block contributions (D16)."""
-    cols_needed = DEMOG_COLS + INTERESTS_COLS + LIFESTYLE_COLS + CONTROL_COLS + ["y_right"]
-    d = df.dropna(subset=cols_needed).copy().reset_index(drop=True)
+def fit_h1_logit_models(df: pd.DataFrame, spec: H1Spec | None = None) -> dict[str, Any]:
+    """Fit nested logit models and calculate incremental block contributions (D16).
+
+    All models share the same controls and the same complete-case sample (Z1). The `full`
+    model carries two-way (sender, receiver) clustered standard errors (D18); log-likelihoods
+    do not depend on the covariance estimator.
+    """
+    spec = spec or H1Spec()
+    d = prepare_h1_sample(df, spec)
     groups = _cluster_groups(d)
     y = d["y_right"].to_numpy()
+    ctrl = control_frame(d, spec)
+    bf = block_frames(d, spec)
 
-    blocks = {
-        "null": [],
-        "demog": DEMOG_COLS + CONTROL_COLS,
-        "age_interests": DEMOG_COLS + INTERESTS_COLS + CONTROL_COLS,
-        "lifestyle": LIFESTYLE_COLS + CONTROL_COLS,
-        "full": list(dict.fromkeys(DEMOG_COLS + INTERESTS_COLS + LIFESTYLE_COLS + CONTROL_COLS)),
-    }
-
-    models = {}
+    models: dict[str, Any] = {}
     summaries = []
 
-    for name, cols in blocks.items():
-        if not cols:
-            X = np.ones((len(d), 1))
-            col_names = ["const"]
-        else:
-            X = sm.add_constant(d[cols])
-            col_names = list(X.columns)
+    null_fit = sm.Logit(y, np.ones((len(d), 1))).fit(disp=0)
+    models["null"] = null_fit
+    summaries.append(_summary_row("null", 0, null_fit))
 
+    for name, combo in model_subsets().items():
+        X = design_matrix(d, spec, combo, ctrl, bf)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             m = sm.Logit(y, X)
-            try:
-                fit = m.fit(disp=0, cov_type="cluster", cov_kwds={"groups": groups})
-            except Exception:
-                fit = m.fit(disp=0, cov_type="cluster", cov_kwds={"groups": groups[:, 0]})
-
+            if name == "full":
+                try:
+                    fit = m.fit(disp=0, cov_type="cluster", cov_kwds={"groups": groups})
+                except Exception:
+                    fit = m.fit(disp=0, cov_type="cluster", cov_kwds={"groups": groups[:, 0]})
+            else:
+                fit = m.fit(disp=0)
         models[name] = fit
-        summaries.append(
-            {
-                "model": name,
-                "n_vars": len(col_names) - 1,
-                "llf": fit.llf,
-                "aic": fit.aic,
-                "bic": fit.bic,
-            }
-        )
+        summaries.append(_summary_row(name, X.shape[1] - 1, fit))
 
     sum_df = pd.DataFrame(summaries)
     ll_null = models["null"].llf
     sum_df["pseudo_r2"] = 1 - sum_df["llf"] / ll_null
 
-    # Both inclusion orders (D16)
+    # Both inclusion orders (D16): lifestyle over age+interests and the reverse
     delta_lifestyle_over_interests = models["full"].llf - models["age_interests"].llf
     delta_interests_over_lifestyle = models["full"].llf - models["lifestyle"].llf
 
@@ -210,25 +290,37 @@ def fit_h1_logit_models(df: pd.DataFrame) -> dict[str, Any]:
         "delta_interests_over_lifestyle_ll": delta_interests_over_lifestyle,
         "r2_lifestyle_increment": r2_lifestyle_increment,
         "r2_interests_increment": r2_interests_increment,
+        "control_names": list(ctrl.columns),
+        "spec": spec,
         "data_len": len(d),
     }
 
 
+def _summary_row(name: str, n_vars: int, fit: Any) -> dict[str, Any]:
+    return {
+        "model": name,
+        "n_vars": n_vars,
+        "llf": fit.llf,
+        "aic": fit.aic,
+        "bic": fit.bic,
+    }
+
+
 def permutation_null_lifestyle(
-    df: pd.DataFrame, n_perm: int = 1000, seed: int = 0
+    df: pd.DataFrame, n_perm: int = 1000, seed: int = 0, spec: H1Spec | None = None
 ) -> tuple[float, np.ndarray, float]:
     """Test lifestyle increment against null baseline by shuffling receiver lifestyle traits."""
-    cols_needed = DEMOG_COLS + INTERESTS_COLS + LIFESTYLE_COLS + CONTROL_COLS + ["y_right"]
-    d = df.dropna(subset=cols_needed).copy().reset_index(drop=True)
+    spec = spec or H1Spec()
+    d = prepare_h1_sample(df, spec)
+    lifestyle_cols = list(spec.lifestyle_cols)
 
-    base_cols = DEMOG_COLS + INTERESTS_COLS + CONTROL_COLS
-    X_base = sm.add_constant(d[base_cols]).to_numpy()
+    X_base = design_matrix(d, spec, ("age", "interests")).to_numpy()
     y = d["y_right"].to_numpy()
 
     recv_codes, recv_keys = pd.factorize(d["target_user_key"])
     n_recv = len(recv_keys)
     rec_life = (
-        d.groupby("target_user_key")[LIFESTYLE_COLS].mean().reindex(recv_keys).fillna(0).to_numpy()
+        d.groupby("target_user_key")[lifestyle_cols].mean().reindex(recv_keys).fillna(0).to_numpy()
     )
 
     with warnings.catch_warnings():
@@ -236,7 +328,7 @@ def permutation_null_lifestyle(
         m_base = sm.Logit(y, X_base).fit(disp=0)
         ll_base = m_base.llf
 
-        life_mat = d[LIFESTYLE_COLS].to_numpy()
+        life_mat = d[lifestyle_cols].to_numpy()
         m_full = sm.Logit(y, np.column_stack([X_base, life_mat])).fit(disp=0)
         observed_delta_ll = m_full.llf - ll_base
 
@@ -269,25 +361,18 @@ def _logloss(y: np.ndarray, p: np.ndarray) -> float:
     return float(-np.mean(y * np.log(p) + (1 - y) * np.log(1 - p)))
 
 
-def grouped_cv_h1(df: pd.DataFrame, n_splits: int = 5, seed: int = 0) -> pd.DataFrame:
+def grouped_cv_h1(
+    df: pd.DataFrame, n_splits: int = 5, seed: int = 0, spec: H1Spec | None = None
+) -> pd.DataFrame:
     """Out-of-sample 5-fold cross-validation grouped by sender to prevent leakage."""
-    cols_needed = DEMOG_COLS + INTERESTS_COLS + LIFESTYLE_COLS + CONTROL_COLS + ["y_right"]
-    d = df.dropna(subset=cols_needed).copy().reset_index(drop=True)
-
-    rng = np.random.default_rng(seed)
-    senders = d["user_key"].unique()
-    fold_of = dict(zip(senders, rng.permutation(len(senders)) % n_splits, strict=True))
-    folds = d["user_key"].map(fold_of).to_numpy()
+    spec = spec or H1Spec()
+    d = prepare_h1_sample(df, spec)
+    folds = sender_folds(d, n_splits, seed)
     y = d["y_right"].to_numpy()
 
-    blocks = {
-        "null": np.ones((len(d), 1)),
-        "lifestyle": sm.add_constant(d[LIFESTYLE_COLS + CONTROL_COLS]).to_numpy(),
-        "age_interests": sm.add_constant(d[DEMOG_COLS + INTERESTS_COLS + CONTROL_COLS]).to_numpy(),
-        "full": sm.add_constant(
-            d[DEMOG_COLS + INTERESTS_COLS + LIFESTYLE_COLS + CONTROL_COLS]
-        ).to_numpy(),
-    }
+    blocks = {"null": np.ones((len(d), 1))}
+    for name, combo in model_subsets().items():
+        blocks[name] = design_matrix(d, spec, combo).to_numpy()
 
     rows = []
     for k in range(n_splits):
@@ -302,6 +387,14 @@ def grouped_cv_h1(df: pd.DataFrame, n_splits: int = 5, seed: int = 0) -> pd.Data
             )
 
     return pd.DataFrame(rows)
+
+
+def sender_folds(d: pd.DataFrame, n_splits: int, seed: int) -> np.ndarray:
+    """Assign each sender (all of their swipes) to one of `n_splits` folds."""
+    rng = np.random.default_rng(seed)
+    senders = d["user_key"].unique()
+    fold_of = dict(zip(senders, rng.permutation(len(senders)) % n_splits, strict=True))
+    return d["user_key"].map(fold_of).to_numpy()
 
 
 def sensitivity_analysis_h1(df: pd.DataFrame) -> pd.DataFrame:
