@@ -524,6 +524,7 @@ def aggregate() -> None:
         f"{'nie ' if chv['excludes_zero'] else ''}obejmuje zera."
     )
     note = " ".join(parts)
+    (OUT / "dictionary_ratio_plot_note.txt").write_text(note + "\n", encoding="utf-8")
     h1_rebase.plot_dictionary_sensitivity(plot, OUT / "dictionary_sensitivity.png", note=note)
 
     # 12 scenarios and the v0 -> v1 table -----------------------------------------------------

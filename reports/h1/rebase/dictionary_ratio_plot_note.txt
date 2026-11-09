@@ -1,0 +1,1 @@
+Każdy przedział obejmuje 1: dane nie rozstrzygają, co wnosi więcej. Zmiana względem v0 (v1 − v0, liczona parami): -1,64 [-17,82; 3,05], przedział obejmuje zera.
