@@ -292,7 +292,7 @@ def with_city_dummies(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _sets_differ(a: pd.Series, b: pd.Series) -> pd.Series:
-    return pd.Series([x != y for x, y in zip(a, b, strict=True)], index=a.index)
+    return pd.Series([list(x) != list(y) for x, y in zip(a, b, strict=True)], index=a.index)
 
 
 def changed_shares(base: pd.DataFrame, other: pd.DataFrame, mask: pd.Series) -> dict[str, float]:

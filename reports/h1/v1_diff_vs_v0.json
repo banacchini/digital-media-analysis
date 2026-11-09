@@ -1,0 +1,78 @@
+{
+  "sha256": {
+    "h1_analysis_dataset.parquet": "7d15f84be3d173c842d959470e3f14c0ae7ee625061dc27593b4abedb14bf8b4",
+    "h1_analysis_dataset_v1.parquet": "fdbc9d3ec8b86b8eb80179cb9a00df5d412755ebf556ae09dc16c27926b71463"
+  },
+  "n_columns": {
+    "v0": 49,
+    "v1": 49
+  },
+  "n_rows": {
+    "v0": 94295,
+    "v1": 94295,
+    "h1_sample": 92754
+  },
+  "columns_with_any_change": [
+    "interests_count_diff",
+    "interests_count_diff_abs",
+    "interests_count_receiver",
+    "interests_count_sender",
+    "interests_idf_jaccard",
+    "interests_jaccard",
+    "interests_set_receiver",
+    "interests_set_sender",
+    "interests_shared_n",
+    "lifestyle_shared_tags_n",
+    "lifestyle_tag_conflict"
+  ],
+  "share_changed_h1_sample": {
+    "interests_set": 0.5659378571274554,
+    "lifestyle_field": 0.0,
+    "interests_or_field": 0.5659378571274554,
+    "lifestyle_tags": 0.16580417017055868,
+    "lifestyle_tag_conflict": 0.0009271837333160834,
+    "lifestyle_shared_tags_n": 0.1650710481488669,
+    "conflict_gained": 0.0009271837333160834,
+    "conflict_lost": 0.0,
+    "lsf_lifestyle": 0.0,
+    "lsf_noise_level": 0.0
+  },
+  "share_changed_all_rows": {
+    "interests_set": 0.5627763932339996,
+    "lifestyle_field": 0.0,
+    "interests_or_field": 0.5627763932339996,
+    "lifestyle_tags": 0.16343390423670395,
+    "lifestyle_tag_conflict": 0.000912031390847871,
+    "lifestyle_shared_tags_n": 0.16271276313696378,
+    "conflict_gained": 0.000912031390847871,
+    "conflict_lost": 0.0,
+    "lsf_lifestyle": 0.0,
+    "lsf_noise_level": 0.0
+  },
+  "means_h1_sample": {
+    "interests_jaccard": {
+      "v0": 0.06672738679336777,
+      "v1": 0.06327687548093136
+    },
+    "interests_shared_n": {
+      "v0": 0.3881126420423917,
+      "v1": 0.31881104858011516
+    },
+    "interests_count_sender": {
+      "v0": 2.9468917782521507,
+      "v1": 2.555264462988119
+    },
+    "lifestyle_shared_tags_n": {
+      "v0": 0.9341160489035514,
+      "v1": 1.0991224098152101
+    },
+    "lifestyle_tag_conflict": {
+      "v0": 0.5232011557453048,
+      "v1": 0.5241283394786209
+    },
+    "interests_idf_jaccard": {
+      "v0": 0.05724167308108352,
+      "v1": 0.054957158623319645
+    }
+  }
+}
