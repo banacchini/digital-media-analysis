@@ -465,19 +465,17 @@ def sender_folds(d: pd.DataFrame, n_splits: int, seed: int) -> np.ndarray:
     return d["user_key"].map(fold_of).to_numpy()
 
 
-def sensitivity_analysis_h1(df: pd.DataFrame) -> pd.DataFrame:
-    """Evaluate H1 block comparisons across robustness and sensitivity scenarios.
+def sensitivity_scenarios(df: pd.DataFrame) -> list[tuple[str, pd.DataFrame, H1Spec, str]]:
+    """The 12 robustness scenarios as (name, data subset, specification, status).
 
     `status` marks whether a scenario was planned before the audit (D6, D7, G6, card 3.2) or
-    added after it (`post hoc (audyt)`). Increments are "as last block" log-likelihood gains:
-    `delta_ll_lifestyle` over age+interests, `delta_ll_interests` (age+interests) over
-    lifestyle, and the single blocks `delta_ll_age_last` / `delta_ll_hobby_last`.
+    added after it (`post hoc (audyt)`).
     """
     pre, post = "pre-rejestrowana", "post hoc (audyt)"
     known_city = (df["city_sender"] != "inne") & (df["city_receiver"] != "inne")
     prior_receiver = df["source_flag_receiver"] == "prior_version"
     main_spec = H1Spec()
-    scenarios: list[tuple[str, pd.DataFrame, H1Spec, str]] = [
+    return [
         ("main (as-of D7, brak Hyderabadu D10)", df, main_spec, pre),
         ("tylko prior_version (D7)", df[prior_receiver], main_spec, pre),
         ("oba prior_version (D7)", df[df["both_prior_version"] == 1], main_spec, pre),
@@ -491,6 +489,16 @@ def sensitivity_analysis_h1(df: pd.DataFrame) -> pd.DataFrame:
         ("+ IDF-Jaccard (karta 3.2)", df, IDF_SPEC, pre),
         ("+ kontrola sufitu 9 tagow", df, H1Spec(name="cap", cap_control=True), post),
     ]
+
+
+def sensitivity_analysis_h1(df: pd.DataFrame) -> pd.DataFrame:
+    """Evaluate H1 block comparisons across robustness and sensitivity scenarios.
+
+    Increments are "as last block" log-likelihood gains: `delta_ll_lifestyle` over
+    age+interests, `delta_ll_interests` (age+interests) over lifestyle, and the single blocks
+    `delta_ll_age_last` / `delta_ll_hobby_last`.
+    """
+    scenarios = sensitivity_scenarios(df)
 
     res_list = []
     for name, sub_df, spec, status in scenarios:

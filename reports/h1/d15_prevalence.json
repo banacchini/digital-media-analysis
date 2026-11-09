@@ -1,0 +1,250 @@
+{
+  "v0": {
+    "name": "v0",
+    "n_h1_sample": 92754,
+    "n_all_rows": 94295,
+    "conflict_rate_all_rows": 0.5172066387401241,
+    "conflict_rate_h1_sample": 0.5232011557453048,
+    "share_sender_has_lifestyle_tag": 0.9806261724561744,
+    "share_receiver_has_lifestyle_tag": 0.9829225693770619,
+    "n_groups_in_conflict_distribution": {
+      "0": 44225,
+      "1": 34979,
+      "2": 11420,
+      "3": 1979,
+      "4": 150,
+      "5": 1
+    },
+    "by_group": [
+      {
+        "group": 0,
+        "pos": "smoker",
+        "neg": "non_smoker",
+        "n_conflicts": 15931,
+        "conflict_rate": 0.17175539599370376,
+        "sender_any_tag": 0.6375466287168209,
+        "receiver_any_tag": 0.6213316945899907,
+        "either_any_tag": 0.8612243137762253,
+        "both_any_tag": 0.39765400953058627
+      },
+      {
+        "group": 1,
+        "pos": "early_bird",
+        "neg": "night_owl",
+        "n_conflicts": 4062,
+        "conflict_rate": 0.043793259589882914,
+        "sender_any_tag": 0.3436509476680251,
+        "receiver_any_tag": 0.3539038747655088,
+        "either_any_tag": 0.5761153157815296,
+        "both_any_tag": 0.12143950665200423
+      },
+      {
+        "group": 2,
+        "pos": "extrovert",
+        "neg": "introvert",
+        "n_conflicts": 12844,
+        "conflict_rate": 0.13847381245013693,
+        "sender_any_tag": 0.5163119649826423,
+        "receiver_any_tag": 0.5278801992366906,
+        "either_any_tag": 0.7717834271298273,
+        "both_any_tag": 0.2724087370895056
+      },
+      {
+        "group": 3,
+        "pos": "no_pets",
+        "neg": "animals,cat_person,dog_person",
+        "n_conflicts": 5945,
+        "conflict_rate": 0.0640942708670246,
+        "sender_any_tag": 0.4345580783578067,
+        "receiver_any_tag": 0.4435711667421351,
+        "either_any_tag": 0.6843801884554844,
+        "both_any_tag": 0.19374905664445738
+      },
+      {
+        "group": 4,
+        "pos": "chill_at_home,likes_calm,mostly_home,quiet_evenings,silence_after_22",
+        "neg": "likes_parties,music_nonstop",
+        "n_conflicts": 25579,
+        "conflict_rate": 0.2757724734243267,
+        "sender_any_tag": 0.685199560126787,
+        "receiver_any_tag": 0.666925415615499,
+        "either_any_tag": 0.8961230782499946,
+        "both_any_tag": 0.4560018974922914
+      },
+      {
+        "group": "any",
+        "pos": "",
+        "neg": "",
+        "n_conflicts": 48529,
+        "conflict_rate": 0.5232011557453048,
+        "sender_any_tag": 0.9653276408564591,
+        "receiver_any_tag": 0.9663302930331845,
+        "either_any_tag": 0.9988140673178515,
+        "both_any_tag": 0.9328438665717921
+      }
+    ],
+    "independence_baseline": {
+      "0": {
+        "observed": 0.17175539599370376,
+        "perm_mean": 0.17473489013950882,
+        "perm_lo": 0.17293971149492207,
+        "perm_hi": 0.1767381999698126
+      },
+      "1": {
+        "observed": 0.043793259589882914,
+        "perm_mean": 0.04495353300127219,
+        "perm_lo": 0.04403017659615758,
+        "perm_hi": 0.0459608210966643
+      },
+      "2": {
+        "observed": 0.13847381245013693,
+        "perm_mean": 0.138738221532225,
+        "perm_lo": 0.1365431679496302,
+        "perm_hi": 0.14025271147335963
+      },
+      "3": {
+        "observed": 0.0640942708670246,
+        "perm_mean": 0.06307463829053195,
+        "perm_lo": 0.06177604200357936,
+        "perm_hi": 0.0643538284063221
+      },
+      "4": {
+        "observed": 0.2757724734243267,
+        "perm_mean": 0.275855003557798,
+        "perm_lo": 0.2739086724022684,
+        "perm_hi": 0.2774993531276279
+      },
+      "any": {
+        "observed": 0.5232011557453048,
+        "perm_mean": 0.5239046294499429,
+        "perm_lo": 0.5215642991137849,
+        "perm_hi": 0.5260428121698256
+      }
+    },
+    "n_polarity_groups": 5
+  },
+  "v1_candidate_vi": {
+    "name": "v1_candidate_vi",
+    "n_h1_sample": 92754,
+    "n_all_rows": 94295,
+    "conflict_rate_all_rows": 0.5181186701309719,
+    "conflict_rate_h1_sample": 0.5241283394786209,
+    "share_sender_has_lifestyle_tag": 0.981661168251504,
+    "share_receiver_has_lifestyle_tag": 0.9845505315134657,
+    "n_groups_in_conflict_distribution": {
+      "0": 44139,
+      "1": 35056,
+      "2": 11429,
+      "3": 1979,
+      "4": 150,
+      "5": 1
+    },
+    "by_group": [
+      {
+        "group": 0,
+        "pos": "smoker",
+        "neg": "non_smoker",
+        "n_conflicts": 15931,
+        "conflict_rate": 0.17175539599370376,
+        "sender_any_tag": 0.6375466287168209,
+        "receiver_any_tag": 0.6213316945899907,
+        "either_any_tag": 0.8612243137762253,
+        "both_any_tag": 0.39765400953058627
+      },
+      {
+        "group": 1,
+        "pos": "early_bird",
+        "neg": "night_owl",
+        "n_conflicts": 4062,
+        "conflict_rate": 0.043793259589882914,
+        "sender_any_tag": 0.3436509476680251,
+        "receiver_any_tag": 0.3539038747655088,
+        "either_any_tag": 0.5761153157815296,
+        "both_any_tag": 0.12143950665200423
+      },
+      {
+        "group": 2,
+        "pos": "extrovert",
+        "neg": "introvert",
+        "n_conflicts": 12844,
+        "conflict_rate": 0.13847381245013693,
+        "sender_any_tag": 0.5163119649826423,
+        "receiver_any_tag": 0.5278801992366906,
+        "either_any_tag": 0.7717834271298273,
+        "both_any_tag": 0.2724087370895056
+      },
+      {
+        "group": 3,
+        "pos": "no_pets",
+        "neg": "animals,cat_person,dog_person",
+        "n_conflicts": 5945,
+        "conflict_rate": 0.0640942708670246,
+        "sender_any_tag": 0.4345580783578067,
+        "receiver_any_tag": 0.4435711667421351,
+        "either_any_tag": 0.6843801884554844,
+        "both_any_tag": 0.19374905664445738
+      },
+      {
+        "group": 4,
+        "pos": "chill_at_home,likes_calm,mostly_home",
+        "neg": "likes_parties,music_nonstop",
+        "n_conflicts": 25674,
+        "conflict_rate": 0.276796688013455,
+        "sender_any_tag": 0.6855661211376329,
+        "receiver_any_tag": 0.6710653987968174,
+        "either_any_tag": 0.8977402591801971,
+        "both_any_tag": 0.4588912607542532
+      },
+      {
+        "group": "any",
+        "pos": "",
+        "neg": "",
+        "n_conflicts": 48615,
+        "conflict_rate": 0.5241283394786209,
+        "sender_any_tag": 0.9653599844750631,
+        "receiver_any_tag": 0.9664488863013994,
+        "either_any_tag": 0.9988571921426569,
+        "both_any_tag": 0.9329516786338056
+      }
+    ],
+    "independence_baseline": {
+      "0": {
+        "observed": 0.17175539599370376,
+        "perm_mean": 0.17473489013950882,
+        "perm_lo": 0.17293971149492207,
+        "perm_hi": 0.1767381999698126
+      },
+      "1": {
+        "observed": 0.043793259589882914,
+        "perm_mean": 0.04495353300127219,
+        "perm_lo": 0.04403017659615758,
+        "perm_hi": 0.0459608210966643
+      },
+      "2": {
+        "observed": 0.13847381245013693,
+        "perm_mean": 0.138738221532225,
+        "perm_lo": 0.1365431679496302,
+        "perm_hi": 0.14025271147335963
+      },
+      "3": {
+        "observed": 0.0640942708670246,
+        "perm_mean": 0.06307463829053195,
+        "perm_lo": 0.06177604200357936,
+        "perm_hi": 0.0643538284063221
+      },
+      "4": {
+        "observed": 0.276796688013455,
+        "perm_mean": 0.2772236776850594,
+        "perm_lo": 0.27530052612286265,
+        "perm_hi": 0.27894322616814365
+      },
+      "any": {
+        "observed": 0.5241283394786209,
+        "perm_mean": 0.5251221510662613,
+        "perm_lo": 0.5226801539556246,
+        "perm_hi": 0.527323888996701
+      }
+    },
+    "n_polarity_groups": 5
+  }
+}
