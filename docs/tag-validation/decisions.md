@@ -64,4 +64,4 @@ Referencja: jeden recenzent, nie w pełni ślepy względem propozycji agentów (
 
 ## 6. Co dalej
 
-Zadanie C zamknięte (patrz tabela scaleń). Analiza wpływu (Z5): `[link do reports/tag-validation/impact.md]`. Decyzja o v1: `[uzupełnij po Z5]`.
+Zadanie C zamknięte (patrz tabela scaleń). Analiza wpływu (Z5): `reports/tag-validation/impact.md`.
