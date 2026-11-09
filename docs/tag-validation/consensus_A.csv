@@ -1,0 +1,129 @@
+raw_tag,runda1,canonical_tag,konsensus
+active_sport,active_sport,active_sport,active_sport
+always_headphones,always_headphones,always_headphones,always_headphones
+animals,animals,animals,animals
+backpacking,backpacking,backpacking,backpacking
+board_games,board_games,board_games,board_games
+board_games_with_friends,board_games,board_games,board_games
+business_startups,bussiness,bussiness,bussiness
+camping,camping,camping,camping
+cat_person,cat_person,cat_person,cat_person
+chill_at_home,chill_at_home,chill_at_home,chill_at_home
+city_breaks,city_breaks,city_breaks,city_breaks
+coffee,coffee,coffee,coffee
+concerts,concerts,concerts,concerts
+cooking,cooking,cooking,cooking
+cycling,cycling,cycling,cycling
+diy,diy,diy,diy
+dog_person,dog_person,dog_person,dog_person
+drawing_painting,drawing_painting,drawing_painting,drawing_painting
+early_bird,early_bird,early_bird,early_bird
+extrovert,extrovert,extrovert,extrovert
+foodie,foodie,foodie,foodie
+gaming,gaming,gaming,gaming
+going_out_friends,going_out_friends,going_out_friends,going_out_friends
+gym,gym,gym,gym
+healthy_food,healthy_food,healthy_food,healthy_food
+hiking,hiking,hiking,hiking
+instruments,instruments,instruments,instruments
+introvert,introvert,introvert,introvert
+likes_calm,likes_calm,likes_calm,likes_calm
+likes_parties,likes_parties,likes_parties,likes_parties
+likes_pets,animals,animals,animals
+long_talks,long_talks,long_talks,long_talks
+loves_cleanliness,loves_cleanliness,loves_cleanliness,loves_cleanliness
+marketing_social,marketing_social,marketing_social,marketing_social
+mostly_home,mostly_home,mostly_home,mostly_home
+movies_cinema,movies_cinema,movies_cinema,movies_cinema
+music_nonstop,music_nonstop,music_nonstop,music_nonstop
+netflix_relax,netflix_relax,netflix_relax,netflix_relax
+night_owl,night_owl,night_owl,night_owl
+no_pets,no_pets,no_pets,no_pets
+non_smoker,non_smoker,non_smoker,non_smoker
+often_out,often_out,often_out,often_out
+parties,likes_parties,likes_parties,likes_parties
+photography,photography,photography,photography
+plants,plants,plants,plants
+psychology,psychology,psychology,psychology
+puzzles,puzzles,puzzles,puzzles
+quiet_after_22,silence_after_22,silence_after_22,silence_after_22
+quiet_evenings,quiet_evenings,quiet_evenings,quiet_evenings
+reading,reading,reading,reading
+running,running,running,running
+self_development,self_development,self_development,self_development
+series,series,series,series
+smoker,smoker,smoker,smoker
+smoker_outside,smoker,smoker,smoker
+street_food,street_food,street_food,street_food
+student,student,student,student
+swimming,swimming,swimming,swimming
+team_sports,team_sports,team_sports,team_sports
+tech_it,tech_it,tech_it,tech_it
+theater_standup,theatre,theatre,theatre
+travel,travel,travel,travel
+values_privacy,values_privacy,values_privacy,values_privacy
+vanlife,vanlife,vanlife,vanlife
+vapes,smoker,smoker,smoker
+video_making,video_making,video_making,video_making
+wine_tastings,wine_tastings,wine_tastings,wine_tastings
+winter_sports,winter_sports,winter_sports,winter_sports
+works_remote,works_remote,works_remote,works_remote
+writing,writing,writing,writing
+yoga,yoga,yoga,yoga
+☕ Kawa to życie,coffee,coffee,coffee
+✈️ Podróże,travel,travel,travel
+✈️ Travel,travel,travel,travel
+🌅 Early bird,early_bird,early_bird,early_bird
+🌙 Nocny marek,night_owl,night_owl,night_owl
+🌿 Introwertyk,introvert,introvert,introvert
+🍝 Foodie / jedzenie na mieście,foodie,foodie,foodie
+🍳 Cooking,cooking,cooking,cooking
+🍳 Gotowanie,cooking,cooking,cooking
+🎓 Samorozwój,self_development,self_development,self_development
+🎓 Student,student,student,student
+🎧 Zawsze w słuchawkach,always_headphones,always_headphones,always_headphones
+🎭 Teatr / stand-up,theatre,theatre,theatre
+🎮 Gaming,gaming,gaming,gaming
+🎯 Planszówki z ekipą,board_games,board_games,board_games
+🎲 Board games,board_games,board_games,board_games
+🏃 Activity & sport,active_sport,active_sport,active_sport
+🏃 Aktywność & sport,active_sport,brak,active_sport
+🏃 Bieganie,running,running,running
+🏃 Running,running,running,running
+🏊 Pływanie,swimming,swimming,swimming
+🏋️ Gym,gym,gym,gym
+🏋️ Siłownia,gym,gym,gym
+🏕️ Camping,camping,camping,camping
+🏡 Chill at home,chill_at_home,chill_at_home,chill_at_home
+🏡 Chill w domu,chill_at_home,chill_at_home,chill_at_home
+🐱 Cat person,cat_person,cat_person,cat_person
+🐱 Kociarz,cat_person,cat_person,cat_person
+🐶 Psiarz,dog_person,dog_person,dog_person
+🐾 Lubię zwierzaki,animals,animals,animals
+💨 Palę elektryki,smoker,smoker,smoker
+💻 Pracuję zdalnie,works_remote,brak,works_remote
+💻 Technologia / IT,tech_it,tech_it,tech_it
+💻 Technology / IT,tech_it,tech_it,tech_it
+📈 Biznes / startupy,bussiness,bussiness,bussiness
+📈 Business / startups,bussiness,bussiness,bussiness
+📚 Czytanie,reading,reading,reading
+📸 Fotografia,photography,photography,photography
+📸 Photography,photography,photography,photography
+📺 Seriale,series,series,series
+🚐 Vanlife vibe,vanlife,vanlife,vanlife
+"🚬 Palę, ale tylko na zewnątrz",smoker,smoker,smoker
+🚭 Niepalący,non_smoker,non_smoker,non_smoker
+🚴 Cycling,cycling,cycling,cycling
+🚴 Rower,cycling,cycling,cycling
+🚶 Często poza domem,often_out,often_out,often_out
+🤫 Cisza po 22,silence_after_22,silence_after_22,silence_after_22
+🤫 Quiet after 10pm,silence_after_22,silence_after_22,silence_after_22
+🤫 Spokojne wieczory,quiet_evenings,brak,quiet_evenings
+🥳 Ekstrawertyk,extrovert,extrovert,extrovert
+🥳 Extrovert,extrovert,extrovert,extrovert
+🧘 I like peace and quiet,peace_and_quite,peace_and_quite,peace_and_quite
+🧘 Joga,yoga,yoga,yoga
+🧘 Lubię spokój,likes_calm,peace_and_quite,likes_calm
+🧘 Yoga,yoga,yoga,yoga
+🧠 Psychology,psychology,psychology,psychology
+🧵 DIY / rękodzieło,diy,brak,diy
