@@ -4,11 +4,11 @@ always_headphones,lifestyle,lifestyle,lifestyle,lifestyle
 animals,lifestyle,lifestyle,hobby,lifestyle
 backpacking,hobby,hobby,hobby,hobby
 board_games,hobby,hobby,hobby,hobby
-bussiness,hobby,unclear,unclear,hobby
+bussiness,hobby,unclear,unclear,unclear
 camping,hobby,hobby,hobby,hobby
 cat_person,lifestyle,lifestyle,lifestyle,lifestyle
 chill_at_home,lifestyle,lifestyle,lifestyle,lifestyle
-city_breaks,lifestyle,hobby,hobby,lifestyle
+city_breaks,lifestyle,hobby,hobby,unclear
 coffee,hobby,hobby,hobby,hobby
 concerts,hobby,hobby,hobby,hobby
 cooking,lifestyle,hobby,hobby,lifestyle
@@ -22,7 +22,7 @@ foodie,hobby,hobby,lifestyle,hobby
 gaming,hobby,hobby,hobby,hobby
 going_out_friends,lifestyle,lifestyle,hobby,lifestyle
 gym,hobby,hobby,hobby,hobby
-healthy_food,hobby,unclear,lifestyle,hobby
+healthy_food,hobby,unclear,lifestyle,unclear
 hiking,hobby,hobby,hobby,hobby
 instruments,lifestyle,hobby,hobby,lifestyle
 introvert,lifestyle,lifestyle,lifestyle,lifestyle
@@ -30,7 +30,7 @@ likes_calm,lifestyle,lifestyle,lifestyle,lifestyle
 likes_parties,lifestyle,lifestyle,lifestyle,lifestyle
 long_talks,lifestyle,unclear,lifestyle,lifestyle
 loves_cleanliness,lifestyle,lifestyle,lifestyle,lifestyle
-marketing_social,hobby,unclear,unclear,hobby
+marketing_social,hobby,unclear,unclear,unclear
 mostly_home,lifestyle,lifestyle,lifestyle,lifestyle
 movies_cinema,hobby,hobby,hobby,hobby
 music_nonstop,lifestyle,lifestyle,lifestyle,lifestyle
@@ -56,7 +56,7 @@ street_food,hobby,hobby,hobby,hobby
 student,status,status,status,status
 swimming,hobby,hobby,hobby,hobby
 team_sports,hobby,hobby,hobby,hobby
-tech_it,hobby,unclear,unclear,hobby
+tech_it,hobby,unclear,unclear,unclear
 theatre,hobby,hobby,hobby,hobby
 travel,hobby,hobby,hobby,hobby
 values_privacy,lifestyle,lifestyle,lifestyle,lifestyle
