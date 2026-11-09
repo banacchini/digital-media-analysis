@@ -46,7 +46,7 @@ Liczba grup w konflikcie na swipe: 0 grup 44 225; 1 grupa 34 979; 2 grupy 11 420
 Brak zmiany kodu zmiennej, więc brak zmiany ΔLL. Konsekwencja interpretacyjna: `lifestyle_tag_conflict` jest binarną zmienną o prewalencji ~52%, nieróżniącą się od losowej, więc jako miara „konfliktu stylu życia" ma niską zawartość informacyjną; wpływ na ΔLL bloku stylu życia zmierzono w przeliczeniu H1 na v1 (Z3/Z4). Dwie obserwacje opisowe, bez zmiany definicji:
 (a) grupa 0 (palenie) pokrywa się treściowo z polem `smoking` (D13: tagi `smoker`/`non_smoker` uzupełniają pole), więc blok stylu życia może liczyć tę samą cechę dwa razy (zgodność pola i konflikt tagów);
 (b) przejście v0 → v1 dodaje konflikt w 86 swipe'ach próby H1 (0,09%) i nie usuwa żadnego (przepięcie `peace_and_quite` do `likes_calm` przenosi go do grupy 4: 27,58% → 27,68%).
-Zmiana definicji (np. usunięcie grupy 0 jako redundantnej z polem, próg częstości, wymóg obustronnej deklaracji) wykraczałaby poza oczywisty błąd i wymaga decyzji zespołu: **zapisane jako Q14 w `docs/h1/open-questions.md`**.
+Zmiana definicji (np. usunięcie grupy 0 jako redundantnej z polem, próg częstości, wymóg obustronnej deklaracji) wykraczałaby poza oczywisty błąd i wymaga decyzji zespołu: **zapisane jako Q13 w `docs/h1/open-questions.md`**.
 
 ## Test
 

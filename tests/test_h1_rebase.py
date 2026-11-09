@@ -121,3 +121,19 @@ def test_dictionary_plot_is_written(tmp_path):
     out = tmp_path / "plot.png"
     h1_rebase.plot_dictionary_sensitivity(tbl, out)
     assert out.exists() and out.stat().st_size > 1000
+
+
+def test_cv_levels_pooled_metrics_and_ci_contain_the_estimate():
+    rng = np.random.default_rng(0)
+    n = 600
+    y = rng.integers(0, 2, size=n).astype(float)
+    sender = np.repeat(np.arange(60), 10)
+    oof = pd.DataFrame({"y": y, "sender": sender, "fold": sender % 5})
+    for m in MODELS:
+        oof[m] = np.clip(0.3 + 0.2 * y * rng.random(n) + 0.1 * rng.random(n), 0.01, 0.99)
+    out = h1_rebase.cv_levels(oof, n_boot=40, seed=1)
+    assert set(out["metric"]) == {"logloss", "auc", "auc_pr"} and len(out) == 3 * len(MODELS)
+    ok = (out["ci_low"] <= out["estimate"]) & (out["estimate"] <= out["ci_high"])
+    assert ok.mean() > 0.9
+    auc = out[(out["model"] == "full") & (out["metric"] == "auc")].iloc[0]
+    assert auc["estimate"] > 0.55

@@ -253,3 +253,43 @@ def plot_dictionary_sensitivity(table: pd.DataFrame, path: str | Path, note: str
     fig.savefig(out, dpi=160, facecolor="#F4F2EE")
     plt.close(fig)
     return out
+
+
+# --- pooled out-of-fold levels -------------------------------------------------------------
+def cv_levels(oof: pd.DataFrame, n_boot: int = 1000, seed: int = 42, level: float = 0.95):
+    """Pooled out-of-fold logloss / AUC / AUC-PR of every model with sender-bootstrap CIs.
+
+    Same resampling scheme as `h1_audit.paired_cv_differences` (senders drawn with replacement,
+    conditional on the fitted fold models).
+    """
+    from rentfriends import h1_audit as ha
+    from rentfriends.h1 import model_subsets
+
+    models = list(model_subsets())
+    y = oof["y"].to_numpy()
+    order = np.argsort(oof["sender"].to_numpy(), kind="stable")
+    cuts = np.flatnonzero(np.diff(oof["sender"].to_numpy()[order])) + 1
+    groups = np.split(order, cuts)
+    pred = {m: oof[m].to_numpy() for m in models}
+
+    def metrics(idx: np.ndarray | slice) -> dict[str, dict[str, float]]:
+        return {m: ha._cv_metrics(y[idx], pred[m][idx]) for m in models}
+
+    obs = metrics(slice(None))
+    draws = np.random.default_rng(seed).integers(0, len(groups), size=(n_boot, len(groups)))
+    boot = [metrics(np.concatenate([groups[i] for i in row])) for row in draws]
+    lo_q, hi_q = (1 - level) / 2, 1 - (1 - level) / 2
+    rows = []
+    for m in models:
+        for metric in ("logloss", "auc", "auc_pr"):
+            reps = np.array([b[m][metric] for b in boot])
+            rows.append(
+                {
+                    "model": m,
+                    "metric": metric,
+                    "estimate": obs[m][metric],
+                    "ci_low": float(np.quantile(reps, lo_q)),
+                    "ci_high": float(np.quantile(reps, hi_q)),
+                }
+            )
+    return pd.DataFrame(rows)
