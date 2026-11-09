@@ -9,6 +9,7 @@ polarity groups re-pointed at the merge targets. Row set and schema are identica
 from __future__ import annotations
 
 from pathlib import Path
+from unittest import mock
 
 import pandas as pd
 
@@ -18,6 +19,7 @@ from rentfriends import h1_tagval as tv
 V0_FILE = "h1_analysis_dataset.parquet"
 V1_FILE = "h1_analysis_dataset_v1.parquet"
 V1_SCENARIO = "vi"
+_MAPPING_KEYS = ("raw_to_canonical_override", "category_override", "tag_merge")
 
 
 def v1_inputs(
@@ -74,3 +76,21 @@ def load_v1(data_dir: str | Path = "data/processed") -> pd.DataFrame:
     if not path.exists():
         raise FileNotFoundError(f"{path} missing; build it with `write_v1`")
     return tv.with_city_dummies(pd.read_parquet(path))
+
+
+def user_idf(
+    data_dir: str | Path = "data/processed", docs_dir: str | Path = "docs", **variant: object
+) -> tuple[dict[str, float], float]:
+    """IDF weights of a tag variant (`variant` = `build_h1_variant` tag arguments; none = v0).
+
+    `h1.load_user_idf` always uses the agent mapping; v1 needs the weights of its own hobby tags.
+    """
+    mapping, categories, linked = tv.variant_mapping(
+        data_dir,
+        docs_dir,
+        **{k: v for k, v in variant.items() if k in _MAPPING_KEYS},  # type: ignore[arg-type]
+    )
+    with mock.patch.object(
+        d1, "load_tag_mappings", lambda *_a, **_k: (mapping, categories, linked)
+    ):
+        return d1.load_user_idf(data_dir, docs_dir)

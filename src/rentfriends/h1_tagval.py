@@ -175,6 +175,28 @@ def _patched(mapping, categories, linked, d13_fn, conflict_fn) -> Iterator[None]
         yield
 
 
+def variant_mapping(
+    data_dir: str | Path = "data/processed",
+    docs_dir: str | Path = "docs",
+    *,
+    raw_to_canonical_override: Mapping[str, str] | None = None,
+    category_override: Mapping[str, str] | None = None,
+    tag_merge: Mapping[str, str] | None = None,
+) -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
+    """(raw -> canonical, canonical -> category, canonical -> linked field) of a tag variant."""
+    docs = Path(docs_dir)
+    base_map, categories, linked = d1.load_tag_mappings(
+        docs / "interests_mapping.csv", docs / "tag_category_proposal.csv"
+    )
+    universe: set[str] = set()
+    for name in ("users", "profile_history"):
+        interests = pd.read_parquet(Path(data_dir) / f"{name}.parquet", columns=["interests"])
+        for raw in interests["interests"]:
+            universe.update(parse_raw_interests(raw))
+    mapping = effective_mapping(base_map, universe, raw_to_canonical_override, tag_merge)
+    return mapping, {**categories, **(category_override or {})}, linked
+
+
 def build_h1_variant(
     data_dir: str | Path = "data/processed",
     docs_dir: str | Path = "docs",
@@ -189,17 +211,13 @@ def build_h1_variant(
 
     `d13_map=None` -> the project D13 map; pass `{}` to switch the imputation off.
     """
-    docs = Path(docs_dir)
-    base_map, categories, linked = d1.load_tag_mappings(
-        docs / "interests_mapping.csv", docs / "tag_category_proposal.csv"
+    mapping, categories, linked = variant_mapping(
+        data_dir,
+        docs_dir,
+        raw_to_canonical_override=raw_to_canonical_override,
+        category_override=category_override,
+        tag_merge=tag_merge,
     )
-    universe: set[str] = set()
-    for name in ("users", "profile_history"):
-        interests = pd.read_parquet(Path(data_dir) / f"{name}.parquet", columns=["interests"])
-        for raw in interests["interests"]:
-            universe.update(parse_raw_interests(raw))
-    mapping = effective_mapping(base_map, universe, raw_to_canonical_override, tag_merge)
-    categories = {**categories, **(category_override or {})}
     d13 = d1.TAG_TO_STRUCTURED_FIELD_MAP if d13_map is None else d13_map
     pairs = d1.POLARITY_PAIRS if polarity_pairs is None else polarity_pairs
     with _patched(mapping, categories, linked, make_d13_imputation(d13), make_conflict_fn(pairs)):
