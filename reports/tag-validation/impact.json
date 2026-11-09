@@ -1,0 +1,610 @@
+{
+  "frozen_files_unchanged": true,
+  "baseline_n_rows": 94295,
+  "decisions": {
+    "n_raw_overrides_consensus_a": 8,
+    "n_category_changes_vs_agent_claude": 5,
+    "categories_agent_vs_consensus_of_merged_tags": {
+      "going_out_friends": [
+        "lifestyle",
+        "lifestyle"
+      ],
+      "likes_calm": [
+        "lifestyle",
+        "lifestyle"
+      ],
+      "often_out": [
+        "lifestyle",
+        "lifestyle"
+      ],
+      "often_outside": [
+        "lifestyle",
+        "lifestyle"
+      ],
+      "peace_and_quite": [
+        "lifestyle",
+        "lifestyle"
+      ],
+      "quiet_evenings": [
+        "lifestyle",
+        "lifestyle"
+      ],
+      "silence_after_22": [
+        "lifestyle",
+        "lifestyle"
+      ]
+    },
+    "merge": {
+      "quiet_evenings": "likes_calm",
+      "peace_and_quite": "likes_calm",
+      "silence_after_22": "likes_calm",
+      "going_out_friends": "often_out",
+      "often_outside": "often_out"
+    }
+  },
+  "audit_vi": {
+    "d13_rekey": [
+      {
+        "tag": "quiet_evenings",
+        "target": "likes_calm",
+        "field": "noise_level",
+        "code": "Q"
+      },
+      {
+        "tag": "silence_after_22",
+        "target": "likes_calm",
+        "field": "noise_level",
+        "code": "Q"
+      },
+      {
+        "tag": "peace_and_quite",
+        "target": "likes_calm",
+        "field": "noise_level",
+        "code": "Q"
+      }
+    ],
+    "polarity_remap": [
+      {
+        "pair": 4,
+        "side": "pos",
+        "kind": "removed_tag_in_group",
+        "tag": "quiet_evenings",
+        "target": "likes_calm",
+        "target_already_in_group": true
+      },
+      {
+        "pair": 4,
+        "side": "pos",
+        "kind": "source_outside_group_target_inside",
+        "tag": "peace_and_quite",
+        "target": "likes_calm",
+        "target_already_in_group": true
+      },
+      {
+        "pair": 4,
+        "side": "pos",
+        "kind": "removed_tag_in_group",
+        "tag": "silence_after_22",
+        "target": "likes_calm",
+        "target_already_in_group": true
+      }
+    ]
+  },
+  "polarity_effect_ii_to_vi": {
+    "note": "ii -> vi on the H1 sample: D15 conflict and shared lifestyle tag count",
+    "n_swipes": 92754,
+    "conflict_gained_n": 0,
+    "conflict_lost_n": 0,
+    "conflict_rate_ii": 0.5241283394786209,
+    "conflict_rate_vi": 0.5241283394786209,
+    "shared_tags_up_n": 9054,
+    "shared_tags_down_n": 397,
+    "shared_tags_mean_ii": 1.0040537335317075,
+    "shared_tags_mean_vi": 1.0991224098152101
+  },
+  "scenarios": {
+    "i": {
+      "label": "(i) mapowanie agenta (baseline)",
+      "diagnostic": false,
+      "n_sample": 92754,
+      "dll_mean": {
+        "age": 533.1894856610464,
+        "interests": 13.926430902004844,
+        "lifestyle": 42.508538525370874
+      },
+      "dll_first": {
+        "age": 538.2206739080866,
+        "interests": 14.444843349403527,
+        "lifestyle": 44.65255779311701
+      },
+      "dll_last": {
+        "age": 528.250007160219,
+        "interests": 13.499728200818936,
+        "lifestyle": 40.45622900383751
+      },
+      "ranking": [
+        "age",
+        "lifestyle",
+        "interests"
+      ],
+      "age_share_of_total": 0.9042865862493568,
+      "lifestyle_share_of_total": 0.07209425958934514,
+      "interests_share_of_total": 0.023619154161298124,
+      "lifestyle_to_interests_ratio": 3.0523641573700955,
+      "jaccard_right": 0.06976580141016833,
+      "jaccard_left": 0.06593384441227967,
+      "same_ranking_as_baseline": true,
+      "share_changed_vs_baseline": {
+        "interests_set": 0.0,
+        "lifestyle_field": 0.0,
+        "interests_or_field": 0.0,
+        "lifestyle_tags": 0.0,
+        "lifestyle_tag_conflict": 0.0,
+        "lifestyle_shared_tags_n": 0.0,
+        "conflict_gained": 0.0,
+        "conflict_lost": 0.0,
+        "lsf_lifestyle": 0.0,
+        "lsf_noise_level": 0.0
+      },
+      "delta_vs_baseline": {
+        "dll_mean_age": 0.0,
+        "dll_mean_interests": 0.0,
+        "dll_mean_lifestyle": 0.0,
+        "n_sample": 0,
+        "age_share_of_total": 0.0,
+        "lifestyle_share_of_total": 0.0,
+        "interests_share_of_total": 0.0,
+        "lifestyle_to_interests_ratio": 0.0,
+        "jaccard_right": 0.0,
+        "jaccard_left": 0.0
+      }
+    },
+    "ii": {
+      "label": "(ii) konsensus A+B",
+      "diagnostic": false,
+      "n_sample": 92754,
+      "dll_mean": {
+        "age": 533.4195620191895,
+        "interests": 23.64504040000611,
+        "lifestyle": 40.36823401143192
+      },
+      "dll_first": {
+        "age": 538.2206739080866,
+        "interests": 23.361940098038758,
+        "lifestyle": 42.59369111381966
+      },
+      "dll_last": {
+        "age": 528.7957650434691,
+        "interests": 24.105455615150277,
+        "lifestyle": 38.320091822221
+      },
+      "ranking": [
+        "age",
+        "lifestyle",
+        "interests"
+      ],
+      "age_share_of_total": 0.8928527685322982,
+      "lifestyle_share_of_total": 0.06756949325486128,
+      "interests_share_of_total": 0.03957773821284046,
+      "lifestyle_to_interests_ratio": 1.7072600988840556,
+      "jaccard_right": 0.06702847629024222,
+      "jaccard_left": 0.06229707034747417,
+      "same_ranking_as_baseline": true,
+      "share_changed_vs_baseline": {
+        "interests_set": 0.5659378571274554,
+        "lifestyle_field": 0.0,
+        "interests_or_field": 0.5659378571274554,
+        "lifestyle_tags": 0.06968971688552515,
+        "lifestyle_tag_conflict": 0.0009271837333160834,
+        "lifestyle_shared_tags_n": 0.06891347003902797,
+        "conflict_gained": 0.0009271837333160834,
+        "conflict_lost": 0.0,
+        "lsf_lifestyle": 0.0,
+        "lsf_noise_level": 0.0
+      },
+      "delta_vs_baseline": {
+        "dll_mean_age": 0.2300763581430374,
+        "dll_mean_interests": 9.718609498001266,
+        "dll_mean_lifestyle": -2.1403045139389505,
+        "n_sample": 0,
+        "age_share_of_total": -0.011433817717058536,
+        "lifestyle_share_of_total": -0.004524766334483857,
+        "interests_share_of_total": 0.015958584051542338,
+        "lifestyle_to_interests_ratio": -1.3451040584860399,
+        "jaccard_right": -0.0027373251199261095,
+        "jaccard_left": -0.0036367740648055036
+      }
+    },
+    "iii": {
+      "label": "(iii) konsensus tylko A",
+      "diagnostic": false,
+      "n_sample": 92754,
+      "dll_mean": {
+        "age": 533.2087319031101,
+        "interests": 13.972264284723982,
+        "lifestyle": 42.44749271144732
+      },
+      "dll_first": {
+        "age": 538.2206739080866,
+        "interests": 14.46640446606034,
+        "lifestyle": 44.58964453206863
+      },
+      "dll_last": {
+        "age": 528.3216695046722,
+        "interests": 13.60300370992627,
+        "lifestyle": 40.430220497364644
+      },
+      "ranking": [
+        "age",
+        "lifestyle",
+        "interests"
+      ],
+      "age_share_of_total": 0.9043130410786363,
+      "lifestyle_share_of_total": 0.0719902336989997,
+      "interests_share_of_total": 0.023696725222364018,
+      "lifestyle_to_interests_ratio": 3.0379823804117128,
+      "jaccard_right": 0.06976877636108166,
+      "jaccard_left": 0.06593950980083467,
+      "same_ranking_as_baseline": true,
+      "share_changed_vs_baseline": {
+        "interests_set": 0.04137826940078056,
+        "lifestyle_field": 0.0,
+        "interests_or_field": 0.04137826940078056,
+        "lifestyle_tags": 0.0018112426418267675,
+        "lifestyle_tag_conflict": 0.0009271837333160834,
+        "lifestyle_shared_tags_n": 0.0010349957953295814,
+        "conflict_gained": 0.0009271837333160834,
+        "conflict_lost": 0.0,
+        "lsf_lifestyle": 0.0,
+        "lsf_noise_level": 0.0
+      },
+      "delta_vs_baseline": {
+        "dll_mean_age": 0.01924624206367298,
+        "dll_mean_interests": 0.04583338271913817,
+        "dll_mean_lifestyle": -0.061045813923556125,
+        "n_sample": 0,
+        "age_share_of_total": 2.6454829279543013e-05,
+        "lifestyle_share_of_total": -0.00010402589034542997,
+        "interests_share_of_total": 7.75710610658939e-05,
+        "lifestyle_to_interests_ratio": -0.01438177695838272,
+        "jaccard_right": 2.9749509133231156e-06,
+        "jaccard_left": 5.665388554995654e-06
+      }
+    },
+    "iv": {
+      "label": "(iv) konsensus tylko B",
+      "diagnostic": false,
+      "n_sample": 92754,
+      "dll_mean": {
+        "age": 533.4054159326503,
+        "interests": 23.547428280077536,
+        "lifestyle": 40.51038122349443
+      },
+      "dll_first": {
+        "age": 538.2206739080866,
+        "interests": 23.28213205996144,
+        "lifestyle": 42.71316987811588
+      },
+      "dll_last": {
+        "age": 528.7243830563311,
+        "interests": 23.946949599310756,
+        "lifestyle": 38.44181766799011
+      },
+      "ranking": [
+        "age",
+        "lifestyle",
+        "interests"
+      ],
+      "age_share_of_total": 0.8927836780970044,
+      "lifestyle_share_of_total": 0.06780397436832505,
+      "interests_share_of_total": 0.039412347534670426,
+      "lifestyle_to_interests_ratio": 1.7203739084224545,
+      "jaccard_right": 0.06702413782016031,
+      "jaccard_left": 0.06229027188120816,
+      "same_ranking_as_baseline": true,
+      "share_changed_vs_baseline": {
+        "interests_set": 0.5447635681480044,
+        "lifestyle_field": 0.0,
+        "interests_or_field": 0.5447635681480044,
+        "lifestyle_tags": 0.06791081786230244,
+        "lifestyle_tag_conflict": 0.0,
+        "lifestyle_shared_tags_n": 0.06791081786230244,
+        "conflict_gained": 0.0,
+        "conflict_lost": 0.0,
+        "lsf_lifestyle": 0.0,
+        "lsf_noise_level": 0.0
+      },
+      "delta_vs_baseline": {
+        "dll_mean_age": 0.21593027160383826,
+        "dll_mean_interests": 9.620997378072692,
+        "dll_mean_lifestyle": -1.9981573018764465,
+        "n_sample": 0,
+        "age_share_of_total": -0.011502908152352331,
+        "lifestyle_share_of_total": -0.004290285221020082,
+        "interests_share_of_total": 0.015793193373372302,
+        "lifestyle_to_interests_ratio": -1.331990248947641,
+        "jaccard_right": -0.00274166359000802,
+        "jaccard_left": -0.003643572531071511
+      }
+    },
+    "v": {
+      "label": "(v) agent, D13 wyłączone",
+      "diagnostic": false,
+      "n_sample": 92247,
+      "dll_mean": {
+        "age": 523.9053534921222,
+        "interests": 14.457225524067326,
+        "lifestyle": 43.15865664005105
+      },
+      "dll_first": {
+        "age": 529.1281243671037,
+        "interests": 14.525690299706184,
+        "lifestyle": 45.05708422535099
+      },
+      "dll_last": {
+        "age": 518.7314625916406,
+        "interests": 14.437640722928336,
+        "lifestyle": 41.309109029250976
+      },
+      "ranking": [
+        "age",
+        "lifestyle",
+        "interests"
+      ],
+      "age_share_of_total": 0.9009221355448878,
+      "lifestyle_share_of_total": 0.07421681959962642,
+      "interests_share_of_total": 0.0248610448554858,
+      "lifestyle_to_interests_ratio": 2.985265503965729,
+      "jaccard_right": 0.06955853568854305,
+      "jaccard_left": 0.0658259317784753,
+      "same_ranking_as_baseline": true,
+      "share_changed_vs_baseline": {
+        "interests_set": 0.0,
+        "lifestyle_field": 0.7491213316945899,
+        "interests_or_field": 0.7491213316945899,
+        "lifestyle_tags": 0.0,
+        "lifestyle_tag_conflict": 0.0,
+        "lifestyle_shared_tags_n": 0.0,
+        "conflict_gained": 0.0,
+        "conflict_lost": 0.0,
+        "lsf_lifestyle": 0.0,
+        "lsf_noise_level": 0.0
+      },
+      "delta_vs_baseline": {
+        "dll_mean_age": -9.284132168924202,
+        "dll_mean_interests": 0.5307946220624817,
+        "dll_mean_lifestyle": 0.6501181146801756,
+        "n_sample": -507,
+        "age_share_of_total": -0.003364450704469002,
+        "lifestyle_share_of_total": 0.0021225600102812853,
+        "interests_share_of_total": 0.001241890694187675,
+        "lifestyle_to_interests_ratio": -0.06709865340436627,
+        "jaccard_right": -0.00020726572162528545,
+        "jaccard_left": -0.00010791263380437177
+      }
+    },
+    "vi": {
+      "label": "(vi) konsensus A+B + scalenia",
+      "diagnostic": false,
+      "n_sample": 92754,
+      "dll_mean": {
+        "age": 533.7715684066752,
+        "interests": 23.08972347396775,
+        "lifestyle": 32.585225926424755
+      },
+      "dll_first": {
+        "age": 538.2206739080866,
+        "interests": 23.361940098038758,
+        "lifestyle": 35.012789334286936
+      },
+      "dll_last": {
+        "age": 529.4985735853625,
+        "interests": 22.99361752999539,
+        "lifestyle": 30.33377319866122
+      },
+      "ranking": [
+        "age",
+        "lifestyle",
+        "interests"
+      ],
+      "age_share_of_total": 0.9055470721796417,
+      "lifestyle_share_of_total": 0.055281055943213246,
+      "interests_share_of_total": 0.03917187187714504,
+      "lifestyle_to_interests_ratio": 1.411243662712661,
+      "jaccard_right": 0.06702847629024222,
+      "jaccard_left": 0.06229707034747417,
+      "same_ranking_as_baseline": true,
+      "share_changed_vs_baseline": {
+        "interests_set": 0.5659378571274554,
+        "lifestyle_field": 0.0,
+        "interests_or_field": 0.5659378571274554,
+        "lifestyle_tags": 0.16580417017055868,
+        "lifestyle_tag_conflict": 0.0009271837333160834,
+        "lifestyle_shared_tags_n": 0.1650710481488669,
+        "conflict_gained": 0.0009271837333160834,
+        "conflict_lost": 0.0,
+        "lsf_lifestyle": 0.0,
+        "lsf_noise_level": 0.0
+      },
+      "delta_vs_baseline": {
+        "dll_mean_age": 0.5820827456287816,
+        "dll_mean_interests": 9.163292571962907,
+        "dll_mean_lifestyle": -9.923312598946119,
+        "n_sample": 0,
+        "age_share_of_total": 0.001260485930284938,
+        "lifestyle_share_of_total": -0.01681320364613189,
+        "interests_share_of_total": 0.015552717715846917,
+        "lifestyle_to_interests_ratio": -1.6411204946574345,
+        "jaccard_right": -0.0027373251199261095,
+        "jaccard_left": -0.0036367740648055036
+      }
+    },
+    "ii_fill": {
+      "label": "(diag) konsensus A+B, kod zastępczy `lifestyle` z often_out",
+      "diagnostic": true,
+      "n_sample": 92754,
+      "dll_mean": {
+        "age": 533.9375625874358,
+        "interests": 23.808229074985622,
+        "lifestyle": 37.86693095475979
+      },
+      "dll_first": {
+        "age": 538.2206739080866,
+        "interests": 23.361940098038758,
+        "lifestyle": 39.40255076027097
+      },
+      "dll_last": {
+        "age": 529.8231181263109,
+        "interests": 24.42318491145852,
+        "lifestyle": 36.49997800877463
+      },
+      "ranking": [
+        "age",
+        "lifestyle",
+        "interests"
+      ],
+      "age_share_of_total": 0.8964509022595444,
+      "lifestyle_share_of_total": 0.0635764306517308,
+      "interests_share_of_total": 0.039972667088724885,
+      "lifestyle_to_interests_ratio": 1.590497589530718,
+      "jaccard_right": 0.06702847629024222,
+      "jaccard_left": 0.06229707034747417,
+      "same_ranking_as_baseline": true,
+      "share_changed_vs_baseline": {
+        "interests_set": 0.5659378571274554,
+        "lifestyle_field": 0.25576255471462145,
+        "interests_or_field": 0.6905901632274619,
+        "lifestyle_tags": 0.06968971688552515,
+        "lifestyle_tag_conflict": 0.0009271837333160834,
+        "lifestyle_shared_tags_n": 0.06891347003902797,
+        "conflict_gained": 0.0009271837333160834,
+        "conflict_lost": 0.0,
+        "lsf_lifestyle": 0.25576255471462145,
+        "lsf_noise_level": 0.0
+      },
+      "delta_vs_baseline": {
+        "dll_mean_age": 0.7480769263893308,
+        "dll_mean_interests": 9.881798172980778,
+        "dll_mean_lifestyle": -4.641607570611086,
+        "n_sample": 0,
+        "age_share_of_total": -0.007835683989812381,
+        "lifestyle_share_of_total": -0.008517828937614338,
+        "interests_share_of_total": 0.01635351292742676,
+        "lifestyle_to_interests_ratio": -1.4618665678393774,
+        "jaccard_right": -0.0027373251199261095,
+        "jaccard_left": -0.0036367740648055036
+      }
+    },
+    "vi_fill": {
+      "label": "(diag) (vi) + kod zastępczy `lifestyle` z often_out",
+      "diagnostic": true,
+      "n_sample": 92754,
+      "dll_mean": {
+        "age": 534.4391359410462,
+        "interests": 23.28893082772508,
+        "lifestyle": 29.45738883505207
+      },
+      "dll_first": {
+        "age": 538.2206739080866,
+        "interests": 23.361940098038758,
+        "lifestyle": 30.997739576210734
+      },
+      "dll_last": {
+        "age": 530.8132708755293,
+        "interests": 23.37159445893485,
+        "lifestyle": 28.072710995416855
+      },
+      "ranking": [
+        "age",
+        "lifestyle",
+        "interests"
+      ],
+      "age_share_of_total": 0.9101709363551311,
+      "lifestyle_share_of_total": 0.05016709551288188,
+      "interests_share_of_total": 0.03966196813198695,
+      "lifestyle_to_interests_ratio": 1.264866517615465,
+      "jaccard_right": 0.06702847629024222,
+      "jaccard_left": 0.06229707034747417,
+      "same_ranking_as_baseline": true,
+      "share_changed_vs_baseline": {
+        "interests_set": 0.5659378571274554,
+        "lifestyle_field": 0.403346486404899,
+        "interests_or_field": 0.7547383401254932,
+        "lifestyle_tags": 0.16580417017055868,
+        "lifestyle_tag_conflict": 0.0009271837333160834,
+        "lifestyle_shared_tags_n": 0.1650710481488669,
+        "conflict_gained": 0.0009271837333160834,
+        "conflict_lost": 0.0,
+        "lsf_lifestyle": 0.403346486404899,
+        "lsf_noise_level": 0.0
+      },
+      "delta_vs_baseline": {
+        "dll_mean_age": 1.2496502799997415,
+        "dll_mean_interests": 9.362499925720234,
+        "dll_mean_lifestyle": -13.051149690318805,
+        "n_sample": 0,
+        "age_share_of_total": 0.005884350105774372,
+        "lifestyle_share_of_total": -0.02192716407646326,
+        "interests_share_of_total": 0.016042813970688824,
+        "lifestyle_to_interests_ratio": -1.7874976397546305,
+        "jaccard_right": -0.0027373251199261095,
+        "jaccard_left": -0.0036367740648055036
+      }
+    }
+  },
+  "going_out_friends_to_often_out": {
+    "note": "placeholder code for the `lifestyle` field; the codebook defines none",
+    "dictionary_effect_vi_minus_ii": {
+      "dll_mean_age": 0.3520063874857442,
+      "dll_mean_interests": -0.5553169260383584,
+      "dll_mean_lifestyle": -7.783008085007168,
+      "n_sample": 0,
+      "age_share_of_total": 0.012694303647343474,
+      "lifestyle_share_of_total": -0.012288437311648033,
+      "interests_share_of_total": -0.00040586633569542063,
+      "lifestyle_to_interests_ratio": -0.2960164361713946,
+      "jaccard_right": 0.0,
+      "jaccard_left": 0.0
+    },
+    "d13_real_map_lsf_lifestyle_changed_share_ii_vs_vi": 0.0,
+    "fill_effect_without_merge_ii_fill_minus_ii": {
+      "dll_mean_age": 0.5180005682462934,
+      "dll_mean_interests": 0.16318867497951217,
+      "dll_mean_lifestyle": -2.5013030566721355,
+      "n_sample": 0,
+      "age_share_of_total": 0.0035981337272461555,
+      "lifestyle_share_of_total": -0.003993062603130482,
+      "interests_share_of_total": 0.00039492887588442327,
+      "lifestyle_to_interests_ratio": -0.11676250935333754,
+      "jaccard_right": 0.0,
+      "jaccard_left": 0.0
+    },
+    "fill_effect_with_merge_vi_fill_minus_vi": {
+      "dll_mean_age": 0.66756753437096,
+      "dll_mean_interests": 0.1992073537573269,
+      "dll_mean_lifestyle": -3.1278370913726867,
+      "n_sample": 0,
+      "age_share_of_total": 0.004623864175489434,
+      "lifestyle_share_of_total": -0.0051139604303313685,
+      "interests_share_of_total": 0.0004900962548419069,
+      "lifestyle_to_interests_ratio": -0.14637714509719602,
+      "jaccard_right": 0.0,
+      "jaccard_left": 0.0
+    },
+    "fill_effect_enabled_by_merge": {
+      "dll_mean_age": 0.14956696612466658,
+      "dll_mean_interests": 0.03601867877781473,
+      "dll_mean_lifestyle": -0.6265340347005512,
+      "n_sample": 0,
+      "age_share_of_total": 0.0010257304482432783,
+      "lifestyle_share_of_total": -0.0011208978272008868,
+      "interests_share_of_total": 9.516737895748362e-05,
+      "lifestyle_to_interests_ratio": -0.029614635743858475,
+      "jaccard_right": 0.0,
+      "jaccard_left": 0.0
+    },
+    "lsf_lifestyle_changed_share_ii_fill_vs_ii": 0.25576255471462145,
+    "lsf_lifestyle_changed_share_vi_fill_vs_vi": 0.403346486404899,
+    "lsf_lifestyle_changed_share_vi_fill_vs_ii_fill": 0.17484960217349116
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "n_items": 68,
+  "categories": [
+    "hobby",
+    "lifestyle",
+    "status",
+    "unclear"
+  ],
+  "reference": "single reviewer, round 1",
+  "agents": {
+    "proposed_category_claude": {
+      "n": 68,
+      "agreement": 0.8676470588235294,
+      "kappa": 0.7555910543130991,
+      "gwet_ac1": 0.8386714116251484,
+      "kappa_ci90": [
+        0.6324247875163015,
+        0.8677171244002871
+      ],
+      "agreement_weighted": 0.9231628313564232,
+      "rule_weighted_agreement_pass": false,
+      "rule_kappa_pass": true,
+      "agreement_when_models_agree": 0.896551724137931,
+      "agreement_when_models_differ": 0.7
+    },
+    "proposed_category_gemini": {
+      "n": 68,
+      "agreement": 0.7941176470588235,
+      "kappa": 0.6273972602739726,
+      "gwet_ac1": 0.7479369842460615,
+      "kappa_ci90": [
+        0.4789219481962663,
+        0.7596229379418696
+      ],
+      "agreement_weighted": 0.8315821950331789,
+      "rule_weighted_agreement_pass": false,
+      "rule_kappa_pass": false,
+      "agreement_when_models_agree": 0.896551724137931,
+      "agreement_when_models_differ": 0.2
+    }
+  },
+  "thresholds": {
+    "agree_weighted": 0.95,
+    "kappa": 0.7,
+    "retest_kappa": 0.6
+  },
+  "reference_category_counts": {
+    "hobby": 37,
+    "lifestyle": 30,
+    "status": 1
+  }
+}
