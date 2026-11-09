@@ -387,10 +387,21 @@ def smoking_direction(sender: pd.Series, receiver: pd.Series) -> pd.Series:
     return pd.Series(out, index=sender.index)
 
 
-def compute_lifestyle_tag_conflict(tags_a: list[str], tags_b: list[str]) -> int:
-    """Check if pair has conflicting directional lifestyle preferences (D15)."""
-    set_a = set(tags_a)
-    set_b = set(tags_b)
+def as_tag_set(tags: Any) -> set[str]:
+    """Tag collection as a set; missing data (None, NaN) is an empty set, never a tag."""
+    if tags is None or (isinstance(tags, float) and np.isnan(tags)):
+        return set()
+    return set(tags)
+
+
+def compute_lifestyle_tag_conflict(tags_a: Any, tags_b: Any) -> int:
+    """Check if pair has conflicting directional lifestyle preferences (D15).
+
+    A conflict needs a tag from one side of a polarity group on one profile and a tag from the
+    opposite side on the other. Missing profile data (None, NaN) or no tag never conflicts.
+    """
+    set_a = as_tag_set(tags_a)
+    set_b = as_tag_set(tags_b)
     for group_pos, group_neg in POLARITY_PAIRS:
         if (set_a & group_pos and set_b & group_neg) or (set_a & group_neg and set_b & group_pos):
             return 1

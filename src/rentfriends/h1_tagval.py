@@ -158,7 +158,7 @@ def make_conflict_fn(pairs: PolarityPairs):
     """Drop-in for `compute_lifestyle_tag_conflict` with explicit polarity pairs."""
 
     def conflict(tags_a: list[str], tags_b: list[str]) -> int:
-        a, b = set(tags_a), set(tags_b)
+        a, b = d1.as_tag_set(tags_a), d1.as_tag_set(tags_b)
         return int(any((a & p and b & n) or (a & n and b & p) for p, n in pairs))
 
     return conflict
