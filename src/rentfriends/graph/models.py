@@ -50,7 +50,7 @@ def get_device() -> torch.device:
 class TrainConfig:
     max_epochs: int = 100  # reduced from 300 for 2-hour cap (OQ9)
     patience: int = 20
-    lr: float = 1e-3
+    lr: float = 0.02
     weight_decay: float = 1e-4
     val_frac: float = 0.10
     seed: int = 42
@@ -60,6 +60,8 @@ class TrainConfig:
 # ---------------------------------------------------------------------------
 # Utility
 # ---------------------------------------------------------------------------
+
+BASE_LOGIT_INIT = -1.34  # logit(0.207), dataset prior for y_right=1
 
 
 def _bce_loss(logits: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
@@ -90,6 +92,8 @@ class M0(nn.Module):
     def __init__(self, n_features: int) -> None:
         super().__init__()
         self.linear = nn.Linear(n_features, 1)
+        nn.init.zeros_(self.linear.weight)
+        nn.init.constant_(self.linear.bias, BASE_LOGIT_INIT)
 
     def forward(self, x: torch.Tensor, **kwargs: Any) -> torch.Tensor:
         return self.linear(x).squeeze(-1)
@@ -106,6 +110,8 @@ class M1(nn.Module):
     def __init__(self, n_features: int, n_senders: int, n_receivers: int) -> None:
         super().__init__()
         self.linear = nn.Linear(n_features, 1)
+        nn.init.zeros_(self.linear.weight)
+        nn.init.constant_(self.linear.bias, BASE_LOGIT_INIT)
         # Sender effect (generosity) + receiver effect (popularity)
         self.sender_bias = nn.Embedding(n_senders, 1)
         self.receiver_bias = nn.Embedding(n_receivers, 1)
@@ -140,6 +146,8 @@ class M2(nn.Module):
     def __init__(self, n_features: int, n_senders: int, n_receivers: int, dim: int = 16) -> None:
         super().__init__()
         self.linear = nn.Linear(n_features, 1)
+        nn.init.zeros_(self.linear.weight)
+        nn.init.constant_(self.linear.bias, BASE_LOGIT_INIT)
         self.sender_bias = nn.Embedding(n_senders, 1)
         self.receiver_bias = nn.Embedding(n_receivers, 1)
         self.sender_emb = nn.Embedding(n_senders, dim)
@@ -241,6 +249,8 @@ class M3(nn.Module):
 
         # Pair feature projection
         self.pair_proj = nn.Linear(n_features, 1)
+        nn.init.zeros_(self.pair_proj.weight)
+        nn.init.constant_(self.pair_proj.bias, BASE_LOGIT_INIT)
 
         # Sparse adjacency (set after fold construction)
         self._r_s: torch.Tensor | None = None
@@ -272,6 +282,9 @@ class M3(nn.Module):
             (self._l_s, self._l_r, self._l_vals),
         ]:
             if s_idx is not None and len(s_idx) > 0:
+                s_idx = s_idx.to(e_s.device)
+                r_idx = r_idx.to(e_s.device)
+                vals = vals.to(e_s.device)
                 # Receiver ← sender messages
                 msgs_to_r = vals.unsqueeze(-1) * e_s[s_idx]
                 new_e_r.scatter_add_(0, r_idx.unsqueeze(-1).expand_as(msgs_to_r), msgs_to_r)
@@ -356,14 +369,17 @@ class M4(nn.Module):
 
         # Pair feature projection
         self.pair_proj = nn.Linear(n_features, 1)
+        nn.init.zeros_(self.pair_proj.weight)
+        nn.init.constant_(self.pair_proj.bias, BASE_LOGIT_INIT)
 
         # Adjacency (set after fold)
         self._s_idx: torch.Tensor | None = None
         self._r_idx: torch.Tensor | None = None
 
     def set_adjacency(self, sender_idx: torch.Tensor, receiver_idx: torch.Tensor) -> None:
-        self._s_idx = sender_idx
-        self._r_idx = receiver_idx
+        device = next(self.parameters()).device if list(self.parameters()) else sender_idx.device
+        self._s_idx = sender_idx.to(device=device, dtype=torch.long)
+        self._r_idx = receiver_idx.to(device=device, dtype=torch.long)
 
     def _sage_step(
         self,
@@ -377,10 +393,12 @@ class M4(nn.Module):
         agg_s = torch.zeros_like(h_s)
         cnt_s = torch.zeros(h_s.shape[0], 1, device=h_s.device)
         if self._r_idx is not None and len(self._r_idx) > 0:
-            msgs = h_r[self._r_idx]
-            agg_s.scatter_add_(0, self._s_idx.unsqueeze(-1).expand_as(msgs), msgs)
-            ones_s = torch.ones(len(self._s_idx), 1, device=h_s.device)
-            cnt_s.scatter_add_(0, self._s_idx.unsqueeze(-1), ones_s)
+            s_idx = self._s_idx.to(h_s.device)
+            r_idx = self._r_idx.to(h_s.device)
+            msgs = h_r[r_idx]
+            agg_s.scatter_add_(0, s_idx.unsqueeze(-1).expand_as(msgs), msgs)
+            ones_s = torch.ones(len(s_idx), 1, device=h_s.device)
+            cnt_s.scatter_add_(0, s_idx.unsqueeze(-1), ones_s)
         cnt_s = cnt_s.clamp(min=1.0)
         agg_s = agg_s / cnt_s
 
@@ -388,10 +406,12 @@ class M4(nn.Module):
         agg_r = torch.zeros_like(h_r)
         cnt_r = torch.zeros(h_r.shape[0], 1, device=h_r.device)
         if self._s_idx is not None and len(self._s_idx) > 0:
-            msgs = h_s[self._s_idx]
-            agg_r.scatter_add_(0, self._r_idx.unsqueeze(-1).expand_as(msgs), msgs)
-            ones_r = torch.ones(len(self._r_idx), 1, device=h_r.device)
-            cnt_r.scatter_add_(0, self._r_idx.unsqueeze(-1), ones_r)
+            s_idx = self._s_idx.to(h_r.device)
+            r_idx = self._r_idx.to(h_r.device)
+            msgs = h_s[s_idx]
+            agg_r.scatter_add_(0, r_idx.unsqueeze(-1).expand_as(msgs), msgs)
+            ones_r = torch.ones(len(r_idx), 1, device=h_r.device)
+            cnt_r.scatter_add_(0, r_idx.unsqueeze(-1), ones_r)
         cnt_r = cnt_r.clamp(min=1.0)
         agg_r = agg_r / cnt_r
 
@@ -467,7 +487,12 @@ def train_model(
     train_pos, val_pos = _internal_val_split(n, cfg.val_frac, cfg.seed)
 
     def _sub(d: dict, pos: np.ndarray) -> dict:
-        return {k: v[pos] if isinstance(v, torch.Tensor) else v for k, v in d.items()}
+        return {
+            k: (v if k in ("sender_feats", "receiver_feats") else v[pos])
+            if isinstance(v, torch.Tensor)
+            else v
+            for k, v in d.items()
+        }
 
     train_batch = _sub(batch, torch.tensor(train_pos, device=device))
     val_batch = _sub(batch, torch.tensor(val_pos, device=device))

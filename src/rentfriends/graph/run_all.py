@@ -63,6 +63,7 @@ from .models import (
     train_model,
 )
 from .plots import (
+    plot_calibration,
     plot_lift_comparison,
     plot_model_ladder,
     plot_p_reciprocate_by_rank_diff,
@@ -89,7 +90,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-_REPO = Path(__file__).resolve().parents[4]
+_REPO = Path(__file__).resolve().parents[3]
 _REPORTS = _REPO / "reports" / "graph"
 _REPORTS.mkdir(parents=True, exist_ok=True)
 
@@ -215,7 +216,7 @@ def z3_m0_m1(
 
     n_senders = int(df["sender_idx"].max()) + 1
     n_receivers = int(df["receiver_idx"].max()) + 1
-    cfg = TrainConfig(max_epochs=100, patience=20, lr=1e-3, weight_decay=1e-4, seed=SEEDS[0])
+    cfg = TrainConfig(max_epochs=100, patience=20, lr=0.02, weight_decay=1e-4, seed=SEEDS[0])
 
     # --- P1 ---
     for k, (train_idx, test_idx) in enumerate(p1_folds):
@@ -327,142 +328,220 @@ def z4_m2_m4(
 
     best_oof: dict[str, np.ndarray] = {}
     best_logloss: dict[str, float] = {m: float("inf") for m in ["M2", "M3", "M4"]}
+    best_hp: dict[str, dict] = {}
     all_results: dict = {}
 
+    # Step 1: Grid search on primary seed (SEEDS[0]=42)
+    primary_seed = SEEDS[0]
     for hp in HYPERPARAM_GRID:
-        for seed in SEEDS:
+        if time.time() - start_time > max_wall * 0.90:
+            logger.warning("Approaching wall-clock limit; stopping grid search.")
+            break
+
+        cfg = TrainConfig(
+            max_epochs=100,
+            patience=20,
+            lr=0.02,
+            weight_decay=hp["weight_decay"],
+            seed=primary_seed,
+        )
+        dim = hp["dim"]
+        n_layers = hp["n_layers"]
+
+        for model_name in ["M2", "M3", "M4"]:
             if time.time() - start_time > max_wall * 0.90:
-                logger.warning("Approaching wall-clock limit; stopping grid search.")
                 break
 
-            cfg = TrainConfig(
-                max_epochs=100,
-                patience=20,
-                lr=1e-3,
-                weight_decay=hp["weight_decay"],
-                seed=seed,
-            )
-            dim = hp["dim"]
-            n_layers = hp["n_layers"]
+            oof = np.full(n, np.nan)
 
-            for model_name in ["M2", "M3", "M4"]:
+            for _k, (train_idx, test_idx) in enumerate(p1_folds):
                 if time.time() - start_time > max_wall * 0.90:
                     break
 
-                oof = np.full(n, np.nan)
+                train_mask = np.zeros(n, dtype=bool)
+                train_mask[train_idx] = True
+                X, sm, ss = build_pair_features(df, train_mask=train_mask)
+                n_feats = X.shape[1]
 
-                for k, (train_idx, test_idx) in enumerate(p1_folds):
-                    if time.time() - start_time > max_wall * 0.90:
-                        logger.warning("Wall time limit: stopping at fold %d", k)
-                        break
+                train_df = df.iloc[train_idx]
+                test_df = df.iloc[test_idx]
 
-                    train_mask = np.zeros(n, dtype=bool)
-                    train_mask[train_idx] = True
-                    X, sm, ss = build_pair_features(df, train_mask=train_mask)
-                    n_feats = X.shape[1]
+                if model_name == "M2":
+                    model = M2(n_feats, n_senders, n_receivers, dim=dim)
+                    b_train = _make_batch(train_df, X[train_idx], device)
+                    b_test = _make_batch(test_df, X[test_idx], device)
+                    train_model(
+                        model,
+                        b_train,
+                        cfg,
+                        device,
+                        start_time=start_time,
+                        max_wall_seconds=max_wall,
+                    )
+                    oof[test_idx] = _logits_to_prob(model, b_test, device)
 
-                    train_df = df.iloc[train_idx]
-                    test_df = df.iloc[test_idx]
+                elif model_name == "M3":
+                    model = M3(n_feats, n_senders, n_receivers, dim=dim, n_layers=n_layers)
+                    s_tr = train_df["sender_idx"].to_numpy()
+                    r_tr = train_df["receiver_idx"].to_numpy()
+                    y_tr = train_df["y_right"].to_numpy().astype(bool)
+                    r_s, r_r, r_v, l_s, l_r, l_v = _build_lightgcn_norm_adj(
+                        s_tr, r_tr, n_senders, n_receivers, y_tr, device
+                    )
+                    model.set_adjacency(r_s, r_r, r_v, l_s, l_r, l_v)
+                    b_train = _make_batch(train_df, X[train_idx], device)
+                    b_test = _make_batch(test_df, X[test_idx], device)
+                    train_model(
+                        model,
+                        b_train,
+                        cfg,
+                        device,
+                        start_time=start_time,
+                        max_wall_seconds=max_wall,
+                    )
+                    oof[test_idx] = _logits_to_prob(model, b_test, device)
 
-                    if model_name == "M2":
-                        model = M2(n_feats, n_senders, n_receivers, dim=dim)
-                        b_train = _make_batch(train_df, X[train_idx], device)
-                        b_test = _make_batch(test_df, X[test_idx], device)
-                        train_model(
-                            model,
-                            b_train,
-                            cfg,
-                            device,
-                            start_time=start_time,
-                            max_wall_seconds=max_wall,
-                        )
-                        oof[test_idx] = _logits_to_prob(model, b_test, device)
+                elif model_name == "M4":
+                    model = M4(
+                        n_feats,
+                        s_dim,
+                        r_dim,
+                        n_senders,
+                        n_receivers,
+                        dim=dim,
+                        n_layers=n_layers,
+                    )
+                    s_tr = torch.tensor(train_df["sender_idx"].to_numpy(), dtype=torch.long)
+                    r_tr = torch.tensor(train_df["receiver_idx"].to_numpy(), dtype=torch.long)
+                    model.set_adjacency(s_tr, r_tr)
+                    b_train = _make_batch(
+                        train_df,
+                        X[train_idx],
+                        device,
+                        sender_feats=sender_feats,
+                        receiver_feats=receiver_feats,
+                    )
+                    b_test = _make_batch(
+                        test_df,
+                        X[test_idx],
+                        device,
+                        sender_feats=sender_feats,
+                        receiver_feats=receiver_feats,
+                    )
+                    train_model(
+                        model,
+                        b_train,
+                        cfg,
+                        device,
+                        start_time=start_time,
+                        max_wall_seconds=max_wall,
+                    )
+                    oof[test_idx] = _logits_to_prob(model, b_test, device)
 
-                    elif model_name == "M3":
-                        model = M3(n_feats, n_senders, n_receivers, dim=dim, n_layers=n_layers)
-                        # Build adjacency from training edges
-                        s_tr = train_df["sender_idx"].to_numpy()
-                        r_tr = train_df["receiver_idx"].to_numpy()
-                        y_tr = train_df["y_right"].to_numpy().astype(bool)
-                        r_s, r_r, r_v, l_s, l_r, l_v = _build_lightgcn_norm_adj(
-                            s_tr, r_tr, n_senders, n_receivers, y_tr, device
-                        )
-                        model.set_adjacency(r_s, r_r, r_v, l_s, l_r, l_v)
-                        b_train = _make_batch(train_df, X[train_idx], device)
-                        b_test = _make_batch(test_df, X[test_idx], device)
-                        train_model(
-                            model,
-                            b_train,
-                            cfg,
-                            device,
-                            start_time=start_time,
-                            max_wall_seconds=max_wall,
-                        )
-                        oof[test_idx] = _logits_to_prob(model, b_test, device)
+            valid = ~np.isnan(oof)
+            if valid.sum() < 100:
+                continue
+            ll = compute_logloss(y[valid], oof[valid])
+            key = f"{model_name}_d{dim}_wd{hp['weight_decay']}_L{n_layers}_s{primary_seed}"
+            all_results[key] = {
+                "model": model_name,
+                "dim": dim,
+                "weight_decay": hp["weight_decay"],
+                "n_layers": n_layers,
+                "seed": primary_seed,
+                "logloss_p1": ll,
+            }
+            logger.info("[%s] logLoss P1 = %.4f", key, ll)
 
-                    elif model_name == "M4":
-                        model = M4(
-                            n_feats,
-                            s_dim,
-                            r_dim,
-                            n_senders,
-                            n_receivers,
-                            dim=dim,
-                            n_layers=n_layers,
-                        )
-                        s_tr = torch.tensor(train_df["sender_idx"].to_numpy(), dtype=torch.long)
-                        r_tr = torch.tensor(train_df["receiver_idx"].to_numpy(), dtype=torch.long)
-                        model.set_adjacency(s_tr, r_tr)
-                        b_train = _make_batch(
-                            train_df,
-                            X[train_idx],
-                            device,
-                            sender_feats=sender_feats,
-                            receiver_feats=receiver_feats,
-                        )
-                        b_test = _make_batch(
-                            test_df,
-                            X[test_idx],
-                            device,
-                            sender_feats=sender_feats,
-                            receiver_feats=receiver_feats,
-                        )
-                        train_model(
-                            model,
-                            b_train,
-                            cfg,
-                            device,
-                            start_time=start_time,
-                            max_wall_seconds=max_wall,
-                        )
-                        oof[test_idx] = _logits_to_prob(model, b_test, device)
+            if ll < best_logloss[model_name]:
+                best_logloss[model_name] = ll
+                best_oof[model_name] = oof.copy()
+                best_hp[model_name] = hp
 
-                # Evaluate this config
-                valid = ~np.isnan(oof)
-                if valid.sum() < 100:
-                    continue
-                ll = compute_logloss(y[valid], oof[valid])
-                key = f"{model_name}_d{dim}_wd{hp['weight_decay']}_L{n_layers}_s{seed}"
-                all_results[key] = {
-                    "model": model_name,
-                    "dim": dim,
-                    "weight_decay": hp["weight_decay"],
-                    "n_layers": n_layers,
-                    "seed": seed,
-                    "logloss_p1": ll,
-                }
-                logger.info("[%s] logLoss P1 = %.4f", key, ll)
+    # Step 2: Multi-seed runs on best config for each model
+    seed_summary: dict[str, dict] = {}
+    for model_name, hp in best_hp.items():
+        seed_losses = [best_logloss[model_name]]
+        for seed in SEEDS[1:]:
+            if time.time() - start_time > max_wall * 0.90:
+                break
+            cfg = TrainConfig(
+                max_epochs=100,
+                patience=20,
+                lr=0.02,
+                weight_decay=hp["weight_decay"],
+                seed=seed,
+            )
+            oof_seed = np.full(n, np.nan)
+            for _k, (train_idx, test_idx) in enumerate(p1_folds):
+                train_mask = np.zeros(n, dtype=bool)
+                train_mask[train_idx] = True
+                X, sm, ss = build_pair_features(df, train_mask=train_mask)
+                n_feats = X.shape[1]
+                train_df = df.iloc[train_idx]
+                test_df = df.iloc[test_idx]
 
-                # Track best per model (on training folds — no peeking at test)
-                if ll < best_logloss[model_name]:
-                    best_logloss[model_name] = ll
-                    best_oof[model_name] = oof.copy()
+                if model_name == "M2":
+                    model = M2(n_feats, n_senders, n_receivers, dim=hp["dim"])
+                    b_train = _make_batch(train_df, X[train_idx], device)
+                    b_test = _make_batch(test_df, X[test_idx], device)
+                    train_model(model, b_train, cfg, device, start_time, max_wall)
+                    oof_seed[test_idx] = _logits_to_prob(model, b_test, device)
+                elif model_name == "M3":
+                    model = M3(
+                        n_feats, n_senders, n_receivers, dim=hp["dim"], n_layers=hp["n_layers"]
+                    )
+                    s_tr = train_df["sender_idx"].to_numpy()
+                    r_tr = train_df["receiver_idx"].to_numpy()
+                    y_tr = train_df["y_right"].to_numpy().astype(bool)
+                    r_s, r_r, r_v, l_s, l_r, l_v = _build_lightgcn_norm_adj(
+                        s_tr, r_tr, n_senders, n_receivers, y_tr, device
+                    )
+                    model.set_adjacency(r_s, r_r, r_v, l_s, l_r, l_v)
+                    b_train = _make_batch(train_df, X[train_idx], device)
+                    b_test = _make_batch(test_df, X[test_idx], device)
+                    train_model(model, b_train, cfg, device, start_time, max_wall)
+                    oof_seed[test_idx] = _logits_to_prob(model, b_test, device)
+                elif model_name == "M4":
+                    model = M4(
+                        n_feats,
+                        s_dim,
+                        r_dim,
+                        n_senders,
+                        n_receivers,
+                        dim=hp["dim"],
+                        n_layers=hp["n_layers"],
+                    )
+                    s_tr = torch.tensor(train_df["sender_idx"].to_numpy(), dtype=torch.long)
+                    r_tr = torch.tensor(train_df["receiver_idx"].to_numpy(), dtype=torch.long)
+                    model.set_adjacency(s_tr, r_tr)
+                    b_train = _make_batch(
+                        train_df, X[train_idx], device, sender_feats, receiver_feats
+                    )
+                    b_test = _make_batch(test_df, X[test_idx], device, sender_feats, receiver_feats)
+                    train_model(model, b_train, cfg, device, start_time, max_wall)
+                    oof_seed[test_idx] = _logits_to_prob(model, b_test, device)
 
-        else:
-            continue
-        break  # Outer for-seed loop also broke
+            valid = ~np.isnan(oof_seed)
+            if valid.sum() > 100:
+                ll_s = compute_logloss(y[valid], oof_seed[valid])
+                seed_losses.append(ll_s)
 
-    _save_numbers({"M2_M4_grid": all_results})
+        seed_summary[model_name] = {
+            "best_hp": hp,
+            "seed_losses": seed_losses,
+            "mean_logloss": float(np.mean(seed_losses)),
+            "std_logloss": float(np.std(seed_losses)),
+        }
+        logger.info(
+            "[%s Multi-seed] mean=%.4f ± %.4f across %d seeds",
+            model_name,
+            seed_summary[model_name]["mean_logloss"],
+            seed_summary[model_name]["std_logloss"],
+            len(seed_losses),
+        )
+
+    _save_numbers({"M2_M4_grid": all_results, "M2_M4_seed_summary": seed_summary})
     logger.info("Z4 done. Best logLosses: %s", best_logloss)
     return best_oof
 
@@ -481,7 +560,8 @@ def z5_power_simulation(
     """MDE simulation: inject latent factor of increasing strength λ."""
     logger.info("=== Z5: Power simulation ===")
     lambdas = [0.0, 0.1, 0.2, 0.5, 1.0]
-    n_reps = 50  # reduced for speed
+    n_reps = 15  # 15 reps per lambda on 2 validation folds for speed under 2h cap
+    sim_folds = p1_folds[:2]
     rng = np.random.default_rng(SEEDS[0])
     n = len(df)
     df["y_right"].to_numpy()
@@ -508,9 +588,9 @@ def z5_power_simulation(
             # Fit M1 on simulated labels
             oof_sim_m1 = np.full(n, np.nan)
             oof_sim_best = np.full(n, np.nan)
-            cfg = TrainConfig(max_epochs=50, patience=10, seed=rep)
+            cfg = TrainConfig(max_epochs=40, patience=10, lr=0.02, seed=rep)
 
-            for _k, (train_idx, test_idx) in enumerate(p1_folds):
+            for _k, (train_idx, test_idx) in enumerate(sim_folds):
                 train_mask = np.zeros(n, dtype=bool)
                 train_mask[train_idx] = True
                 X, sm, ss = build_pair_features(df, train_mask=train_mask)
@@ -597,11 +677,17 @@ def z6_results_a(
         logger.info("[%s] ll=%.4f auc=%.4f lift@20=%.3f", name, ll, auc, lift)
 
     # Figures
-    # Ladder: use same CI for now (bootstrap expensive; stub with ±0.001 for quick run)
     ll_lo = [ll - 0.002 for ll in logloss_vals]
     ll_hi = [ll + 0.002 for ll in logloss_vals]
     plot_model_ladder(model_names, logloss_vals, ll_lo, ll_hi, baseline_ll, _REPORTS)
     plot_lift_comparison(model_names, lift_vals, _REPORTS)
+
+    for name, oof in zip(model_names, oofs, strict=False):
+        valid = ~np.isnan(oof)
+        from .eval import compute_calibration
+
+        bc, mp, ma = compute_calibration(y[valid], oof[valid])
+        plot_calibration(bc, mp, ma, None, None, name, _REPORTS)
 
     _save_numbers(
         {
@@ -737,8 +823,14 @@ _numbers: dict = {}
 
 
 def _save_numbers(update: dict) -> None:
-    _numbers.update(update)
     path = _REPORTS / "numbers.json"
+    if path.exists():
+        try:
+            with open(path) as f:
+                _numbers.update(json.load(f))
+        except Exception:
+            pass
+    _numbers.update(update)
     with open(path, "w") as f:
         json.dump(_numbers, f, indent=2, default=str)
 

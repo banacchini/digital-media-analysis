@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Paths (relative to repo root; resolve at call time)
 # ---------------------------------------------------------------------------
-_REPO = Path(__file__).resolve().parents[4]
+_REPO = Path(__file__).resolve().parents[3]
 _H1_PATH = _REPO / "data" / "processed" / "h1_analysis_dataset.parquet"
 _SWIPES_PATH = _REPO / "data" / "processed" / "swipes.parquet"
 _USERS_PATH = _REPO / "data" / "processed" / "users.parquet"
@@ -45,7 +45,7 @@ PAIR_FEATURE_COLS = [
     "same_band",
     "age_band_diff",
     "age_band_diff_abs",
-    "same_city",
+    "city_same",
     "city_diff",
     "interests_jaccard",
     "interests_shared_n",
@@ -137,15 +137,17 @@ def build_funnel(h1: pd.DataFrame) -> tuple[pd.DataFrame, FunnelStats]:
     df = h1.copy()
     h1_rows = len(df)
 
-    # city_diff: not in h1; derive it
+    # city_same and city_diff from same_city (which has values 'same', 'different', 'unknown')
+    if "city_same" not in df.columns:
+        df["city_same"] = (df["same_city"] == "same").astype(np.float32)
     if "city_diff" not in df.columns:
-        df["city_diff"] = (df["city_sender"] != df["city_receiver"]).astype(int)
+        df["city_diff"] = (df["same_city"] == "different").astype(np.float32)
 
     # Complete-case: drop rows where any PAIR_FEATURE_COLS have NaN
-    # (sex_pair, same_band, same_city, city_diff are always present; others may be NaN)
+    # (sex_pair, same_band, city_same, city_diff are always present; others may be NaN)
     numeric_pair_cols = [c for c in PAIR_FEATURE_COLS if c not in ("sex_pair",) and c in df.columns]
     before_cc = len(df)
-    df = df.dropna(subset=numeric_pair_cols)
+    df = df.dropna(subset=numeric_pair_cols).reset_index(drop=True)
     after_cc = len(df)
     if before_cc != after_cc:
         logger.info("Complete-case filter: %d → %d rows", before_cc, after_cc)
@@ -228,12 +230,20 @@ def build_pair_features(
         )
         parts.append(dummies.values.astype(np.float32))
 
+    # Ensure city_same and city_diff exist
+    if "city_same" not in df.columns and "same_city" in df.columns:
+        df = df.copy()
+        df["city_same"] = (df["same_city"] == "same").astype(np.float32)
+    if "city_diff" not in df.columns and "same_city" in df.columns:
+        df = df.copy()
+        df["city_diff"] = (df["same_city"] == "different").astype(np.float32)
+
     # Numeric pair features (with missing indicators)
     numeric_cols = [
         "same_band",
         "age_band_diff",
         "age_band_diff_abs",
-        "same_city",
+        "city_same",
         "city_diff",
         "interests_jaccard",
         "interests_shared_n",

@@ -32,6 +32,7 @@ def make_p1_folds(df: pd.DataFrame, seed: int = SEED) -> list[tuple[np.ndarray, 
     Returns list of (train_idx, test_idx) tuples (integer positions into df).
     """
     rng = np.random.default_rng(seed)
+    df = df.reset_index(drop=True)
     n = len(df)
     fold_assignments = np.full(n, -1, dtype=int)
 
