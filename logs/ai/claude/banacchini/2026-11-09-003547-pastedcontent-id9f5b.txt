@@ -1,0 +1,641 @@
+
+❯ <browser_instruction># Claude in Chrome browser automation
+
+  You have access to browser automation tools (mcp__claude-in-chrome__*) for
+  interacting with web pages in Chrome. Follow these guidelines for effective
+  browser automation.
+
+  ## Loading deferred tools
+
+  If the mcp__claude-in-chrome__* tools are deferred (must be loaded via
+  ToolSearch before use), load every tool you expect to need in ONE ToolSearch
+  call — the select query accepts a comma-separated list — never one call per
+  tool. Start with the core set:
+
+  ToolSearch with query
+  "select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__naviga
+  te,mcp__claude-in-chrome__computer,mcp__claude-in-chrome__read_page,mcp__clau
+  de-in-chrome__tabs_create_mcp,mcp__claude-in-chrome__tabs_close_mcp"
+
+  Add task-specific tools to the same call when the task obviously needs them:
+  read_console_messages / read_network_requests for debugging, form_input for
+  forms, gif_creator for recordings, javascript_tool for page scripting.
+
+  ## GIF recording
+
+  When performing multi-step browser interactions that the user may want to
+  review or share, use mcp__claude-in-chrome__gif_creator to record them.
+
+  You must ALWAYS:
+  * Capture extra frames before and after taking actions to ensure smooth
+  playback
+  * Name the file meaningfully to help the user identify it later (e.g.,
+  "login_process.gif")
+
+  ## Console log debugging
+
+  You can use mcp__claude-in-chrome__read_console_messages to read console
+  output. Console output may be verbose. If you are looking for specific log
+  entries, use the 'pattern' parameter with a regex-compatible pattern. This
+  filters results efficiently and avoids overwhelming output. For example, use
+  pattern: "[MyApp]" to filter for application-specific logs rather than
+  reading all console output.
+
+  ## Alerts and dialogs
+
+  IMPORTANT: Do not trigger JavaScript alerts, confirms, prompts, or browser
+  modal dialogs through your actions. These browser dialogs block all further
+  browser events and will prevent the extension from receiving any subsequent
+  commands. Instead, when possible, use console.log for debugging and then use
+  the mcp__claude-in-chrome__read_console_messages tool to read those log
+  messages. If a page has dialog-triggering elements:
+  1. Avoid clicking buttons or links that may trigger alerts (e.g., "Delete"
+  buttons with confirmation dialogs)
+  2. If you must interact with such elements, warn the user first that this may
+  interrupt the session
+  3. Use mcp__claude-in-chrome__javascript_tool to check for and dismiss any
+  existing dialogs before proceeding
+
+  If you accidentally trigger a dialog and lose responsiveness, inform the user
+  they need to manually dismiss it in the browser.
+
+  ## Avoid rabbit holes and loops
+
+  When using browser automation tools, stay focused on the specific task. If
+  you encounter any of the following, stop and ask the user for guidance:
+  - Unexpected complexity or tangential browser exploration
+  - Browser tool calls failing or returning errors after 2-3 attempts
+  - No response from the browser extension
+  - Page elements not responding to clicks or input
+  - Pages not loading or timing out
+  - Unable to complete the browser task despite multiple approaches
+
+  Explain what you attempted, what went wrong, and ask how the user would like
+  to proceed. Do not keep retrying the same failing browser action or explore
+  unrelated pages without checking in first.
+
+  ## Tab context and session startup
+
+  IMPORTANT: At the start of each browser automation session, call
+  mcp__claude-in-chrome__tabs_context_mcp first to get information about the
+  user's current browser tabs. Use this context to understand what the user
+  might want to work with before creating new tabs.
+
+  Never reuse tab IDs from a previous/other session. Follow these guidelines:
+  1. Only reuse an existing tab if the user explicitly asks to work with it
+  2. Otherwise, create a new tab with mcp__claude-in-chrome__tabs_create_mcp
+  3. If a tool returns an error indicating the tab doesn't exist or is invalid,
+  call tabs_context_mcp to get fresh tab IDs
+  4. When a tab is closed by the user or a navigation error occurs, call
+  tabs_context_mcp to see what tabs are available</browser_instruction>
+
+❯ # Prompt: naprawa H1 po audycie (2026-11-08)
+
+  ## Rola i kontekst
+
+  Pracujesz w repo projektu RentFriends (kurs AMC, PWr). Hipoteza H1: *zgodność
+  stylu życia przewiduje prawy swipe silniej niż zgodność wieku i
+  zainteresowań*. Kod: moduł `rentfriends.h1` (ścieżki potwierdź przez
+  `ls`/`grep`), notebook `h1-hypothesis.ipynb`, dane `data/processed/`
+  (parquet), zbiór `h1_analysis_dataset.parquet`.
+
+  Przeczytaj najpierw: `docs/prompts/m1-generation-plan.md` (decyzje D6–D18),
+  `docs/codebook.md`, `rentfriends_hipotezy_karta_eksploracji.md` (karta M1,
+  sekcje 3 i 4 oraz G1–G18), `STYLEGUIDE.md`, `data/README.md`.
+
+  Audyt wykazał niżej wymienione problemy. **Traktuj każde twierdzenie z audytu
+  jako hipotezę do sprawdzenia w kodzie i danych, nie jako fakt.** Jeśli coś
+  się nie potwierdza, napisz to w changelogu i nie "naprawiaj" tego.
+
+  ## Zasady nadrzędne
+
+  1. **Najpierw odtwórz obecne liczby** (tolerancja 1e-3): n głównej próby, ΔLL
+  stylu życia = 41,38, ΔLL wieku+zainteresowań = 739,14, CV AUC (null 0,500;
+  lifestyle 0,519; age_interests 0,581; full 0,584). Jeśli nie da się
+  odtworzyć, zatrzymaj się i opisz rozbieżność w `docs/h1/open-questions.md`.
+  2. **Nie dobieraj specyfikacji pod wynik.** Każdą zmianę oznacz w changelogu
+  jako: `pre-rejestrowana` (była w karcie/decyzjach) albo `post hoc (audyt)`.
+  Wszystkie warianty raportuj, także te, które nie zmieniają wniosku. Wnioski w
+  tekście mają wynikać z liczb, a nie z poprzedniej narracji.
+  3. **Prywatność (G12):** żadnych pól `bio` w danych ani wynikach. Do raportu
+  tylko agregaty, komórki < 5 użytkowników tłumione. Żadnych zewnętrznych API.
+  4. Nie modyfikuj modułów `rentfriends.h2` ani `rentfriends.h3a`. Schemat
+  `h1_analysis_dataset.parquet` rozszerzaj wstecznie zgodnie (dodawaj kolumny,
+  nie usuwaj).
+  5. Pracuj na osobnej gałęzi `fix/h1-audit`. Commity małe, z opisowymi
+  komunikatami po polsku lub angielsku (jeden problem = jeden commit). Nie
+  squashuj. Uruchom testy i lintery używane w repo przed każdym commitem.
+  6. Jeśli decyzja jest niejednoznaczna, zapisz ją w
+  `docs/h1/open-questions.md` i wybierz opcję bardziej konserwatywną, z jawną
+  adnotacją.
+
+  ## Zadania (w tej kolejności)
+
+  **Z1. Zgodność zestawów kontroli.** W `fit_h1_logit_models` sprawdź, czy
+  modele `demog`, `age_interests`, `lifestyle`, `full` mają ten sam zestaw
+  kontroli. Podejrzenie: `lifestyle` ma `n_vars=5`, a pozostałe odpowiednio 6,
+  8 i 11 zmiennych razem z kontrolami płci i miasta, co sugeruje brak jednej
+  kontroli. Opisz stan faktyczny w changelogu, potem ujednolić (kontrole
+  identyczne we wszystkich modelach).
+
+  **Z2. Kontrola płci.** Zamień `same_sex` na `sex_pair` (kategoria, jak w H3a)
+  w kontrolach głównego modelu; H2 pokazuje asymetrię (F→M 8,5%, M→F 29,6%).
+  Wersję ze `same_sex` zachowaj jako scenariusz wrażliwości `spec_old`.
+
+  **Z3. Specyfikacja wieku.** Obecnie w modelu jest tylko `age_band_diff` (ze
+  znakiem: odbiorca − nadawca) oraz `same_band`. Wniosek 1 w notebooku czyta go
+  jako "preferencję podobnego wieku", co jest błędem interpretacyjnym (to
+  kierunek, nie podobieństwo). Dodaj `age_band_diff_abs` i
+  `age_band_diff_abs**2` (karta 3.2). Główna specyfikacja: `same_band`,
+  `age_band_diff_abs`, `age_band_diff` (znak). Wrażliwość: dodatkowo efekty
+  stałe pasma nadawcy (65% profili to 18–20, więc dla nadawców z tego pasma
+  różnica nie może być ujemna). Zweryfikuj też ilościowo, czy odbiorca młodszy
+  o jedno pasmo ma wyższe szanse niż ta sama grupa, i opisz to wprost.
+
+  **Z4. Rozbicie bloków na trzy.** Karta definiuje trzy bloki: demografia
+  (wiek, `sex_pair`, miasto), zainteresowania, styl życia. Zachowaj porównanie
+  z karty (styl życia vs wiek+zainteresowania), ale dodaj: przyrost każdego
+  bloku jako ostatniego i jako pierwszego, oraz średnią po wszystkich 6
+  kolejnościach. Raportuj ΔLL, ΔLL na stopień swobody i ΔAIC (bloki mają różną
+  liczbę zmiennych). Z tabeli wynika, że `demog → age_interests` daje tylko ΔLL
+  ≈ 10,6, a `age_interests → full` 41,4. Zweryfikuj to i opisz wprost, co
+  dominuje: wiek, zainteresowania czy styl życia.
+
+  **Z5. CI różnicy przyrostów (kryterium z karty).** Cluster bootstrap po
+  nadawcach (B ≥ 500, seed stały) dla: ΔLL(styl życia) −
+  ΔLL(wiek+zainteresowania), ΔLL(styl życia) − ΔLL(zainteresowania), ΔLL(styl
+  życia) − ΔLL(wiek). Dodatkowo wariant bootstrapu po odbiorcach i podaj
+  szerszy z dwóch jako konserwatywny. W CV po nadawcach podaj sparowane różnice
+  ΔlogLoss/ΔAUC z CI (bootstrap predykcji out-of-fold, grupowany po
+  nadawcach), a nie samo odchylenie między foldami. Dodaj **AUC-PR** do CV.
+
+  **Z6. Zainteresowania.** (a) IDF-ważony Jaccard (waga log(N/df) na
+  oczyszczonych tagach D12/D13). (b) Baseline losowych par: permutacja zbiorów
+  zainteresowań między odbiorcami z zachowaniem liczby tagów, rozkład Jaccarda
+  dla prawych i lewych swipe'ów wobec rozkładu z permutacji. (c) Sprawdź wpływ
+  sufitu 9 tagów (`interests_count_*` == 9) jako zmienną kontrolną.
+
+  **Z7. Styl życia per pole i braki.** Pola: `daily_routine`, `lifestyle`,
+  `work_from_home`, `cleanliness`, `noise_level`, `smoking`, `alcohol` (po
+  uzupełnieniu tagami wg D13). Dla każdego pola: kategorie zgodny / niezgodny /
+  jedna strona brak / obie brak, a dla `smoking` także kierunek
+  (niepalący→palący vs palący→niepalący). Model z dummies per pole, ΔLL każdego
+  pola, korekta Holma na 7 testów. W tabelach z tercylami usuń `fillna(0)`:
+  obserwacje z `lifestyle_known_count == 0` mają osobną kategorię "brak
+  danych". Zaznacz, że `cleanliness` i `noise_level` mogą być wartościami
+  domyślnymi (P6 w karcie), więc ich "zgodność" może być sztucznie zawyżona.
+
+  **Z8. Wrażliwość.** Do istniejących 5 scenariuszy dodaj: bez miasta "inne"
+  (G6) oraz `spec_old` z Z2. Wyjaśnij, dlaczego `n_swipe` w scenariuszu `main`
+  wrażliwości (92 754) różni się od lejka (93 330) i od H2/H3a (93 717).
+  Przedstaw jeden lejek próby: 95 144 → 94 295 → 93 717 oraz gdzie H1 odpada
+  dodatkowo i dlaczego.
+
+  **Z9. Walidacja instrumentu (normalizacja tagów).** Sprawdź w repo (docs/,
+  notebooks/, src/), czy istnieje raport zgodności normalizacji tagów (agent +
+  człowiek, kappa Cohena). Jeśli jest, podlinkuj go w notebooku i podaj
+  wartość. Jeśli nie ma, **nie wymyślaj liczb**: dodaj do
+  `docs/h1/open-questions.md` listę tego, co trzeba zrobić (próba, kto
+  etykietuje, metryka).
+
+  **Z10. Przepisanie sekcji 7 (Wniosek).**
+  - Popraw interpretację wieku zgodnie z Z3.
+  - Zastąp zdanie o "dominacji wieku i zainteresowań" wynikiem z Z4 i Z5, z CI.
+  - Usuń twierdzenie o zdjęciu profilowym i o konieczności przewijania pól
+  stylu życia. Dane nie zawierają zdjęć (G5), a widoczność pól jest pytaniem do
+  dostawcy (karta 2.2, pyt. 2 i 4). Jeśli chcesz zachować tę myśl, sformułuj
+  ją jako niezweryfikowaną hipotezę.
+  - Dodaj zastrzeżenie o rozdzielczości pomiaru: pola stylu życia mają 74–81%
+  braków (G14), więc porównanie bloków zależy od jakości pomiaru, nie tylko od
+  realnego wpływu.
+  - Zaznacz, które analizy są konfirmacyjne, a które eksploracyjne/post hoc.
+
+  ## Dostarczane artefakty
+
+  1. Zaktualizowany `rentfriends.h1` i notebook z wynikami (uruchomiony od
+  zera, deterministycznie).
+  2. `docs/h1/audit-fixes-2026-11-08.md`: tabela *problem → co znalazłeś → co
+  zmieniłeś → liczby przed/po → pre-rejestrowane czy post hoc*. Sekcja
+  "ujawnienie użycia AI" (jakie zadania wykonał agent).
+  3. `docs/h1/open-questions.md`.
+  4. Testy jednostkowe dla nowych funkcji (bootstrap CI, IDF-Jaccard,
+  permutacja).
+
+  ## Kryteria akceptacji
+
+  - Liczby sprzed zmian odtworzone, a każda zmiana wyniku wyjaśniona konkretną
+  zmianą kodu.
+  - Wszystkie modele w porównaniu bloków mają identyczne kontrole.
+  - Każdy wniosek w sekcji 7 ma odpowiadającą mu liczbę z CI w notebooku.
+  - Brak jakiejkolwiek treści `bio` w repo i wynikach.
+
+● Using superpowers:test-driven-development for the new functions. Meanwhile
+  I'll look at the repo layout.
+
+● Skill(superpowers:test-driven-development)
+  ⎿  Successfully loaded skill
+
+  Read 4 files, ran 6 shell commands (ctrl+o to expand)
+
+● Baseline tests: 47 pass, and 3 EDA tests fail because the metadata file is
+  missing. The failures predate my changes. Next I'll reproduce the baseline H1
+  numbers on the data.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Baseline matches, but my uv run --active call wiped and rebuilt
+  /home/dominik/.venv, so anything else installed there is gone; please check
+  whether you relied on it. I'll use plain uv run from here and check the sample
+  funnel and missing values next. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Z1 is partly confirmed: lifestyle has 5 variables but lacks the sex control
+  and the age block. The notebook's funnel step is wrong, since same_band is
+  never NaN, so I'm starting Z1 test-first next. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Now Z1, test first. I'll update the dummy dataframe and add tests for
+  identical controls across all models.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Red for the right reasons. Now the design machinery: a spec, identical
+  controls in every model, and all block subsets.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Now the permutation null and the CV use the same design, so they share the
+  controls too.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Z1 numbers on real data: all models now carry the same controls.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● ΔLL(lifestyle | age+interests) holds at 41.38, and once lifestyle gets the
+  same sex control, ΔLL(age+interests | lifestyle) falls from 739.14 to 731.20.
+  I'm committing Z1 now. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Z2 next: sex_pair becomes the default sex control, and the legacy
+  specification is kept as spec_old.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● The spec_old model reproduces the earlier figures exactly, and adding sex_pair
+  shows most of the age effect was really sex asymmetry. I'm committing Z2
+  next. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Z3: the age specification. First the tests, including an age_direction_check
+  that I'll validate on synthetic data with a known effect.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Write(src/rentfriends/h1_audit.py)
+  ⎿  Wrote 116 lines to src/rentfriends/h1_audit.py
+       1 """H1 audit follow-up analyses (2026-11-08): age direction, bloc
+         k increments, bootstrap CIs, ...
+       2
+       3 Everything here works on the aggregate-level H1 analysis dataset
+         ; no `bio` field is used or
+       4 produced. Cells with fewer than `min_users` distinct senders are
+          suppressed (G12).
+       5 """
+       6
+       7 from __future__ import annotations
+     … +109 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Tests pass. Now Z3 on the real data: the new main specification, the two
+  sensitivity variants, and the direction check.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● With sender-band fixed effects, receivers one band older show OR 0.62 and two
+  or more bands older show OR 0.35, so the signed difference reflects a penalty
+  for older receivers rather than a preference for similar age. I'm committing
+  Z3 now. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Z4: block increments (first, last and the mean over all 6 orderings). Test
+  first, with a hand-computed example.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● The edit notice is from my own sed/ruff run. Next: a wrapper that builds this
+  table from a fitted result, plus an integration test.
+  Ran 3 shell commands (ctrl+o to expand)
+
+● Age drives nearly all of the explained variation (mean ΔLL about 533), with
+  lifestyle at roughly 42.5 and interests at 13.9, so my earlier claim that age
+  and interests dominate was wrong; I'm committing Z4 now. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Z5 gets a fast weighted logit so cluster-bootstrap refits are practical. I'm
+  writing tests first: one checking agreement with statsmodels, and one
+  synthetic check that the CI separates a known lifestyle effect from a known
+  age effect. · summary
+
+  Ran 3 shell commands (ctrl+o to expand)
+
+● The failure is in my synthetic fixture: city_diff is all zeros, which
+  statsmodels can't invert. It isn't a bug in the production code. I'll fix the
+  fixture.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Both pass. Now the conservative combiner, which takes the wider of the sender
+  and receiver CIs and is tested first. After that I'll time a real-data
+  bootstrap.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Red, then green. Next I'll time the real-data bootstrap with a short run.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● 0.28 s per replicate, so B = 1000 takes about 5 minutes per cluster type, and
+  the observed log-likelihoods match statsmodels. Committing Z5a, then the CV
+  part.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● The commit was rejected by the lint hook for one over-long docstring. I had
+  seen the warning but chained the commit anyway, so I'll fix it and recommit.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Z5 part 2: AUC-PR in the CV, plus paired out-of-fold differences with
+  sender-clustered bootstrap CIs. Tests first.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● All 63 tests pass. I'll run the full Z5 computation on the real data in the
+  background (B = 1000 for each cluster type, 500 for the CV) while I move to
+  Z6.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Background command "Start Z5 full run in background" completed (exit code 0)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Z5 is still running. I'll start Z6 and Z7 on the dataset side. First I'll
+  check the actual codes of the lifestyle fields, which are categorical profile
+  values and not free text.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● The smoking codes arrive without a codebook, so I'm treating N as non-smoker
+  and V, O, Y as non-N for the direction variable and logging that as an open
+  question. Writing tests for the new dataset helpers next. · summary
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Now wire the new columns into the dataset builder. They are additive, so
+  existing columns stay untouched.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● The new columns built cleanly, and the 9-tag cap does matter: 83% of swipes
+  involve a profile at the cap, though on the cleaned hobby count it's
+  essentially zero. Next I'm writing tests for the permutation baseline (Z6b).
+  · summary
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Red for the expected reason (the functions don't exist yet). Now the
+  implementation.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● The no-signal test has p = 0.033, which at a 5% level is simply an expected
+  false alarm and not a bug. I'll check that the null is centred properly, then
+  make the test robust to chance.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Slightly overdispersed (sd of z = 1.39 over 12 draws). Before trusting the
+  baseline I'll check calibration over more draws.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● The permutation null appears about 1.5× too narrow, which would make results
+  anti-conservative. I'm checking whether that's a bug or a property of the test
+  generator before relying on it. · summary
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● The null baseline is well calibrated at 200 datasets, so the earlier
+  overdispersion was just chance from reused permutation seeds. I'm making the
+  unit test robust to that and fixing the lint next. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Z6c needs the cap control as a spec option. Test first.
+  Ran 2 shell commands (ctrl+o to expand)
+
+● On the real data, IDF-Jaccard barely changes the interests block and the cap
+  control moves the lifestyle increment only slightly, while right swipes beat
+  the permutation band and left swipes sit at chance. The sender-clustered CI
+  includes 0, so I'll flag the permutation p-value as too optimistic in the
+  write-up and commit Z6. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Z7: per-field lifestyle analysis, Holm correction, and the terciles without
+  fillna(0). Tests first.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Tests pass. Now the two lint lines, cleaned up with local variables.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● On the real data no lifestyle field survives the Holm correction, and the
+  clustered Wald values are much smaller than the naive likelihood suggests. The
+  smoking direction shows no significant asymmetry (p = 0.65), and the
+  collinear "missing" dummies for cleanliness and noise_level are only
+  interpretable through the joint tests. I'm committing Z7 now. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Z5 finished in 593 s. Here are the full results.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Z5 is done: H1's criterion fails with a ΔLL of −504.5 (CI [−883, −301]),
+  lifestyle vs. interests alone is undecided at +28.6 (CI [−62, +112]), and out
+  of sample lifestyle adds nothing measurable. Next I'll start Z8 and check
+  where H2/H3a's 93,717 comes from. · summary
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+
+● The H3a funnel matches at 95,144, 94,295 and 93,717, so H1's 92,754 is that
+  sample less 963 swipes missing a jointly known lifestyle field. Next I'm
+  writing tests for the extended sensitivity table and a single funnel, starting
+  with Z8. · summary
+
+  Ran 5 shell commands (ctrl+o to expand)
+
+● Z9: look for an existing tag-normalisation agreement report (agent vs. human,
+  Cohen's kappa) in files, git history and other branches.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● No κ report for tag normalisation exists in the working tree, git history, or
+  any branch, and the κ script on feat/gold-set is for bio labelling rather than
+  tags. The only verifiable figure is 85.3% agreement between the Claude and
+  Gemini proposals over 68 tags, which is not a human validation; I'll check the
+  68-versus-69 count discrepancy next, then write the open-questions doc.
+  · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● The category lookup can't match business because the proposal CSV spells it
+  bussiness, and uv.lock shows as modified, which I didn't intend. I'm
+  inspecting that diff next. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● I restored uv.lock, which uv run regenerated, and will use --frozen from now
+  on. The O→O pair has only 21 swipes, so I'm adding small-cell suppression
+  test-first before building the notebook. · summary
+
+  Ran 3 shell commands (ctrl+o to expand)
+
+● The code side is done. Now the notebook. I'll read the existing cells I'm
+  keeping so I can rebuild them rather than rewrite them blind.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● I'm fixing the permutation baseline's IDF to match the dataset column,
+  counting users rather than swipe exposures, and I'll add a shared helper for
+  it, test first. · summary
+
+  Ran 3 shell commands (ctrl+o to expand)
+
+● Now I'll generate the audit notebook: a rebuilt version of the existing one
+  with the new sections, run from scratch. Conclusion text comes after I've seen
+  the executed numbers.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● The notebook is generated: 37 cells. I'll execute it from scratch in the
+  background, writing to a scratch copy so the committed notebook stays clean.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● The run failed on a relative docs/ path in load_user_idf, the same bug I fixed
+  earlier in load_h1_data. I'm adding a regression test that runs from another
+  working directory, then fixing it. · summary
+
+  Ran 3 shell commands (ctrl+o to expand)
+
+● The notebook is running for about 20 minutes, so I'm drafting
+  docs/h1/open-questions.md in the meantime: the conservative decisions, Z9's
+  findings, and the validation TODOs. · summary
+
+● Write(docs/h1/open-questions.md)
+  ⎿  Wrote 64 lines to docs/h1/open-questions.md
+       1 # H1: otwarte kwestie po audycie (2026-11-08)
+       2
+       3 Źródło: `docs/h1/audit-fixes-2026-11-08.md`. Dla każdej niejedno
+         znacznej decyzji wybrano opcję
+       4 bardziej konserwatywną i zapisano ją tutaj; do akceptacji przez
+         zespół.
+       5
+       6 ## 0. Odtworzenie liczb sprzed zmian
+       7
+       8 Odtworzone (bez rozbieżności). Specyfikacja `spec_old` na danych
+     … +57 lines (~8 KB) (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● While that runs, I'll look at the format of the AI-disclosure doc that has to
+  be updated.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● I've done Z1–Z9 and committed the code on fix/h1-audit. The notebook is still
+  executing, so the notebook, the conclusion section (Z10) and
+  docs/h1/audit-fixes-2026-11-08.md aren't finished or committed yet. The
+  background job will tell me when the run ends, and I'll finish those then.
+
+  One mistake to check. Early on I ran uv run --active, and uv deleted and
+  recreated /home/dominik/.venv. It now holds only the project packages from
+  uv.lock, so anything else you had installed there is gone. The project's own
+  .venv was not affected. I use uv run --frozen now. uv.lock was also
+  regenerated by uv run, so I reverted it. It lacks the embed group from
+  pyproject.toml.
+
+  Baseline reproduced. The legacy specification gives n = 92,754, ΔLL 41.379 for
+  lifestyle and 739.144 for age+interests. CV AUC is 0.500 / 0.519 / 0.581 /
+  0.584.
+
+  Audit claims checked against code and data:
+  - Z1 (controls): Partly confirmed. lifestyle lacked the sex control and the
+    whole age block, not just one control.
+  - Z3 (age): Confirmed. With sender-band fixed effects, a receiver one band
+    younger has OR 0.97 (CI 0.87–1.09) against the same band. Older receivers
+    have OR 0.62. The signed difference measures a penalty for older receivers,
+    not a preference for similar age.
+  - Z4 (blocks): Confirmed. Under the old specification demog → age_interests
+    adds only 10.6 and age_interests → full adds 41.4. After the fixes, age
+    dominates (mean ΔLL ≈ 533), lifestyle ≈ 42.5 and interests ≈ 13.9. "Age and
+    interests dominate" was really age alone.
+  - Z5 (H1 criterion): The criterion fails. Lifestyle minus age+interests is
+    −504.5 in ΔLL, with a conservative CI of [−883, −301], so H1 is not
+    confirmed. Lifestyle versus interests alone is undecided (+28.6, CI [−62,
+    +112]).
+  - Z5 (CV): Out of sample, lifestyle adds nothing measurable. The AUC gain as
+    the last block is +0.0017, with CI [−0.0008, 0.0040].
+  - Z6 (interests):
+    - IDF-Jaccard barely changes the interests block.
+    - The 9-tag cap affects 83% of swipes on the raw tag count, but almost none
+      after cleaning.
+    - Right swipes share more hobbies than chance, but the sender-clustered CI
+      of the gap includes 0.
+  - Z7 (per-field): No lifestyle field survives Holm correction. Naive ΔLL
+    overstates the evidence. For example, work_from_home has ΔLL 54 but a
+    clustered Wald p of 0.26.
+  - Z8 (sample sizes): The three sample sizes are one funnel: 95,144 → 94,295 →
+    93,717 (the H2/H3a sample) → 92,754 (H1). The old notebook's 93,330 came
+    from a check on same_band, which is never NaN.
+  - Z9 (tag validation): There is no κ report in the repo or on any branch, so I
+    give no κ value. The TODO list is in the open-questions doc. The only
+    related fact is that the Claude and Gemini category proposals agree on 58 of
+    68 tags, which is not a human validation.
+
+  Written so far: docs/h1/open-questions.md. It records the conservative
+  decisions, the TODO list for validating the AI instrument, and artefact issues
+  I did not touch. One of those is the bussiness / business typo in
+  tag_category_proposal.csv.
+
+  Still to do:
+  - Z10: write the conclusion cell from the executed numbers, plus the
+    confirmatory/exploratory table and the evidence table.
+  - Write the audit-fixes doc, with the AI-disclosure section and a row in
+    docs/ai-disclosure.md.
+  - Commit the stripped notebook and a rendered copy.
+  - Run the full test and lint pass once more.
+
+  Pre-existing, not from my changes: 3 tests in tests/test_eda.py fail because
+  data/tables_metadata.json is missing.
+
+  Needs your call: AGENTS.md says to strip notebook outputs before committing,
+  but you asked for a notebook with results. I plan to commit the stripped
+  notebook plus a h1-hypothesis-rendered.ipynb copy, which holds only
+  aggregates.
+
+  I haven't pushed anything. The AI session log in logs/ai/ still needs
+  exporting by you.
