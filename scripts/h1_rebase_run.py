@@ -505,22 +505,33 @@ def aggregate() -> None:
         }
     )
     plot.to_csv(OUT / "dictionary_ratio_plot_data.csv", index=False)
+    covers_one = bool(((plot["ci_low"] <= 1) & (plot["ci_high"] >= 1)).all())
     chv = change[
         (change["scenario"] == "vi")
         & (change["quantity"] == "ratio: lifestyle / interests")
         & (change["definition"] == "mean")
     ].iloc[0]
-    sign = "obejmuje" if not chv["excludes_zero"] else "nie obejmuje"
-    note = (
-        f"Zmiana stosunku względem v0 (parami): {chv['estimate']:.2f} "
-        f"[{chv['ci_low']:.2f}; {chv['ci_high']:.2f}], "
-        f"przedział {sign} zera; styl życia vs zainteresowania pozostaje nierozstrzygnięty."
-    ).replace(".", ",")
+
+    def pl(x: float) -> str:
+        return f"{x:.2f}".replace(".", ",")
+
+    parts = []
+    if covers_one:
+        parts.append("Każdy przedział obejmuje 1: dane nie rozstrzygają, co wnosi więcej.")
+    parts.append(
+        f"Zmiana względem v0 (v1 − v0, liczona parami): {pl(chv['estimate'])} "
+        f"[{pl(chv['ci_low'])}; {pl(chv['ci_high'])}], przedział "
+        f"{'nie ' if chv['excludes_zero'] else ''}obejmuje zera."
+    )
+    note = " ".join(parts)
     h1_rebase.plot_dictionary_sensitivity(plot, OUT / "dictionary_sensitivity.png", note=note)
 
     # 12 scenarios and the v0 -> v1 table -----------------------------------------------------
     for key, tag in (("i", "v0"), ("vi", "v1")):
-        sensitivity12(key).to_csv(OUT / f"sensitivity12_{tag}.csv", index=False)
+        try:
+            sensitivity12(key).to_csv(OUT / f"sensitivity12_{tag}.csv", index=False)
+        except FileNotFoundError as err:  # sensitivity jobs not finished yet
+            print(f"sensitivity12 {tag} skipped: {err}")
     n0, n1 = reported_numbers("i"), reported_numbers("vi")
     key_cols = ["section", "quantity"]
     merged = n0.merge(n1, on=key_cols, suffixes=("_v0", "_v1"), how="outer")

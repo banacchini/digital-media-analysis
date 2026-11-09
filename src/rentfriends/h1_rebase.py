@@ -186,20 +186,24 @@ def decompose(
 
 # --- figure ---------------------------------------------------------------------------------
 def plot_dictionary_sensitivity(table: pd.DataFrame, path: str | Path, note: str = "") -> Path:
-    """Ratio of the lifestyle to the interests gain per tag dictionary, with 95% CIs.
+    """Ratio of the lifestyle to the interests gain per tag dictionary, with 95% CIs (log axis).
 
     `table` columns: scenario, estimate, ci_low, ci_high (optionally `baseline` = True for v0).
     Colours follow STYLEGUIDE.md: purple primary series, blue for the comparison (v0), gray for
-    the reference line.
+    the reference line. `note` is an optional last caption line built from the data.
     """
     import matplotlib
 
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    from matplotlib import font_manager
 
     purple, blue, gray, hair = "#A247E3", "#234CE0", "#595959", "#D5D2CB"
-    plt.rcParams["font.family"] = ["Plus Jakarta Sans", "DejaVu Sans"]
-    fig, ax = plt.subplots(figsize=(9.5, 0.55 * len(table) + 3.0))
+    installed = {f.name for f in font_manager.fontManager.ttflist}
+    plt.rcParams["font.family"] = (
+        "Plus Jakarta Sans" if "Plus Jakarta Sans" in installed else "DejaVu Sans"
+    )
+    fig, ax = plt.subplots(figsize=(10, 0.6 * len(table) + 3.6))
     y = np.arange(len(table))[::-1]
     for yi, (_, row) in zip(y, table.iterrows(), strict=True):
         color = blue if row.get("baseline", False) else purple
@@ -214,40 +218,46 @@ def plot_dictionary_sensitivity(table: pd.DataFrame, path: str | Path, note: str
             capsize=4,
             markersize=8,
         )
+        label = f"{row['estimate']:.2f}  [{row['ci_low']:.2f}; {row['ci_high']:.2f}]"
         ax.text(
-            row["ci_high"] + 0.1,
+            row["ci_high"] * 1.15,
             yi,
-            f"{row['estimate']:.2f}".replace(".", ",")
-            + f"  [{row['ci_low']:.2f}; {row['ci_high']:.2f}]".replace(".", ","),
+            label.replace(".", ","),
             va="center",
             fontsize=9,
             color=gray,
         )
+    ax.set_xscale("log")
+    ax.set_xlim(0.1, 120)
+    ticks = [0.1, 0.25, 0.5, 1, 2, 5, 10, 25, 50]
+    ax.set_xticks(ticks)
+    ax.set_xticklabels([str(t).replace(".", ",") for t in ticks])
     ax.axvline(1.0, color=gray, lw=1.2, ls="--")
+    ax.text(1.05, len(table) - 0.45, "styl życia = zainteresowania", fontsize=8.5, color=gray)
     ax.set_yticks(y)
     ax.set_yticklabels(table["scenario"], fontsize=10)
-    ax.set_xlim(0, max(table["ci_high"].max() * 1.45, 2))
     ax.set_xlabel(
-        "Ile razy styl życia dodaje więcej niż zainteresowania (1 = tyle samo)", fontsize=10
+        "Ile razy styl życia wnosi więcej niż zainteresowania (skala logarytmiczna)", fontsize=10
     )
     ax.grid(axis="x", color=hair, lw=0.6)
     for side in ("top", "right"):
         ax.spines[side].set_visible(False)
     fig.suptitle(
-        "Styl życia czy zainteresowania? Odpowiedź zależy od tego, jak sklasyfikowano tagi",
+        "Styl życia czy zainteresowania? Wynik przesuwa się z klasyfikacją tagów, "
+        "ale nie jest rozstrzygnięty",
         x=0.01,
         ha="left",
         fontsize=12,
         fontweight="bold",
     )
     caption = (
-        "Każdy punkt: iloraz przyrostu dopasowania modelu dzięki stylowi życia do przyrostu "
-        "dzięki zainteresowaniom,\n"
-        "z 95% przedziałem ufności (losowanie osób). Zmieniamy tylko to, które tagi liczą się "
-        "jako hobby, a które jako styl życia." + (f"\n{note}" if note else "")
+        "Punkt: iloraz przyrostu dopasowania modelu dzięki stylowi życia do przyrostu dzięki "
+        "zainteresowaniom (1 = tyle samo),\n"
+        "z 95% przedziałem ufności (losowanie osób). Zmieniamy tylko to, które tagi uznajemy za "
+        "hobby, a które za styl życia." + (f"\n{note}" if note else "")
     )
-    fig.text(0.01, 0.01, caption, fontsize=8.5, color=gray, va="bottom")
-    fig.tight_layout(rect=(0, 0.1, 1, 0.94))
+    fig.text(0.01, 0.012, caption, fontsize=8.5, color=gray, va="bottom", linespacing=1.5)
+    fig.tight_layout(rect=(0, 0.17, 1, 0.94))
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=160, facecolor="#F4F2EE")

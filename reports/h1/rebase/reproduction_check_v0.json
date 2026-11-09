@@ -1,0 +1,16 @@
+{
+  "n": 92754,
+  "n_published": 92754,
+  "dll_mean": {
+    "age": 533.1894856610452,
+    "interests": 13.92643090200363,
+    "lifestyle": 42.5085385253733
+  },
+  "dll_mean_published_2dp": {
+    "age": 533.19,
+    "interests": 13.93,
+    "lifestyle": 42.51
+  },
+  "max_abs_deviation": 0.003569097996368953,
+  "agree_after_rounding_to_2dp": true
+}
