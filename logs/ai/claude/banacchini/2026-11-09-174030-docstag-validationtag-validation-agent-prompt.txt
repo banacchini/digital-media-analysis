@@ -1,0 +1,455 @@
+
+❯ <browser_instruction># Claude in Chrome browser automation
+
+  You have access to browser automation tools (mcp__claude-in-chrome__*) for
+  interacting with web pages in Chrome. Follow these guidelines for effective
+  browser automation.
+
+  ## Loading deferred tools
+
+  If the mcp__claude-in-chrome__* tools are deferred (must be loaded via
+  ToolSearch before use), load every tool you expect to need in ONE ToolSearch
+  call — the select query accepts a comma-separated list — never one call per
+  tool. Start with the core set:
+
+  ToolSearch with query
+  "select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__naviga
+  te,mcp__claude-in-chrome__computer,mcp__claude-in-chrome__read_page,mcp__clau
+  de-in-chrome__tabs_create_mcp,mcp__claude-in-chrome__tabs_close_mcp"
+
+  Add task-specific tools to the same call when the task obviously needs them:
+  read_console_messages / read_network_requests for debugging, form_input for
+  forms, gif_creator for recordings, javascript_tool for page scripting.
+
+  ## GIF recording
+
+  When performing multi-step browser interactions that the user may want to
+  review or share, use mcp__claude-in-chrome__gif_creator to record them.
+
+  You must ALWAYS:
+  * Capture extra frames before and after taking actions to ensure smooth
+  playback
+  * Name the file meaningfully to help the user identify it later (e.g.,
+  "login_process.gif")
+
+  ## Console log debugging
+
+  You can use mcp__claude-in-chrome__read_console_messages to read console
+  output. Console output may be verbose. If you are looking for specific log
+  entries, use the 'pattern' parameter with a regex-compatible pattern. This
+  filters results efficiently and avoids overwhelming output. For example, use
+  pattern: "[MyApp]" to filter for application-specific logs rather than
+  reading all console output.
+
+  ## Alerts and dialogs
+
+  IMPORTANT: Do not trigger JavaScript alerts, confirms, prompts, or browser
+  modal dialogs through your actions. These browser dialogs block all further
+  browser events and will prevent the extension from receiving any subsequent
+  commands. Instead, when possible, use console.log for debugging and then use
+  the mcp__claude-in-chrome__read_console_messages tool to read those log
+  messages. If a page has dialog-triggering elements:
+  1. Avoid clicking buttons or links that may trigger alerts (e.g., "Delete"
+  buttons with confirmation dialogs)
+  2. If you must interact with such elements, warn the user first that this may
+  interrupt the session
+  3. Use mcp__claude-in-chrome__javascript_tool to check for and dismiss any
+  existing dialogs before proceeding
+
+  If you accidentally trigger a dialog and lose responsiveness, inform the user
+  they need to manually dismiss it in the browser.
+
+  ## Avoid rabbit holes and loops
+
+  When using browser automation tools, stay focused on the specific task. If
+  you encounter any of the following, stop and ask the user for guidance:
+  - Unexpected complexity or tangential browser exploration
+  - Browser tool calls failing or returning errors after 2-3 attempts
+  - No response from the browser extension
+  - Page elements not responding to clicks or input
+  - Pages not loading or timing out
+  - Unable to complete the browser task despite multiple approaches
+
+  Explain what you attempted, what went wrong, and ask how the user would like
+  to proceed. Do not keep retrying the same failing browser action or explore
+  unrelated pages without checking in first.
+
+  ## Tab context and session startup
+
+  IMPORTANT: At the start of each browser automation session, call
+  mcp__claude-in-chrome__tabs_context_mcp first to get information about the
+  user's current browser tabs. Use this context to understand what the user
+  might want to work with before creating new tabs.
+
+  Never reuse tab IDs from a previous/other session. Follow these guidelines:
+  1. Only reuse an existing tab if the user explicitly asks to work with it
+  2. Otherwise, create a new tab with mcp__claude-in-chrome__tabs_create_mcp
+  3. If a tool returns an error indicating the tab doesn't exist or is invalid,
+  call tabs_context_mcp to get fresh tab IDs
+  4. When a tab is closed by the user or a navigation error occurs, call
+  tabs_context_mcp to see what tabs are available</browser_instruction>
+
+❯ @docs/tag-validation/tag-validation-agent-prompt.md  wykonaj tylko zadania
+  Z1-Z4. W poleceniu generatora arkuszy użyj --annotators A.
+  ⎿  Read docs/tag-validation/tag-validation-agent-prompt.md (58 lines)
+
+● Zaczynam od przeglądu repo i skryptów.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Hash propozycji: zgodny. Teraz kod H1 i generator arkuszy.
+
+  Listed 1 directory, ran 6 shell commands (ctrl+o to expand)
+
+● Sprawdzam, jak skrypt metryk czyta wagi i plik agenta, żeby pliki z Z2–Z4
+  miały dobry format.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Mam już obraz repozytorium, a zbiór H1 (92 754 rekordy) pobieram z domyślnej
+  specyfikacji tylko do odczytu. Następnie piszę moduł przygotowawczy, który
+  wypisze same liczby. · summary
+
+● Write(src/rentfriends/tagval_prep.py)
+  ⎿  Wrote 223 lines to src/rentfriends/tagval_prep.py
+       1 """Agent-side preparation for the tag validation (tasks Z1-Z4 of
+          the agent prompt).
+       2
+       3 Blindness rule: the raw -> canonical mapping and the agent propo
+         sals must never reach the
+       4 terminal or the logs. Everything printed from this module is a c
+         ount or a column name.
+       5 Row-level outputs go to `data/tagval/` (git-ignored) and contain
+          tags only, never user keys.
+       6
+     … +217 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Wykrywanie emoji dało 0, więc to mój heurystyczny test jest zły (emoji
+  występują zapewne razem z tekstem). Sprawdzam to samymi liczbami.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Formy „emoji” to symbol plus tekst, więc zmieniam kryterium na obecność znaku
+  z kategorii Unicode So. W mapowaniu wychodzi 53 zamiast oczekiwanych 54, więc
+  zapiszę to jako rozbieżność.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Teraz generator arkuszy (tylko annotator A).
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Status git zmienił się w trakcie pracy: .gitignore jest zmodyfikowany, a
+  data/tagval/round1/B_runda1.xlsx jest w indeksie. To nie moje zmiany.
+  Sprawdzam, co dokładnie się zmieniło.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● .gitignore ma teraz !data/tagval/**. Ktoś to odblokował, więc agent_A.csv
+  (mapowanie agenta) jest widoczny dla gita. Nie ruszam tego, ale zgłoszę to w
+  podsumowaniu. Teraz testy.
+
+● Write(tests/test_tagval_prep.py)
+  ⎿  Wrote 191 lines to tests/test_tagval_prep.py
+       1 """Tests for the agent-side tag validation prep: hashes, blind s
+         heets, determinism, usage sums."""
+       2
+       3 from __future__ import annotations
+       4
+       5 import importlib.util
+       6 from pathlib import Path
+       7
+       8 import pandas as pd
+       9 import pytest
+     … +182 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Testy przechodzą. Uruchamiam całość testów i lintera. Sprawdzam też, czy
+  uv.lock pozostał taki, jak go zastałem.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Pełny pytest ma 3 błędy w test_eda.py (brak pliku metadanych), a ruff check .
+  20 uwag. Sprawdzam, czy to nie moje pliki.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Lintera zgłasza uwagi tylko w dostarczonych skryptach scripts/tagval_*,
+  których nie ruszałem, a błędy test_eda nie mają związku z zadaniem. Zapisuję
+  teraz open-questions.md z tymi samymi liczbami i wpis w ai-disclosure.md.
+  · summary
+
+● Write(docs/tag-validation/open-questions.md)
+  ⎿  Wrote 35 lines to docs/tag-validation/open-questions.md
+       1 # Walidacja tagów: otwarte kwestie (agent, Z1–Z4)
+       2
+       3 Data: 2026-11-09. Same liczby i nazwy kolumn; żadnych mapowań an
+         i propozycji (ślepota annotatora).
+       4 Odtworzenie: `uv run --frozen python -m rentfriends.tagval_prep`
+          (kod: `src/rentfriends/tagval_prep.py`).
+       5
+       6 ## Stan (Z1)
+       7
+       8 Hash `docs/tag_category_proposal.csv`: zgodny. Hash propozycji,
+     … +28 lines (~4 KB) (ctrl+o to expand)
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+
+● Z1–Z4 są wykonane, ale niczego nie zacommitowałem. AGENTS.md zabrania agentowi
+  commitować bez prośby, a pracujesz na gałęzi fix/h1-audit, nie na
+  feat/tag-validation. Jeśli mam zacommitować kroki osobno, jak w prompcie, daj
+  znać i wskaż gałąź.
+
+  Z1 (stan). Hash propozycji jest zgodny. Hashe propozycji, mapowania i
+  kontraktu danych są takie same przed uruchomieniem i po nim.
+
+  ┌─────────────────────────────────┬────────────────────┐
+  │            Wielkość             │       Wynik        │
+  ├─────────────────────────────────┼────────────────────┤
+  │ tagi kanoniczne w propozycji    │ 68                 │
+  ├─────────────────────────────────┼────────────────────┤
+  │ wiersze w interests_mapping.csv │ 124                │
+  ├─────────────────────────────────┼────────────────────┤
+  │ unikalne kanoniczne w mapowaniu │ 67                 │
+  ├─────────────────────────────────┼────────────────────┤
+  │ unikalne surowe w mapowaniu     │ 124                │
+  ├─────────────────────────────────┼────────────────────┤
+  │ formy z emoji w mapowaniu       │ 53 (oczekiwane 54) │
+  └─────────────────────────────────┴────────────────────┘
+
+  Z2 (pozycje A). data/tagval/items_A.csv ma 128 surowych ciągów; 124 mają wpis
+  w mapowaniu. Brakujące 4 występują tylko w profile_history (wszystkie mają
+  emoji). Dołączyłem je do pozycji i w agent_A.csv mają brak.
+
+  Z3 (arkusz). Wygenerowałem data/tagval/sheets_A/tagval_A_annotator_A.xlsx (128
+  pozycji, 69 etykiet: 68 kanonicznych plus brak) z --annotators A. Plik
+  agent_A.csv jest gotowy do metryk. Etykiety w canonical_labels.txt
+  posortowałem alfabetycznie, żeby kolejność propozycji nie zdradzała kategorii.
+
+  Z4 (wagi użycia). Próba to 92 754 swipe'y i zgadza się z H1. Liczone z
+  surowych interests na profilach as-of, tymi samymi regułami D7 co w H1.
+
+  ┌─────────────────────────┬─────────┬───────────────┬──────────┐
+  │          Plik           │ Wiersze │ Suma n_swipes │ Maksimum │
+  ├─────────────────────────┼─────────┼───────────────┼──────────┤
+  │ tag_usage_raw.csv       │ 128     │ 1 259 223     │ 79 768   │
+  ├─────────────────────────┼─────────┼───────────────┼──────────┤
+  │ tag_usage_canonical.csv │ 68      │ 1 248 460     │ 79 966   │
+  └─────────────────────────┴─────────┴───────────────┴──────────┘
+
+  Sumy są większe niż 92 754, bo swipe ma wiele tagów. Wiersz brak w pliku
+  kanonicznym obejmuje 38 swipe'ów.
+
+  Testy i kod. Kod jest w src/rentfriends/tagval_prep.py. Testów jest 13 w
+  tests/test_tagval_prep.py: ślepota arkuszy, identyczne zbiory pozycji przy
+  różnych kolejnościach, deterministyczność, hashe, sumy wag. Wszystkie
+  przechodzą. open-questions.md ma rozbieżności (same liczby), a wpis w
+  ai-disclosure.md ma sesję oznaczoną jako „pending export".
+
+  Rzeczy do sprawdzenia:
+  - Przecieki do gita: w .gitignore jest teraz !data/tagval/** (nie moja
+    zmiana). Przez to data/tagval/agent_A.csv z mapowaniem agenta jest widoczny
+    dla gita. Hook pre-commit zablokuje commit, ale nie git add. Ponadto
+    data/tagval/round1/B_runda1.xlsx jest już w indeksie.
+  - Słownik kanoniczny: 1 kanoniczny z mapowania (3 surowe ciągi) nie ma wpisu w
+    propozycji, więc te 3 mapowania agenta wskazują etykietę spoza listy
+    annotatora. Dodatkowo 2 tagi z propozycji nie mają wiersza w mapowaniu. Nie
+    "naprawiałem" tego. Wpływ na zgodność A trzeba uwzględnić przy
+    interpretacji.
+  - Hash i uv.lock: nie dotykałem uv.lock ani pustych pyproject.toml. Ich zmiany
+    (dodany openpyxl) były już w drzewie roboczym. Przy każdym uv run --frozen
+    pojawia się ostrzeżenie o VIRTUAL_ENV, które zignorowałem. --active nie
+    użyłem.
+  - Błędy spoza zadania: ruff check . zgłasza 20 uwag, wszystkie w dostarczonych
+    scripts/tagval_*.py, których nie zmieniałem. W pełnym pytest padają 3 testy
+    test_eda.py (brak pliku metadanych), niezwiązane z tym zadaniem.
+
+  Z5 nie uruchamiałem, bo nie ma jeszcze consensus_A.csv ani consensus_B.csv.
+
+❯ <ide_opened_file>The user opened the file
+  /home/dominik/projects/wust/sem2/umc/docs/tag-validation/decisions.md in the
+  IDE. This may or may not be related to the current task.</ide_opened_file>
+
+❯ Dodaj scenariusz (vi): konsensus A+B plus scalenia z
+  docs/tag-validation/tag_merge_map.csv (po zastosowaniu consensus_A.csv
+  podmień canonical_before na canonical_after, a kategorię tagu docelowego weź
+  z consensus_B.csv). Przed liczeniem polaryzacji (D15) przemapuj pary w
+  POLARITY_PAIRS zgodnie ze scaleniami (jeśli którykolwiek z usuwanych tagów
+  występuje w parze, zgłoś to i nie gub po cichu konfliktów). Klucze
+  TAG_TO_STRUCTURED_FIELD_MAP (D13) przepnij na tag docelowy. Raportuj osobno
+  skutek zmiany D13 dla going_out_friends → often_out (pole strukturalne
+  zmienia się z „brak“ na lifestyle), żeby odróżnić efekt scalenia słownika od
+  efektu zmiany uzupełniania pól tagami.
+
+● Sprawdzam, czy istnieją pliki wejściowe (konsensusy, mapa scaleń) i co jest w
+  decisions.md.
+
+  Ran 1 shell command (ctrl+o to expand)
+● Konsensusy i mapa scaleń już istnieją, więc Z5 jest odblokowane. Czytam
+  decyzje i mapę scaleń.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Z1–Z4 są już gotowe. Teraz zabieram się za Z5 z sześcioma scenariuszami,
+  najpierw sprawdzając, jak D13 obsługuje going_out_friends i often_out, których
+  nie ma w TAG_TO_STRUCTURED_FIELD_MAP. · summary
+
+  Ran 3 shell commands (ctrl+o to expand)
+
+● Dwie zmiany w scaleniu: kody S/M/W w lifestyle nie mają znaczenia w codebooku,
+  a often_out i going_out_friends nie są w mapie, więc D13 wynosi 0 i trzeba to
+  policzyć osobno. peace_and_quite trafi do likes_calm, który jest w grupie
+  polaryzacji, więc sprawdzam teraz, jak H1 liczy ΔLL po 6 kolejnościach.
+  · summary
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Plan Z5 zakłada nowy moduł h1_tagval.py z podmienionym mapowaniem, D13 i
+  polaryzacją, bez ruszania dataset_h1.py, oraz scenariusz (vi) po nadpisaniach
+  z consensus_A, a potem dwa warianty z zastępczym lifestyle dla oddzielenia
+  efektu D13. Najpierw sprawdzam czas pojedynczego budowania. · summary
+
+● Write(src/rentfriends/h1_tagval.py)
+  ⎿  Wrote 280 lines to src/rentfriends/h1_tagval.py
+       1 """Impact of the tag validation decisions on H1 (agent task Z5).
+       2
+       3 Builds variants of the H1 dataset with a different raw -> canoni
+         cal mapping, tag categories,
+       4 tag merges and D13/D15 settings, WITHOUT touching `h1.py`, `data
+         set_h1.py` or the data
+       5 contract. The variant builder calls `dataset_h1.build_h1_dataset
+         ` itself, swapping the four
+       6 decision inputs (mapping/categories, D13 imputation, D15 polarit
+         y pairs) for the duration of
+     … +274 lines (ctrl+o to expand)
+
+● Najpierw kluczowy test poprawności: wariant bez zmian musi odtworzyć zapisany
+  kontrakt co do wartości.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Wariant bez zmian odtwarza kontrakt co do wartości we wszystkich 49 kolumnach,
+  a budowa trwa ok. 2 s. Dopisuję analizę (metryki, dekompozycja efektu D13,
+  raport).
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Brakowało kolumn miasta w masce. Używam wersji z dummies.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Wyniki wyglądają spójnie (kontrakt niezmieniony, n próby 92 754 w (i)–(iv) i
+  (vi)). Sprawdzam jeszcze audyt D13/D15 i blok going_out_friends.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Audyt D15 wykazał, że peace_and_quite nie należało do grupy ciszy, więc po
+  scaleniu zmieniły się konflikty posiadaczy likes_calm. Rozkładam ten wpływ na
+  konflikty i wspólne tagi, dodaję udziały bloków i generuję impact.md.
+  · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Zanim to dopracuję, sprawdzam, czemu konflikty D15 wychodzą aż 52% w samym
+  kontrakcie, oraz ile swipe'ów konflikt realnie zmienia po scaleniu, bo „0,0%”
+  może być tylko zaokrągleniem. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Konflikt D15 nie zmienił się po scaleniu w żadnym swipe'ie, a spadek ΔLL stylu
+  życia wynika ze wzrostu liczby wspólnych tagów w 9 071 swipe'ach, więc
+  poprawiam generator i opieram raport na danych z JSON-a. · summary
+
+  Ran 3 shell commands (ctrl+o to expand)
+
+● Teraz testy dla h1_tagval.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Testy przechodzą (16). Generuję końcowy raport i przeglądam sekcje dotyczące
+  scaleń.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Raport jest spójny. Dopisuję otwarte kwestie i wpis w ujawnieniu AI, potem
+  uruchamiam całość testów.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Dodałem scenariusz (vi) i przy okazji wykonałem całe Z5 (scenariusze i–v), bo
+  konsensusy już istnieją. Wynik: kolejność bloków H1 (wiek > styl życia >
+  zainteresowania) nie zmienia się w żadnym scenariuszu, ale odstęp między
+  stylem życia a zainteresowaniami wyraźnie się zmniejsza. Niczego nie
+  zacommitowałem.
+
+  Kontrakt danych, mapowanie i zamrożona propozycja mają te same hashe przed
+  uruchomieniem i po. Wariant bazowy odtwarza zapisany kontrakt we wszystkich 49
+  kolumnach. Nowe testy przechodzą (16), a w całym pytest nadal padają tylko 3
+  testy test_eda, niezwiązane z tym zadaniem.
+
+  ┌──────────────┬────────┬──────────────────┬─────────┬───────────────────┐
+  │              │  ΔLL   │       ΔLL        │  ΔLL    │ swipe'y ze zmianą │
+  │  Scenariusz  │  wiek  │ zainteresowania  │  styl   │   zainteresowań   │
+  │              │        │                  │  życia  │                   │
+  ├──────────────┼────────┼──────────────────┼─────────┼───────────────────┤
+  │ (i) baseline │ 533,19 │ 13,93            │ 42,51   │ –                 │
+  ├──────────────┼────────┼──────────────────┼─────────┼───────────────────┤
+  │ (ii)         │        │                  │         │                   │
+  │ konsensus    │ 533,42 │ 23,65            │ 40,37   │ 56,6%             │
+  │ A+B          │        │                  │         │                   │
+  ├──────────────┼────────┼──────────────────┼─────────┼───────────────────┤
+  │ (vi) A+B +   │ 533,77 │ 23,09            │ 32,59   │ 56,6%             │
+  │ scalenia     │        │                  │         │                   │
+  └──────────────┴────────┴──────────────────┴─────────┴───────────────────┘
+
+  - Odstęp: stosunek ΔLL stylu życia do zainteresowań spada z 3,05 w baseline do
+    1,71 w (ii) i 1,41 w (vi).
+  - Skąd zmiana zainteresowań: w (iv) zmienia się 54,5% swipe'ów, a w (iii)
+    tylko 4,1%, więc prawie cały efekt pochodzi z kategorii (consensus B), np.
+    cooking przesunięte z hobby do lifestyle.
+  - Kolejność: w (v), czyli bez uzupełniania pól tagami, próba kurczy się do 92
+    247 swipe'ów, a kolejność też się nie zmienia.
+
+  Co zrobiłem z D13 i D15 w (vi):
+  - Klucze D13: przepiąłem 3 klucze (quiet_evenings, silence_after_22,
+    peace_and_quite → likes_calm). Wszystkie mają ten sam kod (noise_level=Q),
+    więc uzupełnianie się nie zmienia.
+  - Polaryzacja D15: przemapowanie par niczego nie gubi i jest w raporcie.
+    Zgłosiłem też, że peace_and_quite nie było w grupie ciszy, a po scaleniu
+    wchodzi do niej przez likes_calm. W praktyce konflikty nie zmieniają się w
+    żadnym swipe'ie. Za spadek ΔLL stylu życia w (vi) odpowiada liczba wspólnych
+    tagów stylu życia, która rośnie w 9 054 swipe'ach i maleje w 397.
+
+  Skutek D13 dla going_out_friends → often_out jest w obecnym kodzie równy 0.
+  TAG_TO_STRUCTURED_FIELD_MAP nie ma żadnego z tych tagów, a zbiór H1 nie używa
+  proposed_linked_field. Dodatkowo kody pola lifestyle (S/M/W) nie mają
+  znaczenia w codebooku. Dlatego zmiana „brak → lifestyle” nie zachodzi w żadnym
+  swipe'ie.
+
+  Żeby mimo to oddzielić efekt słownika od efektu uzupełniania, dodałem dwa
+  scenariusze diagnostyczne z zastępczym kodem OUT (to moje założenie, nie
+  dane):
+  - Efekt słownika (vi − ii): ΔLL stylu życia −7,78.
+  - Zmiana statusu pola lifestyle w diagnostyce: w 25,6% swipe'ów bez scalenia i
+    w 40,3% ze scaleniem.
+  - Wyłącznie przez scalenie: 17,5% swipe'ów zmienia status tylko dlatego, że
+    going_out_friends zaczyna uzupełniać pole (ΔLL stylu życia −0,63).
+
+  Do decyzji zespołu zostaje, czy i jakim kodem uzupełniać lifestyle.
+
+  Do sprawdzenia przed v1:
+  - Konflikty D15: w samym kontrakcie wynoszą 51,7% swipe'ów, co wydaje się dużo
+    dla czterech par kierunkowych (nie badałem przyczyny, wpisane do
+    open-questions.md jako Q10).
+  - Brak testów istotności: w raporcie są tylko różnice punktowe na jednej
+    próbie, bez przedziałów ufności.
+  - decisions.md: ma nadal placeholder [link do
+    reports/tag-validation/impact.md], więc trzeba go uzupełnić.
+
+  Raport i JSON są w reports/tag-validation/ (impact.md, impact.json), kod w
+  src/rentfriends/h1_tagval.py, a testy w tests/test_h1_tagval.py. Nowe pliki
+  danych (ii) i (vi) trafiły do data/processed/. Dopisałem też Q8–Q12 w
+  open-questions.md i wpis w docs/ai-disclosure.md.

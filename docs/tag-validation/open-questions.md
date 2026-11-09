@@ -33,3 +33,15 @@ Hash `docs/tag_category_proposal.csv`: zgodny. Hash propozycji, `interests_mappi
 - `.gitignore` zawiera teraz `!data/tagval/**` (zmiana spoza tej sesji), więc `data/tagval/agent_A.csv` (mapowanie agenta) jest widoczny dla gita jako plik nieśledzony. Hook `block-data-files` zatrzyma commit, ale nie `git add`. Przed pracą annotatora nie dodawać tego pliku do indeksu.
 - Każde `uv run --frozen` wypisuje ostrzeżenie o `VIRTUAL_ENV=/home/dominik/.venv`; zignorowane, `--active` nie użyto. `uv.lock` i `pyproject.toml` (dodane `openpyxl`) miały zmiany sprzed tej sesji; nie dotykano.
 - `ruff check .` zgłasza uwagi tylko w dostarczonych `scripts/tagval_*.py` (nie zmieniane). `pytest`: 3 błędy w `tests/test_eda.py` (brak pliku metadanych), niezwiązane z tym zadaniem.
+
+## Z5: analiza wpływu (scenariusze i–vi)
+
+Wyniki: `reports/tag-validation/impact.md` i `impact.json`. Kod: `src/rentfriends/h1_tagval.py`. Dane wyjściowe: `data/processed/h1_analysis_dataset_consensus.parquet` (ii) i `..._consensus_merged.parquet` (vi); kontrakt danych nietknięty (hash przed i po).
+
+| # | Kwestia | Co zrobiono (wariant konserwatywny) |
+|---|---|---|
+| Q8 | Polecenie zakłada, że scalenie `going_out_friends → often_out` zmienia pole D13 z „brak” na `lifestyle`. W kodzie `TAG_TO_STRUCTURED_FIELD_MAP` nie ma ani `often_out`, ani `going_out_friends`, a `proposed_linked_field` jest wczytywane, ale zbiór H1 go nie używa. Kody pola `lifestyle` (S/M/W) nie mają znaczenia w codebooku. | Scenariusz (vi) używa mapy D13 z kodu: skutek uzupełniania tego scalenia wynosi 0 (zmiana statusu pola `lifestyle` w 0 swipe'ów). Efekt „co by było” policzono osobno w dwóch scenariuszach diagnostycznych z kodem zastępczym `OUT`; to założenie, nie dane. Decyzja, czy i jakim kodem uzupełniać `lifestyle`, wymaga ustalenia znaczenia kodów. |
+| Q9 | Scalenie `peace_and_quite → likes_calm` wprowadza posiadaczy `peace_and_quite` do grupy ciszy D15 (tag nie był w grupie, cel jest). | Zgłoszone w `impact.md`. Skutek na konflikty D15: 0 swipe'ów (przybywa 0, ubywa 0); zmienia się liczba wspólnych tagów stylu życia (rośnie w 9 054, maleje w 397 swipe'ach). Pary polaryzacji przemapowane bez utraty konfliktów. |
+| Q10 | Odsetek swipe'ów z konfliktem D15 w kontrakcie wynosi 51,7% (wszystkie wiersze). Nie sprawdzano przyczyny; wydaje się wysoki jak na cztery pary kierunkowe. | Bez działania (poza zakresem). Do sprawdzenia przed v1: które grupy generują konflikty. |
+| Q11 | `consensus_A` z `konsensus = brak` nie jest nadpisaniem (zostaje baseline); takich wierszy w danych jest 0. Nadpisań A jest 8 (m.in. poprawka `business` → `bussiness` w 3 ciągach). | Brak działania. |
+| Q12 | Przedziały ufności dla różnic między scenariuszami nie były liczone. | Raportowane różnice punktowe na tej samej próbie, z zastrzeżeniem w raporcie. |
