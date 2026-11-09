@@ -62,3 +62,29 @@ W raportach nie wolno podawać wartości κ, dopóki poniższe nie zostanie wyko
 - Czy `cleanliness` i `noise_level` mają wartość domyślną (P6)? Jeśli tak, ich zgodność jest sztucznie zawyżona, a pomiar mniej informacyjny.
 - Znaczenie kodów `V`, `O`, `Y` w `smoking` (D14, O5).
 - Zdjęć profilowych nie ma w danych (G5); jakakolwiek teza o ich wpływie jest niezweryfikowaną hipotezą.
+
+## 5. Rebase na v1 (2026-11-09): status pytań z walidacji tagów i nowe decyzje
+
+Źródło: `docs/h1/rebase-v1-2026-11-09.md`. Pytania Q8–Q12 mieszkają w `docs/tag-validation/open-questions.md`
+(plik decyzji człowieka, **nieedytowany**); ich status po rebase jest zapisany tutaj. Nowe pytania mają kolejne numery (Q13–Q18).
+
+### 5.1 Status Q8–Q12
+
+| # | Status | Ustalenie |
+|---|---|---|
+| Q8 | **otwarte** | Kody pola `lifestyle` (S/M/W) nadal bez znaczenia w codebooku; v1 używa mapy D13 z kodu (efekt uzupełniania pola przez `going_out_friends → often_out` = 0). Scenariusze diagnostyczne z kodem zastępczym `OUT` są założeniem, nie danymi, i nie są podstawą wniosków. |
+| Q9 | zamknięte | `peace_and_quite → likes_calm` jest w v1. Skutek na konflikt D15: v0 → v1 dodaje konflikt w 86 swipe'ach próby H1 (0,09%), żadnego nie usuwa; jeden tag nie zmienia ΔLL bloku stylu życia istotnie (dekompozycja: −0,08). |
+| Q10 | **zamknięte** | Konflikt D15 52% to **prawdziwa prewalencja**, równa poziomowi przy niezależności stron (52,3% vs 52,4%). Brak błędu implementacji, brak zmiany kodu. Szczegóły: `docs/h1/d15-conflict-investigation.md`. |
+| Q11 | bez zmian | 8 nadpisań A weszło do v1 (3 z nich to tylko zmiana etykiety `business` → `bussiness`, ΔLL 0,000). |
+| Q12 | **zamknięte** | Przedziały ufności dla różnic między słownikami policzone (bootstrap po nadawcach i odbiorcach, B = 1000, parami: te same losowania): `reports/h1/rebase/dictionary_change_vs_v0.csv`. |
+
+### 5.2 Nowe decyzje niejednoznaczne (wybór konserwatywny)
+
+| # | Kwestia | Wybór | Alternatywa, której nie wykonano |
+|---|---|---|---|
+| Q13 | **Definicja D15.** W kodzie są **pięć** grup polaryzacji (nie cztery jak w opisie zadania), konflikt ma prewalencję ~52% i nie różni się od przypadku. Grupa 0 (palenie) dubluje pole `smoking`, które D13 uzupełnia tymi samymi tagami. | Definicja bez zmian; zmiana wykracza poza oczywisty błąd (zasada 7). **Decyzja zespołu.** | Wyrzucić grupę 0 jako redundantną z polem; wymagać obustronnej deklaracji; zastąpić zmienną liczbą grup w konflikcie. Każda zmieni ΔLL bloku stylu życia i wymaga ponownego zamrożenia kontraktu. |
+| Q14 | **Rozbieżność `bussiness`.** `decisions.md` (pkt „Niezgodności z Claude") podaje `bussiness`: `unclear` → `hobby`, a `consensus_B.csv` ma dla `bussiness` konsensus `unclear` (zgodny z agentem). Kod używa pliku CSV. Poprawna pisownia `business` nie ma wpisu w propozycji (kategoria domyślna `unclear`). | v1 używa CSV (`unclear`). W kodzie `unclear` trafia do zainteresowań jak `hobby`, więc skutek na dane i ΔLL wynosi 0. Plik `decisions.md` nie był edytowany; do uzgodnienia przez człowieka. | Przepisać CSV na `hobby` (bez skutku na wynik). |
+| Q15 | **Przedziały ufności samych przyrostów ΔLL.** Percentylowy bootstrap klastrowy przyrostów ΔLL (nie różnic) jest asymetryczny i przesunięty w górę względem estymaty punktowej (np. zainteresowania w v0: 13,9 [2,3; 101,4]). Stosunek styl życia / zainteresowania ma przez to bardzo szeroki przedział (v0: 3,05 [0,27; 26,0]). | Raportowane jak w audycie (percentyle, bez korekty obciążenia); kryterium H1 opiera się na przedziałach **różnic** przyrostów, jak dotąd. | Bootstrap BCa lub studentyzowany; przedział z asymptotyki Walda dla ΔLL. |
+| Q16 | Tolerancja 1e-3 przy odtworzeniu v0. Audyt podaje ΔLL do 2 miejsc (533,19 / 13,93 / 42,51), więc zgodność do 1e-3 z wartością surową jest niemożliwa. | Porównanie po zaokrągleniu do 2 miejsc (zgodne); surowe odchylenia ≤ 0,0036 to sam błąd zaokrąglenia. Dla CI różnic odtworzono wartości z audytu z dokładnością do 0,1 (−504,5 [−883,4; −300,8]). | Porównanie z pełną precyzją z logu audytu (niedostępną). |
+| Q17 | Liczba powtórzeń bootstrapu CV: audyt 500, tutaj **1000** (wymóg B ≥ 1000). | v0 i v1 liczone z tym samym B = 1000; CI v0 różnią się od audytu co najwyżej w 4. miejscu po przecinku (np. AUC jako blok pierwszy, styl życia − zainteresowania: +0,0075 [0,0013; 0,0139] w audycie, +0,0075 [0,0017; 0,0137] tutaj). | B = 500 jak w audycie. |
+| Q18 | Nagłówek „demografia wygrywa, deklarowane dopasowanie dodaje niewiele" z zadania nie występuje w dotychczasowych tekstach H1 w repo. | Użyty jako nagłówek podsumowania; „demografia" = wiek (blok wieku) wraz z kontrolami płci i miasta, „deklarowane dopasowanie" = styl życia i zainteresowania. Zweryfikowane liczbami (udział wieku w ΔLL 91%). | Inne sformułowanie, jeśli zespół ma wersję z plakatu lub slajdów. |
