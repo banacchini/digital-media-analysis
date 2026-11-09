@@ -1,5 +1,6 @@
 """Unit tests for H1 dataset preparation module."""
 
+import numpy as np
 import pandas as pd
 
 from rentfriends.dataset_h1 import (
@@ -7,11 +8,17 @@ from rentfriends.dataset_h1 import (
     AGE_BAND_ORDER,
     apply_d13_tag_imputation,
     compute_lifestyle_tag_conflict,
+    field_agreement_status,
     get_infrequent_canonical_tags,
+    idf_weights,
     load_tag_mappings,
+    load_user_idf,
     parse_raw_interests,
     resolve_as_of_profiles,
+    smoking_direction,
     transform_and_disentangle_tags,
+    user_tag_idf,
+    weighted_jaccard,
 )
 
 
@@ -120,3 +127,88 @@ def test_resolve_as_of_profiles_logic():
     assert res.loc[3, "actor_source_flag"] == "users_current"
     assert res.loc[3, "actor_city"] == "Gdańsk"
     assert res.loc[3, "actor_sex"] == "O"
+
+
+def test_idf_weights_rare_tags_weigh_more():
+    docs = [{"a", "b"}, {"a", "c"}, {"a"}, {"a", "b"}]
+    w = idf_weights(docs, n_docs=4)
+    assert w["a"] == 0.0  # in every document
+    assert w["c"] > w["b"] > w["a"]
+    assert np.isclose(w["c"], np.log(4 / 1))
+    assert np.isclose(w["b"], np.log(4 / 2))
+
+
+def test_weighted_jaccard_rare_overlap_counts_more_than_popular_overlap():
+    w = {"popular": 0.1, "rare": 3.0, "x": 1.0, "y": 1.0}
+    common_popular = weighted_jaccard({"popular", "x"}, {"popular", "y"}, w)
+    common_rare = weighted_jaccard({"rare", "x"}, {"rare", "y"}, w)
+    assert common_rare > common_popular
+    assert weighted_jaccard({"x"}, {"x"}, w) == 1.0
+    assert weighted_jaccard({"x"}, {"y"}, w) == 0.0
+    assert weighted_jaccard(set(), set(), w) == 0.0
+    # unseen tags get the maximal (rarest) weight instead of raising
+    assert weighted_jaccard({"zzz"}, {"zzz"}, w, default_weight=3.0) == 1.0
+
+
+def test_field_agreement_status_four_categories():
+    s = pd.Series(["A", "A", None, None, "B"])
+    r = pd.Series(["A", "B", "A", None, None])
+    out = field_agreement_status(s, r)
+    assert list(out) == ["agree", "disagree", "one_missing", "both_missing", "one_missing"]
+
+
+def test_smoking_direction_is_asymmetric():
+    s = pd.Series(["N", "V", "N", "V", "O", None, None])
+    r = pd.Series(["V", "N", "N", "V", "V", "N", None])
+    out = smoking_direction(s, r)
+    assert list(out) == [
+        "nonsmoker_to_user",
+        "user_to_nonsmoker",
+        "agree",
+        "agree",
+        "user_vs_other_user",
+        "one_missing",
+        "both_missing",
+    ]
+
+
+def test_user_tag_idf_excludes_hyderabad_and_returns_unseen_weight():
+    users = pd.DataFrame(
+        {
+            "user_key": ["a", "b", "c", "h"],
+            "pure_interests": [["x", "y"], ["x"], ["x", "z"], ["only_hyd"]],
+        }
+    )
+    weights, unseen = user_tag_idf(users, hyderabad_users={"h"})
+    assert "only_hyd" not in weights  # excluded accounts do not define the document set
+    assert weights["x"] == 0.0  # all 3 remaining users have it
+    assert np.isclose(weights["y"], np.log(3))
+    assert np.isclose(unseen, np.log(3))  # rarest possible tag
+
+
+def test_load_user_idf_finds_docs_next_to_data_when_run_from_another_directory(
+    tmp_path, monkeypatch
+):
+    """Notebooks run from notebooks/, so the docs/ folder must be resolved from data_dir."""
+    import shutil
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[1]
+    (tmp_path / "docs").mkdir()
+    for name in ("interests_mapping.csv", "tag_category_proposal.csv"):
+        shutil.copy(repo / "docs" / name, tmp_path / "docs" / name)
+    proc = tmp_path / "data" / "processed"
+    proc.mkdir(parents=True)
+    users = pd.DataFrame(
+        {
+            "user_key": ["a", "b", "h"],
+            "city": ["Wrocław", "Warszawa", "Hyderabad"],
+            "interests": ["['running']", "['running', 'camping']", "['camping']"],
+        }
+    )
+    users.to_parquet(proc / "users.parquet")
+    (tmp_path / "notebooks").mkdir()
+    monkeypatch.chdir(tmp_path / "notebooks")
+
+    weights, unseen = load_user_idf(proc)
+    assert isinstance(weights, dict) and unseen > 0
