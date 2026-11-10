@@ -251,3 +251,28 @@ tylko oszacowanie punktowe (β ≈ 0,13), więc wnioskowanie opiera się na `lme
 logit, klastrowanie dwukierunkowe) to druga noga reguły zgodności, a M3 (FE nadawcy) kontroluje
 hojność nadawcy: M2 i M3 mają inne estymandy (populacyjny vs w obrębie nadawcy), co przy dużej
 wariancji nadawcy (≈ 7,5) tłumaczy OR 1,13 vs 1,19.
+
+## D-H3a-36 (2026-11-10, post hoc (audyt)) Etykieta M2 względem reguły; ocena post hoc
+- Reguła z sekcji 7 **bez zmian**. M2: OR 1,130, 95% CI 1,044-1,222, 90% CI 1,058-1,207. `equiv`
+  fałszywe (górna granica 90% CI 1,207 > exp(0,10) = 1,105), `sig_pos` prawdziwe (dolna granica
+  95% CI > 0) → „potwierdzony”. Etykieta wynika z reguły, nie z błędu implementacji.
+- Ocena post hoc: reguła porównuje dolną granicę 95% CI z zerem, nie z marginesem, więc
+  „potwierdzony” znaczy „różny od zera”, a nie „większy niż pomijalny”. Dolna granica (1,044) leży
+  wewnątrz pasma pomijalności. Oryginalna etykieta zostaje; w summary jest flaga.
+
+## D-H3a-37 (2026-11-10, post hoc (audyt)) lme4 jako raportowany M1
+- GPBoost nie policzył SE (3/4 prób zbieżnych), więc raportowanym M1 jest `lme4::glmer`
+  (crossed (1|sender) + (1|receiver), nAGQ = 0, bobyqa, CI Walda): β = 0,124, SE = 0,049,
+  OR 1,132 (95% CI 1,028-1,247; 90% CI 1,044-1,228), LRT p = 0,009, bez osobliwości. GPBoost: tylko
+  punkt (OR 1,139). Etykieta wg oryginalnej reguły dla M1 = lme4: „potwierdzony”.
+- Niespójność w summary: „lme4: nie uruchomiony” to pole `verdict.lme4` zapisane przed krokiem
+  lme4 (nieaktualne); „wrażliwy na estymator (lme4: potwierdzony)” było błędnym porównaniem lme4 z
+  etykietą M1 = „brak oszacowania”. Poprawka w `summary.py`: gdy M1 bez SE, lme4 porównujemy z M2.
+
+## D-H3a-38 (2026-11-10, post hoc (audyt)) Scenariusze Z3-Z5 (dodatkowe, nie wchodzą do reguły)
+- Z3: has_bio osobno dla nadawców F, M, O (eksploracyjnie, bez korekty wielokrotności).
+- Z4: odbiorcy ze stałym tekstem bio (1068 z 1359; 291 ze zmianą, 128 ze zmianą pusty↔niepusty);
+  scenariusz bez odbiorców ze zmianą statusu; S2a z lme4.
+- Z5: kontrole wieku jak w H1, aktywność odbiorcy (log(1 + swipe'y wysłane); proxy potencjalnie
+  endogeniczne), słownik tagów v1 (consensus A + scalenia; kategorie B nie wpływają na H3a).
+- Fity poza gitem w `data/interim/h3a/cache`; agregaty w `reports/h3a/audit_results.json`.
