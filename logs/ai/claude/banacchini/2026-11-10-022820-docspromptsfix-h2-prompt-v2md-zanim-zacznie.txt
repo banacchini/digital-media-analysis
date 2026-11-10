@@ -1,0 +1,498 @@
+
+❯ <ide_opened_file>The user opened the file
+  /home/dominik/projects/wust/sem2/umc/docs/prompts/fix-h2-prompt-v2.md in the
+  IDE. This may or may not be related to the current task.</ide_opened_file>
+
+❯ <browser_instruction># Claude in Chrome browser automation
+
+  You have access to browser automation tools (mcp__claude-in-chrome__*) for
+  interacting with web pages in Chrome. Follow these guidelines for effective
+  browser automation.
+
+  ## Loading deferred tools
+
+  If the mcp__claude-in-chrome__* tools are deferred (must be loaded via
+  ToolSearch before use), load every tool you expect to need in ONE ToolSearch
+  call — the select query accepts a comma-separated list — never one call per
+  tool. Start with the core set:
+
+  ToolSearch with query
+  "select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__naviga
+  te,mcp__claude-in-chrome__computer,mcp__claude-in-chrome__read_page,mcp__clau
+  de-in-chrome__tabs_create_mcp,mcp__claude-in-chrome__tabs_close_mcp"
+
+  Add task-specific tools to the same call when the task obviously needs them:
+  read_console_messages / read_network_requests for debugging, form_input for
+  forms, gif_creator for recordings, javascript_tool for page scripting.
+
+  ## GIF recording
+
+  When performing multi-step browser interactions that the user may want to
+  review or share, use mcp__claude-in-chrome__gif_creator to record them.
+
+  You must ALWAYS:
+  * Capture extra frames before and after taking actions to ensure smooth
+  playback
+  * Name the file meaningfully to help the user identify it later (e.g.,
+  "login_process.gif")
+
+  ## Console log debugging
+
+  You can use mcp__claude-in-chrome__read_console_messages to read console
+  output. Console output may be verbose. If you are looking for specific log
+  entries, use the 'pattern' parameter with a regex-compatible pattern. This
+  filters results efficiently and avoids overwhelming output. For example, use
+  pattern: "[MyApp]" to filter for application-specific logs rather than
+  reading all console output.
+
+  ## Alerts and dialogs
+
+  IMPORTANT: Do not trigger JavaScript alerts, confirms, prompts, or browser
+  modal dialogs through your actions. These browser dialogs block all further
+  browser events and will prevent the extension from receiving any subsequent
+  commands. Instead, when possible, use console.log for debugging and then use
+  the mcp__claude-in-chrome__read_console_messages tool to read those log
+  messages. If a page has dialog-triggering elements:
+  1. Avoid clicking buttons or links that may trigger alerts (e.g., "Delete"
+  buttons with confirmation dialogs)
+  2. If you must interact with such elements, warn the user first that this may
+  interrupt the session
+  3. Use mcp__claude-in-chrome__javascript_tool to check for and dismiss any
+  existing dialogs before proceeding
+
+  If you accidentally trigger a dialog and lose responsiveness, inform the user
+  they need to manually dismiss it in the browser.
+
+  ## Avoid rabbit holes and loops
+
+  When using browser automation tools, stay focused on the specific task. If
+  you encounter any of the following, stop and ask the user for guidance:
+  - Unexpected complexity or tangential browser exploration
+  - Browser tool calls failing or returning errors after 2-3 attempts
+  - No response from the browser extension
+  - Page elements not responding to clicks or input
+  - Pages not loading or timing out
+  - Unable to complete the browser task despite multiple approaches
+
+  Explain what you attempted, what went wrong, and ask how the user would like
+  to proceed. Do not keep retrying the same failing browser action or explore
+  unrelated pages without checking in first.
+
+  ## Tab context and session startup
+
+  IMPORTANT: At the start of each browser automation session, call
+  mcp__claude-in-chrome__tabs_context_mcp first to get information about the
+  user's current browser tabs. Use this context to understand what the user
+  might want to work with before creating new tabs.
+
+  Never reuse tab IDs from a previous/other session. Follow these guidelines:
+  1. Only reuse an existing tab if the user explicitly asks to work with it
+  2. Otherwise, create a new tab with mcp__claude-in-chrome__tabs_create_mcp
+  3. If a tool returns an error indicating the tab doesn't exist or is invalid,
+  call tabs_context_mcp to get fresh tab IDs
+  4. When a tab is closed by the user or a navigation error occurs, call
+  tabs_context_mcp to see what tabs are available</browser_instruction>
+
+❯ @docs/prompts/fix-h2-prompt-v2.md . Zanim zaczniesz pracować, oszacuj czas
+  potrzebny na generację kodu i wykonanie obliczeń.
+  ⎿  Read docs/prompts/fix-h2-prompt-v2.md (57 lines)
+
+● Najpierw sprawdzę, co już jest w repo (moduł h2, opakowania GLMM, rozmiar
+  danych), żeby oszacowanie miało podstawę.
+
+  Ran 5 shell commands (ctrl+o to expand)
+
+● Oszacowałem czas, ale jeszcze niczego nie zmieniałem w repo. Wszystkie liczby
+  poniżej to moje szacunki. Nie odtworzyłem jeszcze żadnej wartości z punktu 3
+  zasad.
+
+  Na czym opieram oszacowanie
+
+  - Dane są małe. Zbiór H1 v1 ma ok. 93 tys. wierszy (2,5 MB w parquet), a
+    maszyna ma 16 rdzeni i 30 GB RAM.
+  - Pojedynczy GLMM z GPBoost trwa ok. 3–60 s. To czasy zapisane w cache
+    reports/h3a/cache. Najgorszy przypadek, czyli cztery optymalizatory po
+    kolei, to ok. 2 min.
+  - Pooled logit z klastrowaniem dwukierunkowym i sandwich trwa poniżej 1 s
+    (fit_pooled_logit w h3a.models).
+  - Duża część kodu już istnieje. h2.py ma 453 linie (rate_matrix,
+    or_by_sender_sex, grouped_cv). Opakowania GLMM, Runner z cache i timeoutem
+    oraz suppress_small są w h3a. age_direction_check jest w h1_audit.
+
+  Kod, testy i dokumentacja (mój czas pracy)
+
+  ┌─────────┬────────────────────────────────────────────────────┬──────────┐
+  │ Zadanie │                       Zakres                       │ Szacunek │
+  ├─────────┼────────────────────────────────────────────────────┼──────────┤
+  │ Z1      │ Dekompozycja interakcji, GLMM i model z efektami   │ 35–50    │
+  │         │ stałymi, tekst założenia identyfikacyjnego         │ min      │
+  ├─────────┼────────────────────────────────────────────────────┼──────────┤
+  │ Z2      │ Macierz wieku z CI i tłumieniem komórek, model     │ 35–50    │
+  │         │ wieku, spójność z H1 (porównanie liczb)            │ min      │
+  ├─────────┼────────────────────────────────────────────────────┼──────────┤
+  │ Z7      │ Sekcja 7, podsumowanie, notebook od zera           │ 50–70    │
+  │         │                                                    │ min      │
+  ├─────────┼────────────────────────────────────────────────────┼──────────┤
+  │ Z3      │ Wspólny moduł estymatorów z fallbackiem i tabela   │ 25–35    │
+  │         │ pooled vs GLMM                                     │ min      │
+  ├─────────┼────────────────────────────────────────────────────┼──────────┤
+  │ Z4      │ AUC-PR, CV grupowane po odbiorcach, bootstrap      │ 30–45    │
+  │         │ różnic z CI                                        │ min      │
+  ├─────────┼────────────────────────────────────────────────────┼──────────┤
+  │ Z5      │ Sześć scenariuszy plus trzy nowe, kontrole z H1,   │ 35–50    │
+  │         │ wpływ as-of                                        │ min      │
+  ├─────────┼────────────────────────────────────────────────────┼──────────┤
+  │ Z6      │ y_match na poziomie par                            │ 25–35    │
+  │         │                                                    │ min      │
+  ├─────────┼────────────────────────────────────────────────────┼──────────┤
+  │         │ Odtworzenie liczb, audit-fixes, open-questions,    │ 40–60    │
+  │ Reszta  │ ujawnienie użycia AI, ok. 12–15 commitów z ruff i  │ min      │
+  │         │ pytest                                             │          │
+  └─────────┴────────────────────────────────────────────────────┴──────────┘
+
+  Razem to ok. 4,5–6,5 h kodowania, debugowania, testów i pisania. Same P1 to
+  ok. 2–3 h, a P1+P2 to ok. 3,5–4,5 h.
+
+  Obliczenia (maszyna)
+
+  ┌───────────────────────────────────────────────────────────┬─────────────┐
+  │                           Etap                            │  Szacunek   │
+  ├───────────────────────────────────────────────────────────┼─────────────┤
+  │ Odtworzenie liczb sprzed zmian (macierz, OR, CV)          │ poniżej 2   │
+  │                                                           │ min         │
+  ├───────────────────────────────────────────────────────────┼─────────────┤
+  │ Z1 i Z2: ok. 6–8 dopasowań GLMM plus pooled               │ 5–15 min    │
+  ├───────────────────────────────────────────────────────────┼─────────────┤
+  │ Z3: ponowne dopasowania dla pełnej tabeli                 │ 5–10 min    │
+  ├───────────────────────────────────────────────────────────┼─────────────┤
+  │ Z4: CV po nadawcach i po odbiorcach, bootstrap OOF (ok.   │ 10–20 min   │
+  │ 2000 powtórzeń)                                           │             │
+  ├───────────────────────────────────────────────────────────┼─────────────┤
+  │ Z5: ok. 9 scenariuszy, część z GLMM                       │ 15–30 min   │
+  ├───────────────────────────────────────────────────────────┼─────────────┤
+  │ Z6: modele na ok. 7,8 tys. par                            │ poniżej 2   │
+  │                                                           │ min         │
+  ├───────────────────────────────────────────────────────────┼─────────────┤
+  │ Pełny przebieg notebooka od zera, z cache                 │ 5–10 min    │
+  └───────────────────────────────────────────────────────────┴─────────────┘
+
+  Razem to ok. 45–90 min pracy maszyny. Większość nakłada się na pisanie kodu,
+  bo ciężkie kroki mogą liczyć się w tle (zatrzymywane po PID, bez pkill).
+
+  Łącznie ok. 5–7,5 h zegarowo. Żeby zmieścić się w P1+P2, wystarczy ok. 4–5 h.
+
+  Ryzyka
+
+  1. GPBoost bez SE. W D-H3a-26 na pełnych danych GPBoost nie policzył SE w
+     większości prób (Hessian nie PD). Model z interakcją sender_F × receiver_F
+     może też nie dać SE. Wtedy zadziała fallback na pooled logit z
+     klastrowaniem dwukierunkowym. Dodaje to do 30–60 min na diagnostykę i opis.
+     Możliwa jest też weryfikacja w lme4 przez Rscript, które teraz jest
+     dostępne. Nie sprawdzałem jeszcze, czy pakiet lme4 jest zainstalowany.
+  2. Niezgodność liczb z punktu 3. Jeśli przy odtwarzaniu coś nie zgadza się z
+     podaną tolerancją, zatrzymuję się i opisuję to w open-questions.md. To
+     zatrzyma resztę pracy.
+  3. Rachunek orientacyjny w Z1 (0,76 logitu i 0,22) traktuję jako hipotezę.
+     Model może go nie potwierdzić, co zmieni sekcję 7.
+  4. Pamięć rozmowy. Praca jest długa i kontekst może zostać skompresowany.
+     Dlatego zapisuję postęp w commitach i dokumentach.
+
+  Chcesz, żebym zaczął w tej kolejności (odtworzenie liczb → P1 → P2 → P3 →
+  dokumentacja)? Czy ograniczyć zakres do P1+P2 już na starcie?
+
+❯ <ide_opened_file>The user opened the file
+  /home/dominik/projects/wust/sem2/umc/docs/prompts/fix-h2-prompt-v2.md in the
+  IDE. This may or may not be related to the current task.</ide_opened_file>
+
+❯ Pomiń odtworzenie liczb i P3, wykonaj tylko P1, P2 i dokumentację. Zwróć
+  uwagę żeby obliczenia były cachowane tak żebym mógł z łatwością zmienić styl
+  wykresów.
+
+● Zaczynam: zakres to Z1–Z4 i Z7 plus dokumentacja. Odtwarzanie liczb i P3
+  pomijam, a obliczenia będą w cache oddzielonym od wykresów. Najpierw tworzę
+  gałąź i czytam kod, który będę wywoływał.
+
+  Ran 8 shell commands (ctrl+o to expand)
+
+● Przeczytałem kod i dane, a plan zakłada moduły h2_cache, h2_audit i h2_figs.
+  Zaczynam od cache, dzięki czemu zmiana stylu wykresów nie spowoduje ponownych
+  obliczeń. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Write(src/rentfriends/h2_cache.py)
+  ⎿  Wrote 95 lines to src/rentfriends/h2_cache.py
+       1 """On-disk cache for the heavy H2 computations (GLMM fits, boots
+         traps, cross-validation).
+       2
+       3 Layout: `data/interim/h2/<step>-<key>.pkl` (outside git). The ke
+         y is a hash of the step name, its
+       4 parameters, a hash of the data and `CODE_VERSION`. Figures read
+         these results and never
+       5 recompute them, so changing a plot does not trigger a refit.
+       6
+       7 The cache does not notice edits to the analysis code. After chan
+     … +89 lines (~3 KB) (ctrl+o to expand)
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Write(src/rentfriends/h2_audit.py)
+  ⎿  Wrote 659 lines to src/rentfriends/h2_audit.py
+      1 """H2 audit follow-up (2026-11): sex decomposition (Z1), age effe
+        ct (Z2), estimators (Z3), CV (Z4).
+      2
+      3 All results are aggregates. Heavy steps go through `rentfriends.h
+        2_cache.Cache`, so figures can be
+      4 restyled without refitting. Nothing here reads `bio` or exposes `
+        user_key`.
+      5
+      6 Sex parametrisation (Z1). Let s = +1 for a female sender and -1 f
+        or a male sender, rF = 1 when
+     … +653 lines (ctrl+o to expand)
+
+● Update(src/rentfriends/h2_audit.py)
+  ⎿  Added 1 line, removed 1 line
+      632          res = cache.get(name, fn, dhash=dh, params=params, for
+           ce=force)
+      633          if log:
+      634              e = cache.log[-1]
+      635 -            log(f"{name}: {'cache' if e['cached'] else f'{e[ch
+          -r(115)+chr(101)+chr(99)+chr(111)+chr(110)+chr(100)+chr(115)]:.
+          -0f} s'}")                                                     
+      635 +            log(f"{name}: " + ("cache" if e["cached"] else f"{
+          +e['seconds']:.0f} s"))                                        
+      636          return res
+      637  
+      638      R["sizes"] = {
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Piszę moduł obliczeń; teraz lint przeszedł poza jednym nieużywanym importem,
+  więc poprawiam go i robię pierwszy przebieg na prawdziwych danych bez GLMM,
+  żeby wyłapać błędy.
+
+  Searched for 1 pattern, read 1 file, ran 1 shell command (ctrl+o to expand)
+
+● Update(src/rentfriends/h2_audit.py)
+  ⎿  Added 5 lines
+      525                  warnings.simplefilter("ignore")
+      526                  res = sm.Logit(y[tr], X[tr]).fit(disp=0, maxit
+           er=200)
+      527              pred[b][te] = res.predict(X[te])
+      528 +    # Pooling out-of-fold predictions mixes fold-specific inte
+          +rcepts. For the intercept-only                                
+      529 +    # model that creates a spurious AUC != 0.5 (and inflates e
+          +very AUC difference against it),                              
+      530 +    # so the null model predicts one constant: AUC = 0.5 and A
+          +UC-PR = prevalence by construction.                           
+      531 +    # Its log loss changes by < 1e-4 relative to fold-specific
+          + constants.                                                   
+      532 +    pred["null"][:] = y.mean()                                
+      533      return {
+      534          "group": group,
+      535          "y": y,
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Write(tests/test_h2_audit.py)
+  ⎿  Wrote 170 lines to tests/test_h2_audit.py
+       1 """Tests for the H2 audit module on simulated data (no access to
+          data/)."""
+       2
+       3 import numpy as np
+       4 import pandas as pd
+       5
+       6 from rentfriends import h2
+       7 from rentfriends import h2_audit as A
+       8 from rentfriends.h2_cache import Cache, data_hash
+       9
+     … +161 lines (ctrl+o to expand)
+
+● Background command "Add entry point and launch full cached run in background"
+completed (exit code 0)
+
+● Pełny przebieg w tle się zakończył; sprawdzam log i uruchamiam testy.
+
+  Read 1 file, ran 2 shell commands (ctrl+o to expand)
+
+● GLMM nadal się liczy (proces działa). Naprawiam odporność CV na puste kolumny
+  (w symulacji nie ma pary z płcią O) i puszczam testy.
+
+● Update(src/rentfriends/h2_audit.py)
+  ⎿  Added 1 line
+      519      pred = {b: np.empty(len(d)) for b in CV_BLOCKS}
+      520      for b in CV_BLOCKS:
+      521          X = cv_design(d, b)
+      522 +        X = X[:, np.r_[True, X[:, 1:].std(0) > 0]]  # drop all
+          +-constant columns (absent pairs)                              
+      523          for k in range(n_splits):
+      524              tr, te = folds != k, folds == k
+      525              with warnings.catch_warnings():
+
+  Ran 4 shell commands (ctrl+o to expand)
+
+● Write(src/rentfriends/h2_figs.py)
+  ⎿  Wrote 321 lines to src/rentfriends/h2_figs.py
+       1 """H2 figures. Every function only reads the result dict of `h2_
+         audit.run_all` (the cache).
+       2
+       3 To change the look, edit `STYLE` or the functions here and re-ru
+         n the plotting cell; nothing is
+       4 refitted. Palette from STYLEGUIDE.md: purple primary, blue compa
+         rison, gray null/baseline.
+       5 Each figure carries a one-sentence Polish caption (`CAPTIONS`) s
+         hown under the plot.
+       6 """
+     … +315 lines (ctrl+o to expand)
+
+● Status: moduł wykresów napisany (czyta tylko cache). Sprawdzam, na jakim
+  etapie jest przebieg z GLMM.
+  Ran 6 shell commands (ctrl+o to expand)
+
+● Status: pełny przebieg z lme4 jako źródłem błędów standardowych GLMM startuje
+  w tle (GPBoost nie daje SE). W tym czasie poprawiam lint w module wykresów.
+
+  Made 1 scratchpad edit +472, ran 5 shell commands (ctrl+o to expand)
+
+● Status: generator notebooka gotowy; czekam na zakończenie obliczeń (lme4 liczy
+  GLMM). Sprawdzam postęp.
+
+  Ran 6 shell commands (ctrl+o to expand)
+
+● Obliczenia są gotowe i zapisane w cache; liczby sprzed zmian zgadzają się
+  incydentalnie. Sprawdzam teraz wykresy, a potem notebook i dokumentację.
+  · summary
+
+  Read 6 files, ran 5 shell commands (ctrl+o to expand)
+
+● Status: sprawdzam kartę M1 (sformułowanie H2 i G1–G18), żeby poprawnie
+  oznaczyć zmiany jako pre-rejestrowane lub post hoc, po czym buduję notebook.
+
+  Searched for 1 pattern, ran 10 shell commands (ctrl+o to expand)
+
+● Status: kod i testy przechodzą (3 błędy w test_eda są niezwiązane, brak pliku
+  metadanych). Ruff zgłasza tylko styl w notebooku, który właśnie wygenerowałem,
+  więc go formatuję.
+
+  Ran 7 shell commands (ctrl+o to expand)
+
+● Background command "Clear cache and re-run notebook from scratch in
+background" completed (exit code 0)
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Write(docs/h2/audit-fixes-2026-11-10.md)
+  ⎿  Wrote 70 lines to docs/h2/audit-fixes-2026-11-10.md
+       1 # H2: naprawa po audycie (2026-11-10)
+       2
+       3 Gałąź `fix/h2-audit`, prompt `docs/prompts/fix-h2-prompt-v2.md`.
+          Zakres tej sesji uzgodniony z autorem
+       4 prompta: **P1 + P2 (Z1, Z2, Z3, Z4, Z7) i dokumentacja**. **Pomi
+         nięte na polecenie:** formalne odtworzenie
+       5 liczb sprzed zmian (zasada 3) i cały P3 (Z5 wrażliwość, Z6 `y_ma
+         tch`); zob. `open-questions.md`.
+       6
+       7 H2 pozostaje **eksploracyjne** (macierz płci widziano przed sfor
+     … +64 lines (~9 KB) (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Status: dokumentacja w toku (audit-fixes gotowy). Teraz open-questions.md i
+  h2-summary.md z tablicą dowodów.
+
+● Write(docs/h2/open-questions.md)
+  ⎿  Wrote 21 lines to docs/h2/open-questions.md
+      1 # H2: otwarte pytania i decyzje (2026-11-10)
+      2
+      3 Zasada: gdzie decyzja była niejednoznaczna, wybrano wariant konse
+        rwatywny z adnotacją. Pytania do
+      4 Dominika oznaczone **(decyzja)**.
+      5
+      6 | # | Kwestia | Przyjęte | Co zmienić, jeśli inaczej |
+      7 |---|---|---|---|
+      8 | Q1 | **Odtworzenie liczb sprzed zmian (zasada 3 prompta)** nie
+        było bramką. Autor polecił je pominąć. | Wywołano niezmienione fu
+     … +14 lines (~4 KB) (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Write(docs/h2/h2-summary.md)
+  ⎿  Wrote 73 lines to docs/h2/h2-summary.md
+      1 # H2: podsumowanie wyników (po audycie 2026-11-10)
+      2
+      3 **Hipoteza H2 (karta M1, w wersji D17):** płeć (i wiek) nadawcy i
+         odbiorcy wpływają na prawy swipe.
+      4 Formułujemy ją jako **oszacowanie wielkości efektu**, nie test br
+        amki. **Status: eksploracyjna**, bo
+      5 macierz płci widzieliśmy przed sformułowaniem hipotezy.
+      6
+      7 **Wniosek (eksploracyjny): prawy swipe przewidują głównie para pł
+        ci i wiek odbiorcy względem nadawcy; ocena jest
+     … +66 lines (ctrl+o to expand)
+
+  Listed 1 directory, ran 4 shell commands (ctrl+o to expand)
+
+● Status: dokumentacja zacommitowana (4 commity). Czekam na przebieg od zera,
+  żeby potwierdzić determinizm i odświeżyć sekcję 7 (poprawka jednego CI).
+
+  Ran 7 shell commands (ctrl+o to expand)
+
+● Zrobione: Z1, Z2, Z3, Z4 i Z7 plus dokumentacja, na gałęzi fix/h2-audit (9
+  małych commitów, bez zmian w uv.lock, pyproject.toml i data/). Testy H2/H1/H3a
+  przechodzą (51 testów), a ruff na kodzie przechodzi.
+
+  Odtwarzania liczb i P3 nie robiłem. Liczby sprzed zmian zgadzają się jednak
+  przypadkiem: OR surowy F 2,645 i M 0,602, OR z kontrolami F 2,439 i M 0,657,
+  macierz stawek i AUC 0,603 / 0,620. To zapisałem w audit-fixes jako kontrolę,
+  nie jako test.
+
+  Wyniki
+
+  - Z1: popularność vs premia za własną płeć. Rozdzielić się da, ale tylko przy
+    założeniu, że popularność profili kobiet i premia są takie same dla obu płci
+    nadawców. Bez założeń identyfikowany jest jeden kontrast, iloraz luk
+    exp(2h) = 1,59 [1,16; 2,18] (pooled). Przy założeniu popularność π ma OR
+    2,13 [1,81; 2,51], a premia h 1,26 [1,08; 1,48]. Rachunek z prompta (0,76 i
+    0,22 logitu) się potwierdził. Osobnych h_F i h_M nie raportuję.
+  - Z2: wiek. Kara za starszego odbiorcę: OR 0,69 [0,61; 0,77] na pasmo (pooled,
+    efekty stałe pasma nadawcy). Młodszy odbiorca (0,96 [0,86; 1,07]) i to samo
+    pasmo (1,03 [0,90; 1,17]) nie mają wyraźnego efektu. Różnica względem H1
+    wynika z kontroli płci i miasta, a nie z próby ani z klastrowania.
+  - Z3: pooled vs GLMM. OR warunkowe są wyraźnie dalej od 1, np. π 2,13 vs 3,91.
+    Przy każdym OR jest podany estymator.
+  - Z4: walidacja. Dodałem AUC-PR, foldy po odbiorcach i sparowany bootstrap po
+    nadawcach. Wniosek o wieku się zmienia: wcześniej „w szumie", teraz drobny,
+    ale mierzalny (Δ log loss −0,0045 [−0,0078; −0,0010]).
+
+  Decyzje do potwierdzenia
+
+  1. GPBoost nie zwraca SE w większości modeli GLMM. Użyłem lme4 (glmer) jako
+     źródła błędów standardowych tam, gdzie GPBoost ich nie dał. W H3a decyzja o
+     lme4 była zastrzeżona dla Ciebie, więc potrzebuję Twojego potwierdzenia
+     (Q2). Wyniki punktowe i specyfikacje modeli się nie zmieniły.
+  2. Przedziały GLMM dla h są za wąskie. To model bez losowych nachyleń: [1,32;
+     1,47] przy pooled [1,08; 1,48]. W sekcji 7 dla h ufam szerszemu
+     przedziałowi pooled.
+  3. P3 niewykonane na Twoje polecenie. Zapisane w open-questions.md (Q11), w
+     tym brak oszacowania wpływu as-of.
+
+  Cache i wykresy
+
+  Ciężkie obliczenia są w data/interim/h2/ (poza gitem). Wykresy w h2_figs
+  czytają tylko wynik z cache, więc styl zmieniasz w h2_figs.STYLE albo w
+  funkcjach rysujących. Przeliczenie nie jest potrzebne. Przebieg od zera trwa
+  ok. 20 min. Rerun z czystym cache dał te same liczby (maksymalna różnica
+  3,6e-10 na 496 wartościach).
+
+  Do zrobienia po Twojej stronie
+
+  - Wyeksportować log sesji do logs/ai/claude/dominik/.
+  - W notebooks/ są nieśledzone pliki graph_*-rendered.md i *_files/. Pojawiły
+    się ok. 01:16 i prawdopodobnie powstały przy moim pełnym pytest, ale nie mam
+    pewności. Nic z nich nie commitowałem i ich nie usuwałem.
+  - 3 testy w tests/test_eda.py padają z FileNotFoundError (brak pliku
+    metadanych). Nie dotyczą tej zmiany.
+
+  Dokumentacja jest w docs/h2/ (audit-fixes-2026-11-10.md, open-questions.md,
+  h2-summary.md z tablicą dowodów). Notebook to notebooks/h2_demographics.ipynb,
+  wykresy w reports/h2/figures/.
