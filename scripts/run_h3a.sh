@@ -29,7 +29,7 @@ OUT_NB="${POS[3]:-notebooks/H3a-rendered.ipynb}"
 FOREGROUND="${H3A_FOREGROUND:-0}"
 
 mkdir -p "$REPORT_DIR"
-CMD=(uv run papermill notebooks/H3a.ipynb "$OUT_NB"
+CMD=(uv run --frozen papermill notebooks/H3a.ipynb "$OUT_NB"
      -p RUN_LEVEL "$LEVEL" -p SAMPLE_FRAC "$FRAC" -p REPORT_DIR "$REPORT_DIR"
      -p ONLY "$ONLY" -p RUN_BOOTSTRAP "$BOOT"
      --cwd . --log-output --progress-bar)

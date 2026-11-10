@@ -36,6 +36,13 @@ class Spec:
     # Level 3 (A2): 0/1 columns of the analysis frame entered as main effect + interaction
     # with has_bio.
     interact_cols: tuple[str, ...] = ()
+    # Audit (Z5): "signed" = age_band_diff + same_band (main spec); "h1" adds age_band_diff_abs,
+    # i.e. the H1 age block (same_band, age_band_diff_abs, age_band_diff).
+    age_controls: str = "signed"
+    # Audit (Z5): extra standardised numeric columns of the analysis frame (activity proxies).
+    extra_controls: tuple[str, ...] = ()
+    # Audit (Z8): extra numeric columns entered as they are (not standardised).
+    raw_controls: tuple[str, ...] = ()
     extra: dict = field(default_factory=dict)
 
 
@@ -89,6 +96,12 @@ def build_design(t: pd.DataFrame, spec: Spec) -> tuple[pd.DataFrame, dict]:
     if cs != "none":
         cols["age_band_diff"] = _std(t["age_band_diff"].astype(float))
         cols["same_band"] = t["same_band"].astype(float)
+        if spec.age_controls == "h1":
+            cols["age_band_diff_abs"] = _std(t["age_band_diff"].astype(float).abs())
+    for c in spec.extra_controls:
+        cols[c] = _std(t[c].astype(float))
+    for c in spec.raw_controls:
+        cols[c] = t[c].astype(float)
     if cs in ("demog_completeness", "full") and not spec.extended:
         cols[spec.completeness_var] = _std(t[spec.completeness_var].astype(float))
     if cs == "full":
