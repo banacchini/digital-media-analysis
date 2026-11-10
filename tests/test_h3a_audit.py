@@ -99,3 +99,18 @@ def test_receiver_change_sets():
     ch = AU.receiver_change_sets(raw, {"a", "b", "c", "d"})
     assert ch["text"] == {"a", "b"} and ch["status"] == {"a"}
     assert math.isfinite(len(ch["text"]))
+
+
+def test_summary_no_spurious_estimator_flag_and_audit_block(tmp_path):
+    import json
+    from pathlib import Path
+
+    from rentfriends.h3a import summary as S
+
+    res = json.loads(Path("reports/h3a/results.json").read_text())
+    a = S.audit_section(json.loads(Path("reports/h3a/audit_results.json").read_text()), res)
+    text = "\n".join(a)
+    assert "Z1" in text and "Flaga" in text and "lme4" in text
+    S.write_summary(res, tmp_path, 3)
+    out = (tmp_path / "summary.md").read_text()
+    assert "wrażliwy na estymator" not in out.split("## Wynik główny")[0]

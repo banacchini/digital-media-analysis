@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import math
 import re
 from datetime import datetime
@@ -46,6 +47,121 @@ def agent_defaults(decision_log: Path) -> list[str]:
     return out
 
 
+AUDIT_JSON = Path("reports/h3a/audit_results.json")
+
+
+def _row_line(r: dict) -> str:
+    if r.get("or") is None:
+        return f"{r.get('spec')} / {r.get('model')}: brak oszacowania"
+    return (
+        f"| {r['spec']} | {r['model']} | {r.get('n_obs')} | {_f(r['or'])} "
+        f"({_f(r['or_lo95'])}–{_f(r['or_hi95'])}) | {r['label']} |"
+    )
+
+
+def audit_section(a: dict, res: dict) -> list[str]:
+    """Post-audit block (Z1-Z5, all `post hoc (audyt)`); aggregates only."""
+    L = ["\n## Audyt po wynikach (post hoc, nie zmienia reguły z sekcji 7)\n"]
+    t = a["z1_trace"]["M2"]
+    L.append("### Z1. Skąd etykieta „potwierdzony” (M2)\n")
+    L.append("| Krok reguły | Wartość | Wynik |")
+    L.append("|---|---|---|")
+    L.append(f"| Oszacowanie OR (β = {_f(t['beta'], 4)}) | {_f(t['or'])} | |")
+    L.append(f"| 95% CI | {_f(t['or_lo95'])}–{_f(t['or_hi95'])} | |")
+    L.append(f"| 90% CI | {_f(t['or_lo90'])}–{_f(t['or_hi90'])} | |")
+    L.append(f"| Margines (OR) | {_f(t['margin_or_lo'])}–{_f(t['margin_or_hi'])} | |")
+    L.append(
+        f"| `equiv`: 90% CI w marginesie | | **{'tak' if t['equiv'] else 'nie'}** "
+        f"(górna granica {_f(t['or_hi90'])} > {_f(t['margin_or_hi'])}) |"
+    )
+    sp = "tak" if t["sig_pos_lo95_gt_0"] else "nie"
+    L.append(f"| `sig_pos`: dolna granica 95% CI > 0 | | **{sp}** |")
+    L.append(f"| Etykieta | | **{t['label']}** |\n")
+    L.append(
+        "Etykieta wynika z reguły (kod zgodny ze specyfikacją, test jednostkowy). "
+        "**Flaga:** reguła porównuje z marginesem górną granicę 90% CI, a dolną granicę 95% CI "
+        f"tylko z zerem. Dolna granica OR ({_f(t['or_lo95'])}) leży wewnątrz marginesu "
+        f"praktycznego zera (do {_f(t['margin_or_hi'])}), więc „potwierdzony” znaczy „różny od "
+        "zera”, a nie „większy niż pomijalny”. Nie wykluczono efektu bliskiego granicy "
+        "pomijalności. Etykiety nie zmieniono.\n"
+    )
+    L.append("### Z2. M1: lme4 jako raportowany estymator\n")
+    L.append("| Model | OR (95% CI) | 90% CI | p |")
+    L.append("|---|---|---|---|")
+    for r in a["z2_table"]:
+        ci = (
+            f"{_f(r.get('or_lo95'))}–{_f(r.get('or_hi95'))}"
+            if r.get("or_lo95") is not None
+            else "–"
+        )
+        c90 = (
+            f"{_f(r.get('or_lo90'))}–{_f(r.get('or_hi90'))}"
+            if r.get("or_lo90") is not None
+            else "–"
+        )
+        L.append(f"| {r['model']} | {_f(r.get('or'))} ({ci}) | {c90} | {_f(r.get('p'), 4)} |")
+    d = a["z2_lme4_diag"]
+    L.append(
+        f"\nlme4 (nAGQ = 0, bobyqa, CI Walda): wariancja nadawcy {_f(d['var_sender'])}, odbiorcy "
+        f"{_f(d['var_receiver'])}; singularność: {'tak' if d['singular'] else 'nie'}; kod "
+        f"zbieżności {d['conv_code']}; ostrzeżenia: {len(d['r_warnings'])}. Etykieta wg "
+        f"oryginalnej reguły (M1 = lme4): **{a['z2_table'][0]['label']}**. Wcześniejsze „lme4: nie "
+        "uruchomiony” było polem `verdict.lme4` zapisanym przed krokiem lme4 (nieaktualne), "
+        "„potwierdzony” pochodzi z faktycznego przebiegu lme4.\n"
+    )
+    L.append(
+        "### Z3. Heterogeniczność wg płci nadawcy (eksploracyjnie, bez korekty wielokrotności)\n"
+    )
+    L.append("| Zakres | Model | N swipe'ów | OR (95% CI) | Etykieta |")
+    L.append("|---|---|---|---|---|")
+    L += [_row_line(r) for r in a["z3_by_sender_sex"]]
+    it = res.get("s8", {}).get("interaction", {})
+    L.append(
+        f"\nTest interakcji has_bio × płeć nadawcy: χ² = {_f(it.get('wald_chi2'), 2)}, "
+        f"df = {it.get('df')}, p = {_f(it.get('p'), 3)}. To analiza post hoc, bez nowej hipotezy; "
+        "przy kilku sprawdzonych podziałach p = 0,020 nie przetrwałoby korekty wielokrotności. "
+        "Grupa „O” to 28 nadawców: wynik nie do wnioskowania.\n"
+    )
+    L.append("### Z4. Stabilność bio i datowanie as-of\n")
+    c = a["z4_counts"]
+    L.append(
+        f"Odbiorcy: {c['receivers']}; ze zmianą tekstu bio: {c['with_text_change']}; "
+        f"ze stałym tekstem: {c['stable_text']}; ze zmianą pusty↔niepusty: "
+        f"{c['with_status_change']}.\n"
+    )
+    L.append("| Scenariusz | Model | N swipe'ów | OR (95% CI) | Etykieta |")
+    L.append("|---|---|---|---|---|")
+    L += [_row_line(r) for r in a["z4"]]
+    L.append(
+        "\nOdbiorcy ze stałym bio dają OR zbliżony do wyniku głównego (błąd as-of nie może ich "
+        "dotyczyć), więc S2a (M2: nierozstrzygający) wygląda na utratę mocy po odcięciu połowy "
+        "próby, a nie na błąd datowania. Wniosek ostrożny: oszacowanie punktowe M2 w S2a "
+        "(1,064) jest niższe niż w pozostałych scenariuszach, a M3 i lme4 w S2a są "
+        "zgodne z wynikiem głównym.\n"
+    )
+    L.append("### Z5. Identyfikacja i kontrole\n")
+    L.append(
+        "M4 (analiza wewnątrz odbiorcy) jest niewykonalny (17 < 30 odbiorców), więc efekt "
+        "`has_bio` wynika **wyłącznie z różnic między odbiorcami** (między-profilowych), nie ze "
+        "zmiany bio tej samej osoby.\n"
+    )
+    L.append("| Specyfikacja | Model | N swipe'ów | OR (95% CI) | Etykieta |")
+    L.append("|---|---|---|---|---|")
+    L += [_row_line(r) for r in a["z5"]]
+    k = a["z5_tags_v1_check"]
+    share = _f(100 * k["share_swipes_tag_count_changed"], 1)
+    L.append(
+        "\nAktywność = log(1 + liczba swipe'ów odbiorcy jako nadawcy); to proxy potencjalnie "
+        "endogeniczne (aktywni użytkownicy częściej piszą bio). Wiek „jak w H1” = same_band, "
+        "age_band_diff_abs, age_band_diff. Zmienne tagów zależą od słownika: po przejściu na "
+        f"słownik v1 zmienia się liczba tagów w {share}% "
+        f"swipe'ów (średnia {_f(k['mean_tag_count_v0'], 2)} → {_f(k['mean_tag_count_v1'], 2)}), "
+        f"`tag_cap` w {k['tag_cap_changed']} wierszach, `tag_zero` bez zmian; OR `has_bio` w "
+        "Z5_tags_v1 jest praktycznie identyczny z głównym.\n"
+    )
+    return L
+
+
 LIMITATIONS = [
     "Związek ≠ przyczynowość: wynik opisuje współwystępowanie bio i prawego swipe'a w "
     "obserwowanej ekspozycji, nie efekt napisania bio.",
@@ -62,6 +178,9 @@ LIMITATIONS = [
     "grubą miarą staranności profilu.",
     "Mapowanie tagów (`interests_mapping.csv`) nie jest zrecenzowane przez człowieka; liczba "
     "tagów jest prowizoryczna (stąd S6).",
+    "Brak identyfikacji wewnątrz odbiorcy (M4: 17 < 30 odbiorców): efekt has_bio wynika "
+    "wyłącznie z różnic między odbiorcami.",
+    "Kontrola aktywności odbiorcy (liczba swipe'ów jako nadawcy) jest potencjalnie endogeniczna.",
     "Widoczność bio na karcie profilu: informacja od Dominika, brak potwierdzenia dostawcy.",
 ]
 
@@ -78,7 +197,12 @@ def write_summary(
     v = res.get("verdict", {})
     l4 = lme4_label(res, margin)
     final = v.get("final", "brak")
-    if l4 is not None and C.ESTIMATOR_SENSITIVE not in final and l4 != v.get("label_M1"):
+    # Audit fix: when GPBoost M1 has no SE (label "brak oszacowania") there is nothing for lme4
+    # to disagree with; compare with M2 instead of flagging a spurious estimator sensitivity.
+    ref = v.get("label_M1")
+    if ref in (None, C.NOT_ESTIMATED):
+        ref = v.get("label_M2")
+    if l4 is not None and C.ESTIMATOR_SENSITIVE not in final and l4 != ref:
         final = f"{final}; {C.ESTIMATOR_SENSITIVE} (lme4: {l4})"
     mt = {r["model"]: r for r in res.get("main_table", [])}
     L = []
@@ -96,8 +220,9 @@ def write_summary(
     L.append(f"- M2 (pooled logit, klastrowanie dwukierunkowe): {v.get('label_M2')}")
     L.append(f"- M3 (FE nadawcy, klastrowanie po odbiorcy; poza regułą): {v.get('label_M3')}")
     L.append(
-        f"- lme4: {res.get('lme4', {}).get('status', 'nie uruchomiony')} "
-        f"({res.get('lme4', {}).get('reason', '')})\n"
+        f"- lme4: {res.get('lme4', {}).get('status', 'nie uruchomiony')}; etykieta "
+        f"{res.get('lme4', {}).get('label', '–')} (zgodna z M2: "
+        f"{'tak' if res.get('lme4', {}).get('label') == v.get('label_M2') else 'nie'})\n"
     )
     L.append("## Wynik główny (has_bio: bio odbiorcy niepuste vs puste)\n")
     L.append("| Model | OR (95% CI; 90% CI) | β | SE | p | MDE OR | Etykieta |")
@@ -109,11 +234,27 @@ def write_summary(
             f"{_f(r.get('p'), 4)} | {_f(r.get('mde_or'))} | {r.get('label', '–')} |"
         )
     ame = v.get("ame_M2", {})
+    l4_or = res.get("lme4", {}).get("has_bio_wald", {}).get("or")
+    audit = json.loads(AUDIT_JSON.read_text()) if AUDIT_JSON.exists() else None
+    if audit:
+        z2 = audit["z2_table"][0]
+        L.append(
+            f"\n**M1 raportowany = lme4** (Wald): OR {_f(z2['or'])} (95% CI "
+            f"{_f(z2['or_lo95'])}–{_f(z2['or_hi95'])}), etykieta wg oryginalnej reguły: "
+            f"{z2['label']}. GPBoost podaje tylko punkt, bez SE."
+        )
     if ame:
         L.append(
             f"\nŚredni efekt krańcowy (M2, populacyjny): {_f(ame.get('ame_pp'), 2)} p.p. "
             f"(95% CI {_f(ame.get('lo95_pp'), 2)}–{_f(ame.get('hi95_pp'), 2)} p.p.; SE "
-            "z klastrowaniem dwukierunkowym, delta method)."
+            "z klastrowaniem dwukierunkowym, delta method). Dla laika: przy bio odbiorcy prawy "
+            "swipe zdarza się o ok. 1,9 p.p. częściej (np. ok. 21,9% zamiast 20%), przy OR "
+            f"{_f(mt.get('M2', {}).get('or'))} (M2), {_f(l4_or)} "
+            f"(lme4) i {_f(mt.get('M3', {}).get('or'))} (M3, FE nadawcy). Związek, nie efekt "
+            "przyczynowy: dotyczy obserwowanej ekspozycji (G1); match ≠ najem. Efekt jest "
+            "niewielki "
+            "i bliski minimalnemu wykrywalnemu (MDE OR ≈ 1,12), więc oszacowanie może być "
+            "zawyżone (przekleństwo zwycięzcy)."
         )
     d1 = res.get("m1_diag", {})
     L.append("\n## Estymator M1: zbieżność i czasy\n")
@@ -242,6 +383,8 @@ def write_summary(
     if defs:
         L.append("\n## Decyzje oznaczone [default agenta]\n")
         L += [f"- {d}" for d in defs]
+    if audit:
+        L += audit_section(audit, res)
     L.append("\n## Ograniczenia, które muszą towarzyszyć wynikowi\n")
     L += [f"- {x}" for x in LIMITATIONS]
     text = "\n".join(L) + "\n"
