@@ -1,0 +1,21 @@
+# H2: otwarte pytania i decyzje (2026-11-10)
+
+Zasada: gdzie decyzja była niejednoznaczna, wybrano wariant konserwatywny z adnotacją. Pytania do
+Dominika oznaczone **(decyzja)**.
+
+| # | Kwestia | Przyjęte | Co zmienić, jeśli inaczej |
+|---|---|---|---|
+| Q1 | **Odtworzenie liczb sprzed zmian (zasada 3 prompta)** nie było bramką. Autor polecił je pominąć. | Wywołano niezmienione funkcje sprzed audytu; wartości zgadzają się z promptem (zob. `audit-fixes-2026-11-10.md`), ale bez formalnego testu i bez zatrzymania w razie rozbieżności. | Dodać test regresji z tolerancją na macierz stawek, OR i AUC. |
+| Q2 **(decyzja)** | **Który estymator jest główny (D18)?** GPBoost zbiega, ale zwykle nie zwraca SE (D-H3a-26). Użyłem `lme4::glmer` (nAGQ = 0) jako źródła SE, gdy GPBoost ich nie daje. D-H3a-26 zastrzegało to dla Dominika. | Raportowane **oba** estymatory obok siebie; w tekście głównym liczby podane z estymatorem. Jako przedział dla `h` zalecam szerszy pooled (zob. Q3). | Wskazać jeden estymator główny; usunąć drugi z nagłówków. |
+| Q3 | **GLMM ma za wąskie CI dla efektów zależnych od nadawcy** (tylko losowe wyrazy wolne; brak losowych nachyleń np. `receiver_F` × nadawca). `h`: GLMM [1,32; 1,47] vs pooled [1,08; 1,48]. | Wnioski o `h` opierają się na szerszym pooled; GLMM pokazany jako punkt odniesienia dla wielkości OR warunkowego. | Model z losowym nachyleniem odbiorcy F po nadawcy (lme4 `(1 + receiver_F | sender)`). |
+| Q4 | **Źródła GLMM są mieszane** (Z1 bez kontroli i Z2: lme4; Z1 z kontrolami: GPBoost). Oba optymalizują Laplace/nAGQ = 0 i dają zbliżone wartości, ale nie identyczne. | Źródło zapisane przy każdym modelu (`glmm_source`). | Ujednolicić do lme4 dla wszystkich (ok. 10 min na model). |
+| Q5 | **Założenie identyfikacyjne Z1** (jedna popularność `π` i jedna premia `h` dla obu płci nadawców) jest nietestowalne. | Zawsze podawane `exp(2h)` bez założeń; `π`, `h` oznaczone `*` i „przy symetrii"; `h_F`, `h_M` nie raportowane. | Dane o ekspozycji (feed, G1) albo inne źródło wariancji mogłyby je rozdzielić. |
+| Q6 | **`receiver_F` jako „popularność profili kobiet"** to cecha odbiorcy skorelowana z innymi (wiek, miasto, sposób prowadzenia profilu). | Nazwa zbiorcza, zastrzeżenie w tekście. | Kontrole cech profilu odbiorcy (np. kompletność). |
+| Q7 | **Płeć `O` poza modelami (G16)**; w macierzy i wrażliwości opisowo. | Zgodnie z promptem. | Osobna analiza po wyjaśnieniu `O` z dostawcą. |
+| Q8 | **Model null w CV:** jedna stała (AUC = 0,5, AUC-PR = odsetek bazowy), bo zbiorcze OOF z różnymi stałymi w foldach zawyża różnice AUC. | Log loss null 0,5089 (różnica względem stałych foldowych < 1e-4). | Raportować tylko średnie z foldów. |
+| Q9 | **Blok `sex+age3`** dodany obok `sex+age`; wniosek o wieku w CV zmienił się z „w szumie" na „drobny, ponad szum". | Oba bloki raportowane; zmiana wniosku opisana jako post hoc (audyt). | — |
+| Q10 | **`age_direction_check` z H1 używa SE po nadawcy** i dummies różnicy pasm, a H2 używa modelu liniowego z OR na pasmo oraz dwukierunkowego klastrowania. | Most `h1_bridge` zmienia jedną rzecz naraz; liczby w `audit-fixes`. | — |
+| Q11 | **P3 niewykonane na polecenie:** Z5 (bez miasta „inne" G6; tylko `both_prior_version`; kontrole z H1 `lifestyle_agree_ratio` i `interests_idf_jaccard` z `h1_analysis_dataset_v1.parquet`, próba 92 754 vs 93 717; wpływ ok. 50% swipe'ów `first_version`) oraz Z6 (`y_match` na poziomie par: 7790 par, 487 matchy, model ≤ 8 zmiennych, 246 matchy z jednym swipe'em jako wrażliwość). | Nie zrobione. **Wpływ as-of (D7) pozostaje ilościowo nieoszacowany**, co zapisano jako ograniczenie w sekcji 7. | Zrobić wg treści Z5/Z6 w `docs/prompts/fix-h2-prompt-v2.md`. |
+| Q12 | **Testy poza H2:** `tests/test_eda.py` (3 testy) kończą się `FileNotFoundError` (brak pliku metadanych w tym środowisku). | Nie dotyczy tej zmiany (te testy nie importują kodu H2). | Sprawdzić dostępność metadanych w CI. |
+| Q13 | **Bootstrap różnic w CV** resampluje nadawców (jak w prompcie); przy foldach po odbiorcach nie uwzględnia zależności po stronie odbiorców. | CI dla widoku „po odbiorcach" może być za wąskie. | Dwukierunkowy bootstrap (nadawcy i odbiorcy). |
+| Q14 | **Cache nie śledzi zmian kodu** (zasada 6). | `CODE_VERSION` w `h2_cache.py`; po zmianie kodu analiz podnieść wersję lub `Cache.clear()`. | — |
