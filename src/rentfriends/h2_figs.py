@@ -29,11 +29,11 @@ STYLE = {
 CAPTIONS = {
     "sex_matrix": "Odsetek prawych swipe'ów według płci nadawcy i odbiorcy: wszyscy chętniej swipe'ują w prawo profile kobiet.",
     "sex_decomp": "Odbiorczynie vs odbiorcy w prawych swipe'ach: różnica jest duża u obu płci nadawców, ale u kobiet wyraźnie większa.",
-    "age_matrix": "Odsetek prawych swipe'ów według pasma wieku nadawcy i odbiorcy; spada wraz z wiekiem odbiorcy, a komórki z mniej niż 5 nadawcami są ukryte.",
+    "age_matrix": "Odsetek prawych swipe'ów według pasma wieku nadawcy i odbiorcy; spada wraz z wiekiem odbiorcy u nadawców do 26 lat, a nadawcy 27+ swipe'ują podobnie we wszystkich pasmach; komórki z mniej niż 5 nadawcami byłyby ukryte.",
     "age_or": "Starszy odbiorca zmniejsza szansę na prawy swipe, młodszy niemal jej nie zmienia; OR na jedno pasmo różnicy.",
     "estimators": "Ten sam wpływ w dwóch estymatorach: populacyjny (pooled) jest bliżej 1 niż warunkowy (GLMM).",
     "cv_deltas": "Dodanie płci poprawia przewidywanie poza próbą wyraźnie, a wieku dodatkowo, ale umiarkowanie; przedziały z bootstrapu po nadawcach.",
-    "bridge": "Skąd różnica OR wieku względem H1: zmiana próby ledwo coś zmienia, kontrole płci i miasta przesuwają OR ku 1.",
+    "bridge": "Skąd różnica OR wieku względem H1: zmiana próby i klastrów prawie nic nie zmienia, dopiero kontrole płci i miasta przesuwają OR ku 1.",
 }
 
 
@@ -57,15 +57,32 @@ def _apply():
 
 
 def _caption(fig, key: str):
-    fig.text(0.01, -0.02, CAPTIONS[key], ha="left", va="top", fontsize=8.5, color=STYLE["gray"])
+    fig.text(0.01, -0.07, CAPTIONS[key], ha="left", va="top", fontsize=8.5, color=STYLE["gray"])
 
 
 def _or_axis(ax, lo: float, hi: float):
     ax.axvline(1, color=STYLE["gray"], ls="--", lw=1)
     ax.set_xscale("log")
+    ax.set_xlim(lo * 0.9, hi * 1.1)
     ticks = [t for t in (0.25, 0.35, 0.5, 0.75, 1, 1.5, 2, 3, 4) if lo * 0.9 <= t <= hi * 1.1]
     ax.set_xticks(ticks, [f"{t:g}".replace(".", ",") for t in ticks])
     ax.minorticks_off()
+
+
+def _pct(r: float) -> str:
+    return f"{r:.1%}".replace(".", ",")
+
+
+def _n(x: float) -> str:
+    return f"{int(x):,}".replace(",", "\u00a0")
+
+
+def _pl_axis(ax, axis: str = "x"):
+    """Decimal comma on a linear axis."""
+    from matplotlib.ticker import FuncFormatter
+
+    fmt = FuncFormatter(lambda v, _: f"{v:g}".replace(".", ",").replace("-", "\u2212"))
+    (ax.xaxis if axis == "x" else ax.yaxis).set_major_formatter(fmt)
 
 
 def _dot(ax, y, est, lo, hi, color, marker="o", hollow=False):
@@ -104,7 +121,7 @@ def sex_matrix(R: dict):
             ax.text(
                 j,
                 i,
-                f"{r:.1%}\nn={int(ns.iat[i, j]):,}".replace(".", ","),
+                f"{_pct(r)}\nn={_n(ns.iat[i, j])}",
                 ha="center",
                 va="center",
                 color="white" if r > 0.6 * vmax else STYLE["ink"],
@@ -177,9 +194,9 @@ def age_matrix(R: dict):
                     color=STYLE["gray"],
                 )
                 continue
-            txt = f"{r:.1%}\n[{lo.iat[i, j]:.0%}; {hi.iat[i, j]:.0%}]\nn={int(ns.iat[i, j]):,}"
+            txt = f"{_pct(r)}\n[{lo.iat[i, j]:.0%}; {hi.iat[i, j]:.0%}]\nn={_n(ns.iat[i, j])}"
             ax.text(
-                j, i, txt.replace(".", ","), ha="center", va="center", fontsize=7.5,
+                j, i, txt, ha="center", va="center", fontsize=7.5,
                 color="white" if r > 0.6 * vmax else STYLE["ink"],
             )  # fmt: skip
     fig.colorbar(im, ax=ax, label="odsetek prawych", shrink=0.8)
@@ -261,7 +278,7 @@ def estimators(R: dict, controls: bool = False):
                 ax.plot(r["or"], k + (j - 0.5) * 0.28, "x", color=col, ms=8)
     ax.set_yticks(range(len(names)), list(names.values()))
     ax.invert_yaxis()
-    _or_axis(ax, 1, 3)
+    _or_axis(ax, 1, 5)
     ax.set_xlabel("iloraz szans (skala log); × = estymata bez błędu standardowego")
     handles = [plt.Line2D([], [], color=c, lw=2, label=e) for e, c in cols.items()]
     ax.legend(handles=handles, loc="lower right", frameon=False)
@@ -294,8 +311,12 @@ def cv_deltas(R: dict):
         ax.set_yticks(range(len(comps)), [labels[c] for c in comps] if ax is axes[0] else [])
         ax.invert_yaxis()
         ax.set_title(title, loc="left", fontsize=9.5)
+    for ax in axes:
+        _pl_axis(ax)
     handles = [plt.Line2D([], [], color=c, lw=2, label=lab) for lab, c in sch.values()]
-    axes[2].legend(handles=handles, loc="lower right", frameon=False, fontsize=8)
+    fig.legend(
+        handles=handles, loc="upper center", ncol=2, frameon=False, bbox_to_anchor=(0.5, 1.06)
+    )
     _caption(fig, "cv_deltas")
     return fig
 
@@ -313,7 +334,7 @@ def bridge(R: dict):
             _dot(
                 ax, k, r["or"], r["or_lo"], r["or_hi"], STYLE["purple"] if k < 3 else STYLE["blue"]
             )
-        _or_axis(ax, 0.3, 0.8)
+        _or_axis(ax, 0.25, 1.0)
         ax.set_title(title, loc="left", fontsize=9.5)
         ax.set_xlabel("OR (skala log)")
     axes[0].set_yticks(range(len(steps)), steps, fontsize=8)
