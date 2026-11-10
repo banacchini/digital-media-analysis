@@ -1,6 +1,6 @@
 # H3a: wyniki (generowane automatycznie)
 
-Wygenerowano: 2026-11-10T03:16; poziom przebiegu: 3; SAMPLE_FRAC = 1.0; SEED = 20261102; margines praktycznego zera |log OR| ≤ 0,10.
+Wygenerowano: 2026-11-10T03:29; poziom przebiegu: 3; SAMPLE_FRAC = 1.0; SEED = 20261102; margines praktycznego zera |log OR| ≤ 0,10.
 
 ## Werdykt
 
@@ -15,7 +15,7 @@ Wygenerowano: 2026-11-10T03:16; poziom przebiegu: 3; SAMPLE_FRAC = 1.0; SEED = 2
 
 | Model | OR (95% CI; 90% CI) | β | SE | p | MDE OR | Etykieta |
 |---|---|---|---|---|---|---|
-| M1 | brak oszacowania | – | – | – | – | brak oszacowania |
+| M1 | – (95% CI –––; 90% CI –––) | – | – | – | – | brak oszacowania |
 | M2 | 1,130 (95% CI 1,044–1,222; 90% CI 1,058–1,207) | 0,1221 | 0,0402 | 0,0024 | 1,119 | potwierdzony |
 | M3 | 1,189 (95% CI 1,070–1,320; 90% CI 1,088–1,298) | 0,1727 | 0,0536 | 0,0013 | 1,162 | potwierdzony |
 
@@ -49,6 +49,7 @@ Hyderabad: 45 kont; usuwa 849 swipe'ów na profile (jako nadawca 669, jako odbio
 ## M6: przyrost predykcyjny (opisowy)
 
 - ΔlogLoss = -2.47e-04 (95% CI -5.07e-04 do -4.21e-06); ΔAUC = 3.43e-03 (95% CI 1.89e-03 do 4.99e-03); AUC baseline 0,633. Wnioskowanie opiera się na regule z sekcji 7, nie na M6.
+- ΔAUC-PR = 2.50e-03 (95% CI 5.62e-04 do 4.15e-03); AUC-PR baseline 0,2890, pełny 0,2915; odsetek prawych 0,206 (poziom odniesienia AUC-PR dla losowego klasyfikatora). Bootstrap po nadawcach (B = 1000), predykcje out-of-fold. M6 jest opisowy.
 
 ## M4: analiza w obrębie odbiorcy
 
@@ -59,26 +60,26 @@ Hyderabad: 45 kont; usuwa 849 swipe'ów na profile (jako nadawca 669, jako odbio
 
 | spec   | model   |   n_obs | OR (95% CI)                                    | label             |
 |:-------|:--------|--------:|:-----------------------------------------------|:------------------|
-| S1     | M1      |   76187 | brak oszacowania                               | brak oszacowania  |
+| S1     | M1      |   76187 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
 | S1     | M2      |   76187 | 1,138 (95% CI 1,047–1,238; 90% CI 1,061–1,222) | potwierdzony      |
 | S1     | M3      |   76187 | 1,190 (95% CI 1,071–1,322; 90% CI 1,089–1,300) | potwierdzony      |
 | S2a    | M2      |   47373 | 1,064 (95% CI 0,972–1,165; 90% CI 0,986–1,148) | nierozstrzygający |
 | S2a    | M3      |   47373 | 1,174 (95% CI 1,042–1,322; 90% CI 1,062–1,297) | potwierdzony      |
 | S2b    | M2      |   93717 | 1,127 (95% CI 1,042–1,218; 90% CI 1,055–1,203) | potwierdzony      |
 | S2b    | M3      |   93717 | 1,172 (95% CI 1,051–1,306; 90% CI 1,070–1,284) | potwierdzony      |
-| S3     | M1      |   94566 | brak oszacowania                               | brak oszacowania  |
+| S3     | M1      |   94566 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
 | S3     | M2      |   94566 | 1,128 (95% CI 1,043–1,220; 90% CI 1,056–1,204) | potwierdzony      |
 | S3     | M3      |   94566 | 1,187 (95% CI 1,069–1,318; 90% CI 1,087–1,296) | potwierdzony      |
-| S4     | M1      |   93717 | brak oszacowania                               | brak oszacowania  |
+| S4     | M1      |   93717 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
 | S4     | M2      |   93717 | 1,130 (95% CI 1,044–1,223; 90% CI 1,058–1,208) | potwierdzony      |
 | S4     | M3      |   93717 | 1,188 (95% CI 1,069–1,319; 90% CI 1,088–1,297) | potwierdzony      |
 | S5     | M2      |   93717 | 1,135 (95% CI 1,048–1,229; 90% CI 1,062–1,213) | potwierdzony      |
 | S5     | M3      |   93717 | 1,216 (95% CI 1,099–1,347; 90% CI 1,117–1,325) | potwierdzony      |
 | S6     | M2      |   93717 | 1,130 (95% CI 1,044–1,223; 90% CI 1,058–1,208) | potwierdzony      |
 | S6     | M3      |   93717 | 1,189 (95% CI 1,070–1,320; 90% CI 1,089–1,298) | potwierdzony      |
-| S7     | M1      |   93717 | brak oszacowania                               | brak oszacowania  |
+| S7     | M1      |   93717 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
 | S7     | M2      |   93717 | 1,123 (95% CI 1,040–1,213; 90% CI 1,053–1,198) | potwierdzony      |
-| S7     | M3      |   93717 | brak oszacowania                               | brak oszacowania  |
+| S7     | M3      |   93717 | – (95% CI –––; 90% CI –––)                     | brak oszacowania  |
 
 Flagi wrażliwości: S1: różne etykiety między estymatorami (brak oszacowania; potwierdzony) | S2a: różne etykiety między estymatorami (nierozstrzygający; potwierdzony) | S3: różne etykiety między estymatorami (brak oszacowania; potwierdzony) | S4: różne etykiety między estymatorami (brak oszacowania; potwierdzony) | S7: różne etykiety między estymatorami (brak oszacowania; potwierdzony) | etykieta M2 inna niż w specyfikacji głównej w: S2a
 
@@ -211,6 +212,21 @@ M4 (analiza wewnątrz odbiorcy) jest niewykonalny (17 < 30 odbiorców), więc ef
 | Z5_tags_v1 | M1_lme4 | 93717 | 1,132 (1,028–1,247) | potwierdzony |
 
 Aktywność = log(1 + liczba swipe'ów odbiorcy jako nadawcy); to proxy potencjalnie endogeniczne (aktywni użytkownicy częściej piszą bio). Wiek „jak w H1” = same_band, age_band_diff_abs, age_band_diff. Zmienne tagów zależą od słownika: po przejściu na słownik v1 zmienia się liczba tagów w 10,3% swipe'ów (średnia 7,52 → 7,42), `tag_cap` w 6307 wierszach, `tag_zero` bez zmian; OR `has_bio` w Z5_tags_v1 jest praktycznie identyczny z głównym.
+
+### Z8. Zmienne jakości bio (opisowo, bez werdyktu)
+
+Wśród swipe'ów na profile z bio (N = 51555): emoji w 18,3%, znak `?` w 0,2%; język (heurystyka stop-słów, **nieprzetestowana**): pl 84,4%, en 5,5%, inny/niejasny 10,1%. Model wtórny w stylu M5 (M2, bez werdyktu):
+
+| Człon | Model | OR (95% CI) | p |
+|---|---|---|---|
+| log1p_bio_len | bez zmiennych jakości | 1,045 (1,006–1,086) | 0,0233 |
+| log1p_bio_len | ze zmiennymi jakości | 1,033 (0,975–1,093) | 0,2702 |
+| bio_len_cap | bez zmiennych jakości | 0,912 (0,689–1,207) | 0,5197 |
+| bio_len_cap | ze zmiennymi jakości | 0,919 (0,688–1,229) | 0,5694 |
+| log1p_emoji | ze zmiennymi jakości | 1,058 (0,933–1,198) | 0,3790 |
+| log1p_question | ze zmiennymi jakości | 1,307 (0,452–3,774) | 0,6212 |
+| lang_pl | ze zmiennymi jakości | 1,051 (0,876–1,262) | 0,5933 |
+| lang_en | ze zmiennymi jakości | 0,900 (0,694–1,167) | 0,4253 |
 
 
 ## Ograniczenia, które muszą towarzyszyć wynikowi

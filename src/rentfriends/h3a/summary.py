@@ -159,6 +159,27 @@ def audit_section(a: dict, res: dict) -> list[str]:
         f"`tag_cap` w {k['tag_cap_changed']} wierszach, `tag_zero` bez zmian; OR `has_bio` w "
         "Z5_tags_v1 jest praktycznie identyczny z głównym.\n"
     )
+    z8 = a.get("z8")
+    if z8:
+        d = z8["desc"]
+        L.append("### Z8. Zmienne jakości bio (opisowo, bez werdyktu)\n")
+        L.append(
+            f"Wśród swipe'ów na profile z bio (N = {z8['n_obs']}): emoji w "
+            f"{_f(100 * d['share_swipes_any_emoji'], 1)}%, znak `?` w "
+            f"{_f(100 * d['share_swipes_any_question'], 1)}%; język (heurystyka stop-słów, "
+            f"**nieprzetestowana**): pl {_f(100 * d['share_swipes_lang_pl'], 1)}%, en "
+            f"{_f(100 * d['share_swipes_lang_en'], 1)}%, inny/niejasny "
+            f"{_f(100 * d['share_swipes_lang_other'], 1)}%. Model wtórny w stylu M5 (M2, bez "
+            "werdyktu):\n"
+        )
+        L.append("| Człon | Model | OR (95% CI) | p |")
+        L.append("|---|---|---|---|")
+        for t in z8["terms"]:
+            L.append(
+                f"| {t['term']} | {t['model']} | {_f(t['or'])} "
+                f"({_f(t['or_lo95'])}–{_f(t['or_hi95'])}) | {_f(t['p'], 4)} |"
+            )
+        L.append("")
     return L
 
 

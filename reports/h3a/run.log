@@ -1206,3 +1206,57 @@ Executing Cell 26--------------------------------------
 
 Ending Cell 26-----------------------------------------
 Executing: 100%|██████████| 26/26 [00:16<00:00,  1.39s/cell]Executing: 100%|██████████| 26/26 [00:17<00:00,  1.51cell/s]
+H3A START 2026-11-10T03:27:25+01:00
+warning: `VIRTUAL_ENV=/home/dominik/.venv` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead
+Input Notebook:  notebooks/H3a.ipynb
+Output Notebook: notebooks/H3a-rendered.ipynb
+Working directory: .
+Unable to parse line 2 'RUN_LEVEL = 1  # 3 = poziom 3 (diagnostyka, SE dla GLMM, figury)'.
+Passed unknown parameter: RUN_LEVEL
+Executing:   0%|          | 0/40 [00:00<?, ?cell/s][IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+Executing notebook with kernel: python3
+Executing Cell 1---------------------------------------
+Ending Cell 1------------------------------------------
+Executing:   2%|▎         | 1/40 [00:00<00:15,  2.45cell/s]Executing Cell 2---------------------------------------
+Ending Cell 2------------------------------------------
+Executing Cell 3---------------------------------------
+Ending Cell 3------------------------------------------
+Executing Cell 4---------------------------------------
+Ending Cell 4------------------------------------------
+Executing:  10%|█         | 4/40 [00:01<00:10,  3.46cell/s]Executing Cell 5---------------------------------------
+Ending Cell 5------------------------------------------
+Executing Cell 6---------------------------------------
+<Figure size 1000x560 with 1 Axes>
+                                              krok  swipes  prawe  nadawcy  odbiorcy
+0                               Swipe'y na profile   95144  19495     1583      1394
+1  Po wykluczeniu Hyderabad (nadawca lub odbiorca)   94295  19363     1544      1363
+2                Po complete-case (zmienne modelu)   93717  19325     1538      1359
+                     miara     karta       asof  odchylenie_pct  bieżący_users  flaga_>1pct
+0           profile_swipes  95144.00  95144.000           0.000            NaN        False
+1             right_swipes  19495.00  19495.000           0.000            NaN        False
+2          right_share_pct     20.49     20.490          -0.000            NaN        False
+3                  swipers   1583.00   1583.000           0.000            NaN        False
+4                    users   2065.00   2065.000           0.000            NaN        False
+5          swipes_with_bio  52371.00  52297.000          -0.141      52371.000        False
+6       right_pct_with_bio     21.50     21.420          -0.372         21.537        False
+7    right_pct_without_bio     19.20     19.355           0.807         19.208        False
+8  missing_age_band_swipes    578.00    578.000           0.000            NaN        False
+Hyderabad: {'accounts': 45, 'accounts_any_version': 45, 'profile_swipes_removed': 849, 'as_sender': 669, 'as_receiver': 627}
+Źródło wersji as-of: {'s': {'prior_version': 50932, 'first_version': 44086, 'users_current': 126}, 'r': {'prior_version': 88848, 'first_version': 5625, 'users_current': 671}, 'pair': {'prior_version': 47540, 'first_version': 46846, 'users_current': 758}}
+G18 (bio_length vs tekst): {'receiver_snapshots': 2195, 'share_mismatch': 0.020045558086560365, 'share_swipes_mismatch': 0.025718910283359958}
+Braki po filtrze Hyderabad: {'age_band_diff': 578, 'same_band': 578}
+
+Ending Cell 6------------------------------------------
+Executing:  15%|█▌        | 6/40 [00:02<00:11,  2.87cell/s]Executing Cell 7---------------------------------------
+Ending Cell 7------------------------------------------
+Executing Cell 8---------------------------------------
+<Figure size 1000x560 with 1 Axes>
+<Figure size 1000x560 with 1 Axes>
+<Figure size 1000x560 with 1 Axes>
+{'share_empty_swipes': np.float64(0.4498863599987195), 'share_cap_among_nonempty': 0.01737949762389681, 'bio_len_median_nonempty': 95.0, 'bio_len_iqr_nonempty': [50.0, 161.0]}
+
+Ending Cell 8------------------------------------------
+Executing:  20%|██        | 8/40 [00:03<00:13,  2.36cell/s]Executing Cell 9---------------------------------------
+Ending Cell 9------------------------------------------
+Executing Cell 10--------------------------------------
+H3A DONE 2026-11-10T03:29:06+01:00
