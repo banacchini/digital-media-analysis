@@ -457,6 +457,10 @@ def _spec_fp(spec: M.Spec) -> dict:
         d.pop("control_set")
     if not d.get("interact_cols"):
         d.pop("interact_cols", None)
+    if d.get("age_controls") == "signed":
+        d.pop("age_controls")
+    if not d.get("extra_controls"):
+        d.pop("extra_controls", None)
     return d
 
 

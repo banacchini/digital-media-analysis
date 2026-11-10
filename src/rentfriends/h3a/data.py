@@ -38,6 +38,8 @@ class RawData:
     history: pd.DataFrame
     swipes: pd.DataFrame
     mapping: pd.DataFrame
+    # Audit Z5: replaces the tag map built from `mapping` (data contract v1 dictionary).
+    tag_map_override: dict[str, str] | None = None
 
 
 def load_raw(data_dir: Path = DATA_DIR, mapping_csv: Path = MAPPING_CSV) -> RawData:
@@ -124,7 +126,7 @@ def profile_features(snap: pd.DataFrame, tag_map: dict[str, str]) -> pd.DataFram
 
 def snapshot_table(raw: RawData) -> pd.DataFrame:
     """Features for every (user_key, version); version = -1 is the current users row."""
-    tag_map = v.build_tag_map(raw.mapping)
+    tag_map = raw.tag_map_override or v.build_tag_map(raw.mapping)
     hist = raw.history[["user_key", "version", *PROFILE_COLS]].copy()
     cur = raw.users[["user_key", *PROFILE_COLS]].copy()
     cur["version"] = -1
