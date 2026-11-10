@@ -65,6 +65,3 @@ Incydenty i odstępstwa w tej sesji:
 6. Dane: `bio` nie było wczytywane; do `lme4` trafiają całkowite kody nadawców i odbiorców w prywatnym katalogu
    tymczasowym (usuwanym po fitcie), bez `user_key`. W repo nie ma wierszy tabel ani `user_key`.
 7. Środowisko: tylko `uv run --frozen`; bez `--active` i `pkill`; `uv.lock` i `pyproject.toml` bez zmian.
-
-**Przypomnienie dla człowieka:** wyeksportować pełny log sesji do `logs/ai/claude/dominik/` (zob. `logs/ai/README.md`)
-i dopisać wiersz w `docs/ai-disclosure.md` (dodany w tym commicie w wersji roboczej).
