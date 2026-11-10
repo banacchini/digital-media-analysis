@@ -167,8 +167,22 @@ def _suppress_small(rows: list[dict]) -> list[dict]:
     return rows
 
 
-def run_audit(prior_results: Path = Path("reports/h3a/results.json")) -> dict:
-    """Z1-Z5 on the full sample; writes `reports/h3a/audit_results.json` (aggregates only)."""
+def load_audit(path: Path = OUT_JSON) -> dict:
+    """Read the stored audit results (no recomputation); use this for tables and plots."""
+    return json.loads(Path(path).read_text())
+
+
+def run_audit(
+    prior_results: Path = Path("reports/h3a/results.json"), refresh: bool = False
+) -> dict:
+    """Z1-Z5 on the full sample; writes `reports/h3a/audit_results.json` (aggregates only).
+
+    Two cache layers: every model fit is cached under `data/interim/h3a/cache` (key = data
+    hash), and the finished result file is reused unless `refresh=True`. To redo everything
+    delete `audit_results.json`; to refit a model delete its file in the cache directory.
+    """
+    if OUT_JSON.exists() and not refresh:
+        return load_audit()
     prior = json.loads(prior_results.read_text())
     margin = prior["params"]["margin"]
     ctx = make_ctx()
