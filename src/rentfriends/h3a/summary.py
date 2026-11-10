@@ -321,6 +321,14 @@ def write_summary(
             f"{m6['d_auc_lo95']:.2e} do {m6['d_auc_hi95']:.2e}); AUC baseline "
             f"{_f(m6['auc_base'])}. Wnioskowanie opiera się na regule z sekcji 7, nie na M6."
         )
+        if "d_aucpr" in m6:
+            L.append(
+                f"- ΔAUC-PR = {m6['d_aucpr']:.2e} (95% CI {m6['d_aucpr_lo95']:.2e} do "
+                f"{m6['d_aucpr_hi95']:.2e}); AUC-PR baseline {_f(m6['aucpr_base'], 4)}, pełny "
+                f"{_f(m6['aucpr_full'], 4)}; odsetek prawych {_f(m6['prevalence'], 3)} "
+                "(poziom odniesienia AUC-PR dla losowego klasyfikatora). Bootstrap po nadawcach "
+                "(B = 1000), predykcje out-of-fold. M6 jest opisowy."
+            )
     m4 = res.get("m4", {})
     if m4:
         fu = m4["funnel"]

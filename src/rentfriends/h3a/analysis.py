@@ -461,6 +461,8 @@ def _spec_fp(spec: M.Spec) -> dict:
         d.pop("age_controls")
     if not d.get("extra_controls"):
         d.pop("extra_controls", None)
+    if not d.get("raw_controls"):
+        d.pop("raw_controls", None)
     return d
 
 
@@ -770,11 +772,17 @@ def m6_predictive(ctx: Ctx) -> dict:
                 "lo95": res["d_auc_lo95"],
                 "hi95": res["d_auc_hi95"],
             },
+            {
+                "miara": "ΔAUC-PR (pełny − baseline)",
+                "wartosc": res["d_aucpr"],
+                "lo95": res["d_aucpr_lo95"],
+                "hi95": res["d_aucpr_hi95"],
+            },
         ]
     )
     ctx.saver.save_table(tab, "h3a_m6_predictive")
-    fig, axes = plt.subplots(1, 2, figsize=(10, 5.6))
-    for ax, (_, row), col in zip(axes, tab.iterrows(), (F.BLUE, F.GREEN), strict=True):
+    fig, axes = plt.subplots(1, 3, figsize=(14, 5.6))
+    for ax, (_, row), col in zip(axes, tab.iterrows(), (F.BLUE, F.GREEN, F.GRAY), strict=True):
         ax.errorbar(
             [0],
             [row["wartosc"]],

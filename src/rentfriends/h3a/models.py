@@ -41,6 +41,8 @@ class Spec:
     age_controls: str = "signed"
     # Audit (Z5): extra standardised numeric columns of the analysis frame (activity proxies).
     extra_controls: tuple[str, ...] = ()
+    # Audit (Z8): extra numeric columns entered as they are (not standardised).
+    raw_controls: tuple[str, ...] = ()
     extra: dict = field(default_factory=dict)
 
 
@@ -98,6 +100,8 @@ def build_design(t: pd.DataFrame, spec: Spec) -> tuple[pd.DataFrame, dict]:
             cols["age_band_diff_abs"] = _std(t["age_band_diff"].astype(float).abs())
     for c in spec.extra_controls:
         cols[c] = _std(t[c].astype(float))
+    for c in spec.raw_controls:
+        cols[c] = t[c].astype(float)
     if cs in ("demog_completeness", "full") and not spec.extended:
         cols[spec.completeness_var] = _std(t[spec.completeness_var].astype(float))
     if cs == "full":

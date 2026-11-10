@@ -167,6 +167,73 @@ def _suppress_small(rows: list[dict]) -> list[dict]:
     return rows
 
 
+def bio_quality_table(raw: D.RawData) -> pd.DataFrame:
+    """Emoji count, '?' count and language class per profile snapshot (in memory only)."""
+    hist = raw.history[["user_key", "version", "bio"]]
+    cur = raw.users[["user_key", "bio"]].assign(version=-1)
+    snaps = pd.concat([hist, cur], ignore_index=True)
+    q = v.bio_quality(snaps["bio"])
+    q.index = pd.MultiIndex.from_arrays([snaps["user_key"], snaps["version"]])
+    return q
+
+
+def z8_secondary(ctx: A.Ctx, raw: D.RawData, main: pd.DataFrame) -> dict:
+    """Z8: descriptive bio-quality variables and an M5-style secondary model, NO verdict.
+
+    Among receivers with a bio: log length + cap + log(1 + emoji) + log(1 + '?') + language
+    (reference: other/unclear). Pooled logit with two-way clustering (M2). The language rule is a
+    crude, unvalidated stop-word heuristic; nothing from the text is stored or shown.
+    """
+    q = bio_quality_table(raw)
+    keys = pd.MultiIndex.from_arrays([main["r_key"].to_numpy(), main["r_version"].to_numpy()])
+    f = q.reindex(keys)
+    sub = main.assign(
+        log1p_emoji=np.log1p(f["n_emoji"].to_numpy(float)),
+        log1p_question=np.log1p(f["n_question"].to_numpy(float)),
+        lang_pl=(f["lang"].to_numpy() == "pl").astype(float),
+        lang_en=(f["lang"].to_numpy() == "en").astype(float),
+        any_emoji=(f["n_emoji"].to_numpy() > 0).astype(float),
+        any_question=(f["n_question"].to_numpy() > 0).astype(float),
+    )
+    sub = sub[sub["has_bio"] == 1].dropna(subset=["log1p_emoji"])
+    desc = {
+        "swipes_with_bio": len(sub),
+        "receivers_with_bio": int(sub["r_key"].nunique()),
+        "share_swipes_any_emoji": float(sub["any_emoji"].mean()),
+        "share_swipes_any_question": float(sub["any_question"].mean()),
+        "share_swipes_lang_pl": float(sub["lang_pl"].mean()),
+        "share_swipes_lang_en": float(sub["lang_en"].mean()),
+        "share_swipes_lang_other": float(1 - sub["lang_pl"].mean() - sub["lang_en"].mean()),
+        "right_rate_any_emoji": float(sub.loc[sub["any_emoji"] == 1, "y_right"].mean()),
+        "right_rate_no_emoji": float(sub.loc[sub["any_emoji"] == 0, "y_right"].mean()),
+        "right_rate_any_question": float(sub.loc[sub["any_question"] == 1, "y_right"].mean()),
+        "right_rate_no_question": float(sub.loc[sub["any_question"] == 0, "y_right"].mean()),
+    }
+    raw_cols = ("log1p_emoji", "log1p_question", "lang_pl", "lang_en")
+    base = A.fit_models(
+        ctx, "Z8_base", sub, M.Spec(name="Z8_base", bio_terms="log_len"), which=("M2",)
+    )["M2"]
+    full = A.fit_models(
+        ctx,
+        "Z8_full",
+        sub,
+        M.Spec(name="Z8_full", bio_terms="log_len", raw_controls=raw_cols),
+        which=("M2",),
+    )["M2"]
+    terms = []
+    for nm in ("log1p_bio_len", "bio_len_cap", *raw_cols):
+        for label, r in (("bez zmiennych jakości", base), ("ze zmiennymi jakości", full)):
+            b, se = M.coef_of(r, nm)
+            if math.isfinite(b):
+                terms.append({"term": nm, "model": label, **C.wald_ci(b, se)})
+    return {
+        "note": "opisowo, bez werdyktu; język: nieprzetestowana heurystyka stop-słów",
+        "desc": desc,
+        "terms": terms,
+        "n_obs": len(sub),
+    }
+
+
 def load_audit(path: Path = OUT_JSON) -> dict:
     """Read the stored audit results (no recomputation); use this for tables and plots."""
     return json.loads(Path(path).read_text())
@@ -297,6 +364,9 @@ def run_audit(
     }
     z5 += fit_scenario(ctx, "Z5_tags_v1", main1, M.Spec(name="Z5_tags_v1"))
     res["z5"] = z5
+
+    # --- Z8 (P3): bio quality variables, descriptive only.
+    res["z8"] = z8_secondary(ctx, raw, main)
 
     OUT_JSON.write_text(json.dumps(_clean(res), ensure_ascii=False, indent=1))
     return res

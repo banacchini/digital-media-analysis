@@ -114,3 +114,32 @@ def test_summary_no_spurious_estimator_flag_and_audit_block(tmp_path):
     S.write_summary(res, tmp_path, 3)
     out = (tmp_path / "summary.md").read_text()
     assert "wrażliwy na estymator" not in out.split("## Wynik główny")[0]
+
+
+def test_bio_quality_rules():
+    from rentfriends.h3a import variables as v
+
+    assert v.count_emoji("hej 😀😀 ok ❤️") == 3  # variation selector not counted
+    assert v.count_emoji("bez emoji") == 0
+    assert v.guess_language("Szukam spokojnego współlokatora, lubię gotować") == "pl"
+    assert v.guess_language("Looking for a quiet roommate, I love cooking") == "en"
+    assert v.guess_language("ok") == "other"
+    q = v.bio_quality(pd.Series(["co tam? a ty?", None]))
+    assert q["n_question"].tolist() == [2, 0] and q["n_emoji"].tolist() == [0, 0]
+
+
+def test_aucpr_bootstrap_fields_and_weights():
+    from rentfriends.h3a import predictive as P
+
+    rng = np.random.default_rng(0)
+    n = 600
+    sender = rng.integers(0, 60, n)
+    x = rng.normal(size=n)
+    y = (rng.random(n) < 1 / (1 + np.exp(-(0.8 * x - 1)))).astype(float)
+    Xb = np.c_[np.ones(n), rng.normal(size=n)]
+    Xf = np.c_[np.ones(n), x]
+    r = P.predictive_increment(Xb, Xf, y, sender, n_splits=3, n_boot=30, seed=1)
+    assert r["d_aucpr"] > 0 and r["d_aucpr_lo95"] < r["d_aucpr"] < r["d_aucpr_hi95"] + 1e-9
+    assert abs(r["prevalence"] - y.mean()) < 1e-12
+    # unit weights reproduce the unweighted metric
+    assert abs(P._aucpr(y, Xf[:, 1], np.ones(n)) - P._aucpr(y, Xf[:, 1])) < 1e-12

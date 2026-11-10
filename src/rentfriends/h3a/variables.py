@@ -129,3 +129,159 @@ def same_city(sender_city: pd.Series, receiver_city: pd.Series) -> pd.Series:
     out = pd.Series(np.where(eq, "same", "different"), index=s.index, dtype="object")
     out[unknown.fillna(True).to_numpy()] = "unknown"
     return out
+
+
+# ----------------------------------------------------------------------------- bio quality (Z8)
+# Descriptive, offline and rule-based; no text is returned or stored. The language rule is a
+# crude stop-word heuristic and is NOT validated against a human gold standard.
+
+_EMOJI_RANGES = (
+    (0x1F000, 0x1FAFF),
+    (0x2600, 0x27BF),
+    (0x2B00, 0x2BFF),
+    (0x2300, 0x23FF),
+    (0x2190, 0x21FF),
+)
+_EMOJI_SKIP = set(range(0x1F3FB, 0x1F400)) | {0x200D, 0xFE0F, 0xFE0E, 0x20E3}
+
+_PL_WORDS = frozenset(
+    [
+        "i",
+        "w",
+        "z",
+        "na",
+        "do",
+        "się",
+        "nie",
+        "to",
+        "jest",
+        "że",
+        "co",
+        "jak",
+        "ale",
+        "lub",
+        "czy",
+        "mam",
+        "lubię",
+        "szukam",
+        "jestem",
+        "mieszkanie",
+        "pokój",
+        "studiuję",
+        "studiuje",
+        "mieszkania",
+        "współlokatora",
+        "współlokatorki",
+        "osoba",
+        "osobą",
+        "dla",
+        "przy",
+        "po",
+        "od",
+        "bardzo",
+        "też",
+        "ja",
+        "mnie",
+        "mi",
+        "moje",
+        "cześć",
+        "hej",
+        "lubię",
+        "kocham",
+        "chcę",
+        "chciałbym",
+        "chciałabym",
+        "spokojna",
+        "spokojny",
+        "otwarty",
+        "otwarta",
+    ]
+)
+_EN_WORDS = frozenset(
+    [
+        "i",
+        "the",
+        "a",
+        "an",
+        "and",
+        "or",
+        "to",
+        "of",
+        "in",
+        "is",
+        "am",
+        "are",
+        "my",
+        "me",
+        "for",
+        "with",
+        "on",
+        "at",
+        "it",
+        "that",
+        "this",
+        "not",
+        "but",
+        "you",
+        "your",
+        "looking",
+        "like",
+        "love",
+        "flat",
+        "room",
+        "roommate",
+        "student",
+        "studying",
+        "looking",
+        "hi",
+        "hey",
+        "open",
+        "easy",
+        "going",
+        "friendly",
+        "quiet",
+        "clean",
+        "want",
+        "would",
+    ]
+)
+_PL_DIACRITICS = frozenset("ąćęłńóśźż")
+
+
+def count_emoji(text: str) -> int:
+    """Number of emoji-range characters (modifiers, ZWJ and variation selectors not counted)."""
+    n = 0
+    for ch in text:
+        cp = ord(ch)
+        if cp in _EMOJI_SKIP:
+            continue
+        if any(lo <= cp <= hi for lo, hi in _EMOJI_RANGES):
+            n += 1
+    return n
+
+
+def guess_language(text: str) -> str:
+    """'pl' | 'en' | 'other' by stop-word and diacritic scores; 'other' also when unclear."""
+    low = text.lower()
+    letters = [c for c in low if c.isalpha()]
+    if len(letters) < 12:
+        return "other"
+    words = [w.strip(".,!?;:()\"'") for w in low.split()]
+    pl = sum(w in _PL_WORDS for w in words) + sum(c in _PL_DIACRITICS for c in low) / 2
+    en = sum(w in _EN_WORDS for w in words)
+    if pl == 0 and en == 0:
+        return "other"
+    return "pl" if pl > en else "en" if en > pl else "other"
+
+
+def bio_quality(bio: pd.Series) -> pd.DataFrame:
+    """Per-snapshot emoji count, number of '?' and language class (aggregates only downstream)."""
+    text = bio.fillna("").astype(str)
+    return pd.DataFrame(
+        {
+            "n_emoji": text.map(count_emoji).astype(int),
+            "n_question": text.str.count(r"\?").astype(int),
+            "lang": text.map(guess_language),
+        },
+        index=bio.index,
+    )
