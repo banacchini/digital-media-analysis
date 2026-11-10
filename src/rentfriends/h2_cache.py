@@ -23,7 +23,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-CODE_VERSION = "1"
+CODE_VERSION = "2"
 DEFAULT_ROOT = Path("data/interim/h2")
 
 

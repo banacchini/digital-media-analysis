@@ -110,28 +110,46 @@ def estimate(
     names: list[str],
     *,
     glmm: bool = True,
+    lme4: bool = True,
     timeout_s: float = GLMM_TIMEOUT_S,
 ) -> dict:
     """Fit pooled logit (two-way clustered) and, if requested, the crossed-RE GLMM (Z3).
 
-    `primary` records which estimator gives the headline number: the GLMM when it converged with
-    finite standard errors, otherwise the pooled logit (fallback). Both are always stored.
+    GLMM = crossed random intercepts (sender, receiver). It is fitted with GPBoost; when that
+    gives no usable SEs, with lme4 (`glmer`). `glmm_source` says which one the GLMM numbers come
+    from. `primary` records the headline estimator: the GLMM when it has finite SEs, otherwise
+    the pooled logit (fallback). Pooled and GLMM are always both stored.
     """
     pooled = fit_pooled_logit(X, y, sender, receiver, names, bio_col=None)
     out: dict[str, Any] = {"names": list(names), "n": int(len(y)), "pooled": pooled}
+    ok = False
     if glmm:
         g = run_with_timeout(_glmm_job, timeout_s, X, y, sender, receiver, names)
+        g["source"] = "GPBoost"
+        ok = _usable(g)
+        if not ok and lme4:
+            # GPBoost often converges but returns no SEs (D-H3a-26); glmer supplies them.
+            from rentfriends.h3a.analysis import lme4_fit
+
+            l4 = lme4_fit(X, y, sender, receiver, names, timeout_s)
+            l4["source"] = "lme4 (glmer, nAGQ=0)"
+            if _usable(l4):
+                out["glmm_gpboost"] = g
+                g, ok = l4, True
         out["glmm"] = g
-        ok = (
-            g.get("status") == "ok"
-            and np.all(np.isfinite(g.get("se", [np.nan])))
-            and np.all(np.isfinite(g.get("coef", [np.nan])))
-        )
-    else:
-        ok = False
     out["glmm_ok"] = bool(ok)
+    out["glmm_source"] = out.get("glmm", {}).get("source") if glmm else None
     out["primary"] = "GLMM" if ok else "pooled (fallback)"
     return out
+
+
+def _usable(g: dict) -> bool:
+    """Converged (or lme4 `ok`) with finite coefficients and standard errors."""
+    if g.get("status") != "ok":
+        return False
+    return bool(
+        np.all(np.isfinite(g.get("se", [np.nan]))) and np.all(np.isfinite(g.get("coef", [np.nan])))
+    )
 
 
 def term_table(est: dict, model: str, terms: list[str] | None = None) -> pd.DataFrame:
@@ -182,6 +200,15 @@ Z1_CONTROLS = ["age_band_diff", "diff_abs", "same_band", "city_same", "city_diff
 Z1_CODINGS = ("pm", "refF", "refM")
 
 
+def _estimate_parallel(jobs: dict[str, tuple], glmm: bool, workers: int = 6) -> dict[str, dict]:
+    """Run several `estimate` calls at once (each waits on a GPBoost or R subprocess)."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        futs = {k: ex.submit(estimate, *a, glmm=glmm) for k, a in jobs.items()}
+        return {k: f.result() for k, f in futs.items()}
+
+
 def z1_design(d: pd.DataFrame, coding: str, controls: bool):
     """Design matrix for the sex decomposition; see the module docstring.
 
@@ -214,11 +241,11 @@ def z1_design(d: pd.DataFrame, coding: str, controls: bool):
 def z1_fit(d: pd.DataFrame, controls: bool, *, glmm: bool = True) -> dict:
     """Z1 (a): the three codings, pooled and GLMM, plus sample sizes."""
     out: dict[str, Any] = {"controls": controls}
+    jobs, dd = {}, None
     for coding in Z1_CODINGS:
         dd, X, y, names = z1_design(d, coding, controls)
-        out[coding] = estimate(
-            X, y, dd["sender_code"].to_numpy(), dd["receiver_code"].to_numpy(), names, glmm=glmm
-        )
+        jobs[coding] = (X, y, dd["sender_code"].to_numpy(), dd["receiver_code"].to_numpy(), names)
+    out |= _estimate_parallel(jobs, glmm)
     out["n"] = int(len(dd))
     out["n_senders"] = int(dd["sender_code"].nunique())
     out["n_receivers"] = int(dd["receiver_code"].nunique())
@@ -308,16 +335,6 @@ def z1_fixed_effects(d: pd.DataFrame, controls: bool) -> dict:
     return out
 
 
-def z1_lme4(d: pd.DataFrame, controls: bool) -> dict:
-    """Cross-check of the main GLMM in R (`glmer`, nAGQ = 0), integer codes only."""
-    from rentfriends.h3a.analysis import lme4_fit
-
-    dd, X, y, names = z1_design(d, "pm", controls)
-    return lme4_fit(
-        X, y, dd["sender_code"].to_numpy(), dd["receiver_code"].to_numpy(), names, GLMM_TIMEOUT_S
-    )
-
-
 # ---------------------------------------------------------------------- Z2: age matrix/model
 
 
@@ -400,13 +417,14 @@ def age_design(d: pd.DataFrame, param: str, fe_band: bool, controls: bool = True
 
 def z2_models(d: pd.DataFrame, *, glmm: bool = True) -> dict:
     """Z2 (b, c): `same_band`, `age_band_diff_abs`, `age_band_diff` with and without band FE."""
-    out = {}
+    jobs, dd = {}, None
     for fe in (False, True):
         for param in ("linear", "dir"):
             dd, X, y, names = age_design(d, param, fe)
-            out[f"{param}|fe={int(fe)}"] = estimate(
-                X, y, dd["sender_code"].to_numpy(), dd["receiver_code"].to_numpy(), names, glmm=glmm
-            )
+            jobs[f"{param}|fe={int(fe)}"] = (
+                X, y, dd["sender_code"].to_numpy(), dd["receiver_code"].to_numpy(), names,
+            )  # fmt: skip
+    out = _estimate_parallel(jobs, glmm)
     out["n"] = int(len(dd))
     return out
 
@@ -700,7 +718,6 @@ def run_all(
         )
         R[f"z1_derived_{tag}"] = z1_derived(R[f"z1_fit_{tag}"])
         R[f"z1_fe_{tag}"] = step(f"z1_fe_{tag}", lambda c=ctrl: z1_fixed_effects(ds, c))
-    R["z1_lme4_bare"] = step("z1_lme4_bare", lambda: z1_lme4(ds, False)) if glmm else None
     R["z2_matrix"] = step("z2_matrix", lambda: age_matrix(da, n_boot, seed), n_boot=n_boot)
     R["z2_models"] = step("z2_models", lambda: z2_models(da, glmm=glmm), glmm=glmm)
     if h1_df is not None:
